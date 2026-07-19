@@ -1,8 +1,15 @@
 // Central copy + tokens. Quantities are tokens (proof contract); the brand name
 // is {{BRAND}} until locked. Real placeholder copy, realistic length, not lorem.
+// Clips are generic licensed stock (Mixkit), shown as generic craft, never captioned
+// as a specific named claim.
 
-export const BRAND = "{{BRAND}}"; // house brand name, set here once until locked
-export const HERO_LINE = "Strawberry Hill Reserve"; // the JBM hero product line
+export const BRAND = "{{BRAND}}";
+export const HERO_LINE = "Strawberry Hill Reserve";
+
+export const CLIPS = {
+  hero: { src: "/assets/video/hero.mp4", poster: "/assets/video/hero.jpg" },
+  atmosphere: { src: "/assets/video/atmosphere.mp4", poster: "/assets/video/atmosphere.jpg" },
+};
 
 export const NAV = [
   { label: "Reserve", to: "/reserve" },
@@ -12,12 +19,11 @@ export const NAV = [
   { label: "Gifting", to: "/gifting" },
 ];
 
-// The seed-to-cup kinetic beats (the scroll film in Phase 3).
 export const PROCESS = [
-  { word: "Raw", copy: "High-grown cherries, picked ripe in the certified zone. Nothing rushed, nothing padded." },
-  { word: "Roasted", copy: "Roasted at origin and date-stamped at packing, so freshness is a fact you can read, not a promise." },
-  { word: "Ground", copy: "Whole bean or ground to your brew. Same lot, same care, sealed the day it ships." },
-  { word: "Poured", copy: "A clean, low-acid cup that tastes like the mountain it came from. Best taken black." },
+  { word: "Raw", clip: "/assets/video/01-source.mp4", poster: "/assets/video/01-source.jpg", copy: "High-grown cherries, picked ripe in the certified zone. Nothing rushed, nothing padded." },
+  { word: "Roasted", clip: "/assets/video/02-roast.mp4", poster: "/assets/video/02-roast.jpg", copy: "Roasted at origin and date-stamped at packing, so freshness is a fact you can read, not a promise." },
+  { word: "Ground", clip: "/assets/video/03-grind.mp4", poster: "/assets/video/03-grind.jpg", copy: "Whole bean or ground to your brew. Same lot, same care, sealed the day it ships." },
+  { word: "Poured", clip: "/assets/video/04-pour.mp4", poster: "/assets/video/04-pour.jpg", copy: "A clean, low-acid cup that tastes like the mountain it came from. Best taken black." },
 ];
 
 export const ORIGINS = [

@@ -4,5 +4,3 @@ dist/
 *.local
 .env
 .vite/
-public/assets/video/*.mp4
-public/assets/video/*.webm
