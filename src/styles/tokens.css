@@ -1,0 +1,76 @@
+/* Strawberry Hill Reserve - design tokens (Phase 1)
+   Cinematic, monochrome + platinum. Black / white / platinum, no gold (brand rule).
+   Consumed by Tailwind theme (Phase 2) and raw CSS. Every value is a token; components
+   never hardcode a hex, size, duration, or easing. */
+
+:root {
+  /* ---------- Core palette (raw) ---------- */
+  --void: #050505;        /* deepest cinematic black, film sections */
+  --ink: #0a0a0a;         /* base background */
+  --espresso: #141210;    /* warm near-black, coffee-warmth panels */
+  --slate: #171a1d;       /* cool elevated surface */
+  --cream: #f2f0ec;       /* primary light text on dark */
+  --cream-dim: #a8a49c;   /* secondary text, passes 4.5:1 on --ink */
+  --platinum: #c7ccd1;    /* the brand metal, cool silver accent */
+  --platinum-bright: #e8ebee;
+  --line: rgba(242, 240, 236, 0.12);
+  --line-strong: rgba(242, 240, 236, 0.24);
+
+  /* ---------- Semantic tokens (use THESE in components) ---------- */
+  --bg: var(--ink);
+  --bg-film: var(--void);
+  --bg-warm: var(--espresso);
+  --bg-elev: var(--slate);
+  --fg: var(--cream);
+  --fg-muted: var(--cream-dim);
+  --accent: var(--platinum);
+  --accent-strong: var(--platinum-bright);
+  --border: var(--line);
+  --border-strong: var(--line-strong);
+  --focus: #8fd0ff;       /* high-contrast focus ring, AA on dark and light */
+  --danger: #e6b0a6;      /* form errors, readable on dark */
+
+  /* ---------- Type families (2 + a signature accent) ---------- */
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-signature: "Great Vibes", "Snell Roundhand", cursive; /* the "Strawberry Hill" wordmark only */
+
+  /* ---------- Fluid type scale (clamp: mobile -> desktop) ---------- */
+  --step--1: clamp(0.83rem, 0.79rem + 0.18vw, 0.94rem);   /* fine print */
+  --step-0:  clamp(1rem, 0.95rem + 0.25vw, 1.13rem);      /* body */
+  --step-1:  clamp(1.2rem, 1.1rem + 0.5vw, 1.5rem);       /* lead */
+  --step-2:  clamp(1.6rem, 1.35rem + 1.2vw, 2.4rem);      /* h3/h2 */
+  --step-3:  clamp(2.2rem, 1.7rem + 2.5vw, 3.6rem);       /* h2 */
+  --step-4:  clamp(3rem, 2rem + 5vw, 6rem);               /* hero */
+  --step-kinetic: clamp(4rem, 2rem + 12vw, 14rem);        /* Raw. Roasted. oversized */
+
+  /* ---------- Spacing scale (8px rhythm) ---------- */
+  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
+  --space-5: 1.5rem;  --space-6: 2rem;   --space-7: 3rem;    --space-8: 4rem;
+  --space-9: 6rem;    --space-10: 8rem;  --space-11: 12rem;
+  --gutter: clamp(1.25rem, 4vw, 3.5rem);   /* page side padding */
+  --maxw: 1280px;
+  --measure: 64ch;                          /* reading width */
+
+  /* ---------- Radius (sharp, editorial) ---------- */
+  --r-sm: 2px; --r: 4px; --r-lg: 8px; --r-pill: 999px;
+
+  /* ---------- Motion language ---------- */
+  --dur-fast: 200ms;       /* UI states, hovers, focus */
+  --dur: 400ms;            /* content reveals */
+  --dur-slow: 900ms;       /* cinematic entrances */
+  --dur-cinematic: 1200ms; /* hero, signature reveal */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);      /* reveals rise/settle */
+  --ease-inout: cubic-bezier(0.65, 0.05, 0.36, 1);
+  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1); /* long, filmic */
+
+  --shadow-lift: 0 18px 60px -24px rgba(0, 0, 0, 0.8);
+  --grain-opacity: 0.05;
+}
+
+/* Reduced motion: every scrub/fade collapses to a clean static state. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 1ms; --dur: 1ms; --dur-slow: 1ms; --dur-cinematic: 1ms;
+  }
+}
