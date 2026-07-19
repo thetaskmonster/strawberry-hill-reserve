@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.DS_Store
+*.local
+.env
+.vite/
+public/assets/video/*.mp4
+public/assets/video/*.webm
