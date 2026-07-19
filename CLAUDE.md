@@ -29,7 +29,7 @@ A cinematic, scroll-driven website for the {{BRAND}} coffee house; **Strawberry 
 Semantic HTML, headings in order, keyboard navigable end to end, visible focus (`--focus`), labeled controls, 4.5:1 on body text. Kinetic type must pass contrast too.
 
 ## Type + palette (summary; full spec in docs/design-system.md)
-- Display serif: **Playfair Display**. UI sans: **Inter**. Signature wordmark only: **Great Vibes**.
+- Display: **Anton** (condensed brutalist, UPPERCASE + large only, never body). UI sans: **Inter**. Signature wordmark only: **Great Vibes**.
 - Monochrome + platinum: `--bg #0a0a0a`, `--fg #f2f0ec`, `--fg-muted #a8a49c`, `--accent #c7ccd1` (platinum, no gold/champagne).
 
 ## Phase status

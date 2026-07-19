@@ -1,0 +1,40 @@
+@import "./tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face { font-family: "Anton"; font-style: normal; font-weight: 400; font-display: swap; src: url("/fonts/anton-400.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 400; font-display: swap; src: url("/fonts/inter-400.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 600; font-display: swap; src: url("/fonts/inter-600.woff2") format("woff2"); }
+@font-face { font-family: "Great Vibes"; font-style: normal; font-weight: 400; font-display: swap; src: url("/fonts/great-vibes-400.woff2") format("woff2"); }
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  html, body { overflow-x: clip; }               /* backstop: never scroll sideways */
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: var(--step-0);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3 { line-height: 1.02; font-weight: 400; overflow-wrap: break-word; }
+  a { color: inherit; text-decoration: none; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 2px; }
+  ::selection { background: var(--accent); color: var(--void); }
+  img, video { max-width: 100%; display: block; }
+}
+
+@layer components {
+  .container-page { max-width: var(--maxw); margin-inline: auto; padding-inline: var(--gutter); }
+  .display { font-family: var(--font-display); text-transform: uppercase; letter-spacing: var(--display-tracking); line-height: 0.9; }
+  .eyebrow { font-family: var(--font-sans); font-size: var(--step--1); text-transform: uppercase; letter-spacing: 0.24em; color: var(--accent); }
+  .lead { font-size: var(--step-1); color: var(--fg-muted); max-width: var(--measure); }
+  .rule { height: 1px; background: var(--border); border: 0; }
+  .hero-scrim { position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-film) 8%, rgba(5,5,5,0.62) 48%, rgba(5,5,5,0.35) 100%); }
+  .skip-link { position: absolute; left: -9999px; top: 0; background: var(--fg); color: var(--void); padding: 0.6rem 1rem; z-index: 100; }
+  .skip-link:focus { left: 0.5rem; top: 0.5rem; }
+}

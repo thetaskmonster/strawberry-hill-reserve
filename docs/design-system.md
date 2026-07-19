@@ -6,11 +6,11 @@ Flag: CORVO-77. Proposal for GATE 1. Monochrome + platinum, cinematic-dark, brut
 
 | Role | Family | Fallback stack | Why (two sentences) |
 |---|---|---|---|
-| Display / kinetic headlines | **Playfair Display** | Georgia, "Times New Roman", serif | A high-contrast transitional serif carries cinematic, editorial gravitas at the oversized single-word scale (Raw. Roasted. Ground. Poured.) that the RÖSTWERK technique demands. It also continues the established Strawberry Hill identity, so the rebuild looks like the brand growing up, not a different company. |
-| Text / UI / commerce | **Inter** | system-ui, -apple-system, "Segoe UI", Roboto, sans-serif | A neutral grotesque stays perfectly legible from fine print to buttons, which is what closes sales on the clean commerce pages. It recedes so the photography and the serif carry all the brand personality. |
+| Display / kinetic headlines | **Anton** (chosen: brutalist condensed) | "Arial Narrow", "Helvetica Neue", sans-serif | An ultra-condensed grotesque delivers the industrial, poster-loud RÖSTWERK impact at the oversized single-word scale (RAW. ROASTED. GROUND. POURED.). Set UPPERCASE and large only; its density gives brutalist authority a serif cannot, and it reads as confident craft rather than heritage-precious. |
+| Text / UI / commerce | **Inter** | system-ui, -apple-system, "Segoe UI", Roboto, sans-serif | A neutral grotesque stays perfectly legible from fine print to buttons, which is what closes sales on the clean commerce pages. It recedes so the photography and the display face carry all the brand personality. |
 | Signature wordmark (accent, used sparingly) | **Great Vibes** | "Snell Roundhand", cursive | Reserved for the "Strawberry Hill" signature exactly as it appears on the physical bag, so the digital brand and the real product match. Never used for body or UI, so it stays a mark, not a font. |
 
-Two working typefaces total (Playfair, Inter); the script is a brand-signature asset used only for the wordmark.
+Two working typefaces total (Anton, Inter); the script is a brand-signature asset used only for the wordmark. Anton is display-only: uppercase, large; never body, never long paragraphs, and mid-level subheads fall to Inter (weight + caps) so the condensed face stays an impact tool.
 
 ## 2. Palette (hex + semantic tokens)
 
