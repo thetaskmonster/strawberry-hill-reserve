@@ -1,14 +1,17 @@
 // Central copy + tokens. Quantities are tokens (proof contract); the brand name
-// is {{BRAND}} until locked. Real placeholder copy, realistic length, not lorem.
-// Clips are generic licensed stock (Mixkit), shown as generic craft, never captioned
-// as a specific named claim.
+// is {{BRAND}} until locked. Clips are generic licensed stock (Mixkit), shown as
+// generic craft, never captioned as a specific named claim. Blue Mountain / forest /
+// hand-picked footage sets the high-grown luxury origin tone.
 
 export const BRAND = "{{BRAND}}";
 export const HERO_LINE = "Strawberry Hill Reserve";
 
 export const CLIPS = {
-  hero: { src: "/assets/video/hero.mp4", poster: "/assets/video/hero.jpg" },
-  atmosphere: { src: "/assets/video/atmosphere.mp4", poster: "/assets/video/atmosphere.jpg" },
+  hero: { src: "/assets/video/mountain.mp4", poster: "/assets/video/mountain.jpg" },
+  story: { src: "/assets/video/forest.mp4", poster: "/assets/video/forest.jpg" },
+  reveal: { src: "/assets/video/beans.mp4", poster: "/assets/video/beans.jpg" },
+  steam: { src: "/assets/video/steam.mp4", poster: "/assets/video/steam.jpg" },
+  beansPhoto: "/assets/img/beans-dark.jpg",
 };
 
 export const NAV = [
@@ -20,9 +23,9 @@ export const NAV = [
 ];
 
 export const PROCESS = [
-  { word: "Raw", clip: "/assets/video/01-source.mp4", poster: "/assets/video/01-source.jpg", copy: "High-grown cherries, picked ripe in the certified zone. Nothing rushed, nothing padded." },
-  { word: "Roasted", clip: "/assets/video/02-roast.mp4", poster: "/assets/video/02-roast.jpg", copy: "Roasted at origin and date-stamped at packing, so freshness is a fact you can read, not a promise." },
-  { word: "Ground", clip: "/assets/video/03-grind.mp4", poster: "/assets/video/03-grind.jpg", copy: "Whole bean or ground to your brew. Same lot, same care, sealed the day it ships." },
+  { word: "Raw", clip: "/assets/video/harvest.mp4", poster: "/assets/video/harvest.jpg", copy: "High-grown cherries, hand-picked ripe in the certified zone. Nothing rushed, nothing padded." },
+  { word: "Roasted", clip: "/assets/video/fire.mp4", poster: "/assets/video/fire.jpg", copy: "Roasted at origin and date-stamped at packing, so freshness is a fact you can read, not a promise." },
+  { word: "Ground", clip: "/assets/video/beans.mp4", poster: "/assets/video/beans.jpg", copy: "Whole bean or ground to your brew. Same lot, same care, sealed the day it ships." },
   { word: "Poured", clip: "/assets/video/04-pour.mp4", poster: "/assets/video/04-pour.jpg", copy: "A clean, low-acid cup that tastes like the mountain it came from. Best taken black." },
 ];
 

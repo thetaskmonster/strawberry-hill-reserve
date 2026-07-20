@@ -3,6 +3,7 @@ import { HERO_LINE, PROCESS, ORIGINS, CLIPS } from "../content/site";
 import Marquee from "../components/Marquee";
 import MediaPlaceholder from "../components/MediaPlaceholder";
 import CinematicVideo from "../components/CinematicVideo";
+import SteamOverlay from "../components/SteamOverlay";
 import KineticHeadline from "../components/KineticHeadline";
 import Reveal from "../components/Reveal";
 import Token from "../components/Token";
@@ -10,9 +11,10 @@ import Token from "../components/Token";
 export default function Home() {
   return (
     <>
-      {/* HERO */}
+      {/* HERO - Blue Mountain origin, steam-composited */}
       <section className="relative flex min-h-[92vh] items-end overflow-hidden bg-bg-film">
-        <CinematicVideo src={CLIPS.hero.src} poster={CLIPS.hero.poster} label="Slow drift over misted high-grown coffee craft (licensed stock, generic)" fill />
+        <CinematicVideo src={CLIPS.hero.src} poster={CLIPS.hero.poster} label="High mountains above the coffee belt (licensed stock, generic)" fill />
+        <SteamOverlay src={CLIPS.steam.src} opacity={0.16} />
         <div className="hero-scrim" />
         <div className="container-page relative z-10 pb-16 pt-28">
           <Reveal><p className="eyebrow">Multi-origin &middot; high-grown &middot; provably real</p></Reveal>
@@ -30,9 +32,9 @@ export default function Home() {
         </div>
       </section>
 
-      <Marquee items={["Certified Jamaica Blue Mountain", "Roasted at origin", "Genuine quarterly drops", "Traceable to the lot"]} />
+      <Marquee items={["Certified Jamaica Blue Mountain", "Hand-picked, high-grown", "Genuine quarterly drops", "Traceable to the lot"]} />
 
-      {/* PROCESS TEASER */}
+      {/* PROCESS TEASER - hand-picked to poured */}
       <section className="container-page py-20" aria-labelledby="process-h">
         <Reveal>
           <p className="eyebrow">Seed to cup</p>
@@ -53,7 +55,7 @@ export default function Home() {
         </ol>
       </section>
 
-      {/* AUTHENTICITY / JACRA */}
+      {/* AUTHENTICITY / JACRA - beans still returns */}
       <section className="bg-bg-warm py-20" aria-labelledby="auth-h">
         <div className="container-page grid gap-12 lg:grid-cols-2">
           <Reveal>
@@ -68,7 +70,7 @@ export default function Home() {
           </Reveal>
           <Reveal delay={0.1} className="relative">
             <div className="overflow-hidden rounded border border-line" style={{ aspectRatio: "4 / 3" }}>
-              <CinematicVideo src={CLIPS.atmosphere.src} poster={CLIPS.atmosphere.poster} label="Coffee craft in low light (licensed stock, generic)" />
+              <img src={CLIPS.beansPhoto} alt="Roasted coffee beans in a jute sack, representative" className="h-full w-full object-cover" style={{ filter: "contrast(1.06)" }} />
             </div>
             <div className="mt-4 rounded border border-line bg-bg-film p-5">
               <div className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-3">
@@ -81,13 +83,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* RESERVE DROP */}
-      <section className="container-page py-20" aria-labelledby="drop-h">
-        <div className="grid gap-12 lg:grid-cols-2">
+      {/* RESERVE DROP - cinematic reveal, beans composited behind */}
+      <section className="relative overflow-hidden bg-bg-film py-24" aria-labelledby="drop-h">
+        <CinematicVideo src={CLIPS.reveal.src} poster={CLIPS.reveal.poster} label="Coffee beans, close (licensed stock, generic)" fill className="opacity-40" />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, var(--bg-film) 0%, rgba(5,5,5,0.55) 50%, var(--bg-film) 100%)" }} />
+        <div className="container-page relative z-10 grid gap-12 lg:grid-cols-2 lg:items-center">
           <Reveal className="relative"><MediaPlaceholder label="Strawberry Hill Reserve bag (supply real product shot)" kind="product" ratio="1 / 1" /></Reveal>
           <Reveal delay={0.1}>
             <p className="eyebrow">The hero line</p>
-            <p className="font-signature text-fg" style={{ fontSize: "var(--step-3)", lineHeight: 1 }}>Strawberry Hill</p>
+            <p className="font-signature text-fg" style={{ fontSize: "var(--step-4)", lineHeight: 1 }}>Strawberry Hill</p>
             <h2 id="drop-h" className="display mt-2 text-fg" style={{ fontSize: "var(--step-3)" }}>When it&rsquo;s gone, it&rsquo;s gone.</h2>
             <p className="lead mt-4">We buy what we can secure, and not one bag more. The scarcity is real. Subscribers pour first, before the public sees a single bag.</p>
             <dl className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">

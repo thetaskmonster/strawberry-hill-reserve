@@ -1,5 +1,6 @@
 import { PROCESS, CLIPS } from "../content/site";
 import CinematicVideo from "../components/CinematicVideo";
+import SteamOverlay from "../components/SteamOverlay";
 import ScrubVideo from "../components/ScrubVideo";
 import KineticHeadline from "../components/KineticHeadline";
 import Reveal from "../components/Reveal";
@@ -9,7 +10,8 @@ export default function Story() {
   return (
     <article>
       <section className="relative flex min-h-[80vh] items-end overflow-hidden bg-bg-film">
-        <CinematicVideo src={CLIPS.atmosphere.src} poster={CLIPS.atmosphere.poster} label="Mountains and coffee craft at dawn (licensed stock, generic)" fill />
+        <CinematicVideo src={CLIPS.story.src} poster={CLIPS.story.poster} label="Misty forest above the coffee belt (licensed stock, generic)" fill />
+        <SteamOverlay src={CLIPS.steam.src} opacity={0.14} />
         <div className="hero-scrim" />
         <div className="container-page relative z-10 pb-16 pt-28">
           <Reveal><p className="eyebrow">The story</p></Reveal>
