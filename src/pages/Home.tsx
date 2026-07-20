@@ -125,11 +125,19 @@ export default function Home() {
             {ORIGINS.map((o, i) => (
               <li key={o.name}>
                 <Reveal delay={i * 0.05}>
-                  <div className="flex min-h-[220px] flex-col justify-end rounded border border-line bg-bg-film p-5">
-                    <span className="eyebrow self-start rounded-sm border border-line px-2 py-1" style={{ color: o.state === "live" ? "var(--accent-strong)" : undefined }}>{o.state === "live" ? "Live" : o.state === "waitlist" ? "Waitlist" : "Sourcing"}</span>
-                    <h3 className="mt-auto pt-10 font-sans text-fg" style={{ fontSize: "var(--step-1)" }}>{o.name}</h3>
-                    <p className="mt-0.5 font-sans text-xs uppercase tracking-wide text-accent">{o.place}</p>
-                    <p className="mt-1 font-sans text-sm text-fg-muted">{o.note}</p>
+                  <div className="relative flex min-h-[300px] flex-col justify-end overflow-hidden rounded border border-line bg-bg-film p-5">
+                    <img
+                      src={o.img}
+                      alt={`${o.place}, representative`}
+                      loading="lazy"
+                      className="absolute inset-0 h-full w-full object-cover"
+                      style={{ filter: "grayscale(1) contrast(1.05)", opacity: o.state === "live" ? 0.55 : o.state === "waitlist" ? 0.4 : 0.22 }}
+                    />
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(5,5,5,0.15) 0%, rgba(5,5,5,0.55) 55%, var(--bg-film) 100%)" }} />
+                    <span className="eyebrow relative z-10 self-start rounded-sm border border-line-strong bg-bg-film/70 px-2 py-1 backdrop-blur-sm" style={{ color: o.state === "live" ? "var(--accent-strong)" : undefined }}>{o.state === "live" ? "Live" : o.state === "waitlist" ? "Waitlist" : "Sourcing"}</span>
+                    <h3 className="relative z-10 mt-auto pt-10 font-sans text-fg" style={{ fontSize: "var(--step-1)" }}>{o.name}</h3>
+                    <p className="relative z-10 mt-0.5 font-sans text-xs uppercase tracking-wide text-accent">{o.place}</p>
+                    <p className="relative z-10 mt-1 font-sans text-sm text-fg-muted">{o.note}</p>
                   </div>
                 </Reveal>
               </li>
