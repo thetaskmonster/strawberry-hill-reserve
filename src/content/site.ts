@@ -11,14 +11,18 @@ export const INQUIRY_EMAIL = "wecare@gsccapitalgroup.com";
 
 export const DROP = { units: "200", opens: "Sept 1", opensISO: "2026-09-01" };
 
+// Base-aware asset paths. import.meta.env.BASE_URL is "/" for a root/artifact build
+// (folds back to "/assets/..." so the single-file inliner still matches) and
+// "/<repo>/" for a GitHub Pages project deploy, so runtime asset URLs resolve there.
+
 export const CLIPS = {
-  hero: { src: "/assets/video/mountain.mp4", poster: "/assets/video/mountain.jpg" },
-  story: { src: "/assets/video/forest.mp4", poster: "/assets/video/forest.jpg" },
-  reveal: { src: "/assets/video/beans.mp4", poster: "/assets/video/beans.jpg" },
-  steam: { src: "/assets/video/steam.mp4", poster: "/assets/video/steam.jpg" },
-  beansPhoto: "/assets/img/beans-dark.jpg",
-  bag: "/assets/img/bag-front.png",
-  certMark: "/assets/img/jbm-cert-mark.png",
+  hero: { src: import.meta.env.BASE_URL + "assets/video/mountain.mp4", poster: import.meta.env.BASE_URL + "assets/video/mountain.jpg" },
+  story: { src: import.meta.env.BASE_URL + "assets/video/forest.mp4", poster: import.meta.env.BASE_URL + "assets/video/forest.jpg" },
+  reveal: { src: import.meta.env.BASE_URL + "assets/video/beans.mp4", poster: import.meta.env.BASE_URL + "assets/video/beans.jpg" },
+  steam: { src: import.meta.env.BASE_URL + "assets/video/steam.mp4", poster: import.meta.env.BASE_URL + "assets/video/steam.jpg" },
+  beansPhoto: import.meta.env.BASE_URL + "assets/img/beans-dark.jpg",
+  bag: import.meta.env.BASE_URL + "assets/img/bag-front.png",
+  certMark: import.meta.env.BASE_URL + "assets/img/jbm-cert-mark.png",
 };
 
 export const NAV = [
@@ -30,19 +34,19 @@ export const NAV = [
 ];
 
 export const PROCESS = [
-  { word: "Grown", clip: "/assets/video/harvest.mp4", poster: "/assets/video/harvest.jpg", copy: "High on the slope, picked by hand at ripeness. Small lots, grown slow, never rushed for yield." },
-  { word: "Roasted", clip: "/assets/video/fire.mp4", poster: "/assets/video/fire.jpg", copy: "Roasted to order and date-stamped as it is packed. Freshness you can read on the bag, not just take on faith." },
-  { word: "Sealed", clip: "/assets/video/beans.mp4", poster: "/assets/video/beans.jpg", copy: "Whole bean or ground to your brew, then sealed the day it ships. The same lot, start to finish." },
-  { word: "Poured", clip: "/assets/video/04-pour.mp4", poster: "/assets/video/04-pour.jpg", copy: "A clean, quiet cup with the balance that only altitude gives. Best taken black, so the coffee is what you taste." },
+  { word: "Grown", clip: import.meta.env.BASE_URL + "assets/video/harvest.mp4", poster: import.meta.env.BASE_URL + "assets/video/harvest.jpg", copy: "High on the slope, picked by hand at ripeness. Small lots, grown slow, never rushed for yield." },
+  { word: "Roasted", clip: import.meta.env.BASE_URL + "assets/video/fire.mp4", poster: import.meta.env.BASE_URL + "assets/video/fire.jpg", copy: "Roasted to order and date-stamped as it is packed. Freshness you can read on the bag, not just take on faith." },
+  { word: "Sealed", clip: import.meta.env.BASE_URL + "assets/video/beans.mp4", poster: import.meta.env.BASE_URL + "assets/video/beans.jpg", copy: "Whole bean or ground to your brew, then sealed the day it ships. The same lot, start to finish." },
+  { word: "Poured", clip: import.meta.env.BASE_URL + "assets/video/04-pour.mp4", poster: import.meta.env.BASE_URL + "assets/video/04-pour.jpg", copy: "A clean, quiet cup with the balance that only altitude gives. Best taken black, so the coffee is what you taste." },
 ];
 
 // img is generic, representative regional/craft imagery (free-license), never a
 // specific-estate claim; alt text stays generic and the state chips keep it honest.
 export const ORIGINS = [
-  { name: "Strawberry Hill Reserve", place: "Jamaica Blue Mountain", state: "live", note: "The featured drop. Certified, single-estate, quarterly.", img: "/assets/img/bm-peak.png" },
-  { name: "Kenya", place: "Nyeri, high-grown", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: "/assets/video/forest.jpg" },
-  { name: "Ethiopia", place: "Heirloom, washed", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: "/assets/video/harvest.jpg" },
-  { name: "The next ridgeline", place: "Under evaluation", state: "dark", note: "Sourced only when it clears the bar. No buyable ghosts.", img: "/assets/video/steam.jpg" },
+  { name: "Strawberry Hill Reserve", place: "Jamaica Blue Mountain", state: "live", note: "The featured drop. Certified, single-estate, quarterly.", img: import.meta.env.BASE_URL + "assets/img/bm-peak.png" },
+  { name: "Kenya", place: "Nyeri, high-grown", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: import.meta.env.BASE_URL + "assets/video/forest.jpg" },
+  { name: "Ethiopia", place: "Heirloom, washed", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: import.meta.env.BASE_URL + "assets/video/harvest.jpg" },
+  { name: "The next ridgeline", place: "Under evaluation", state: "dark", note: "Sourced only when it clears the bar. No buyable ghosts.", img: import.meta.env.BASE_URL + "assets/video/steam.jpg" },
 ];
 
 export const FAQ = [
