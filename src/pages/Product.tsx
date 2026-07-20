@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import MediaPlaceholder from "../components/MediaPlaceholder";
-import Token from "../components/Token";
+import { CLIPS, HERO_LINE, DROP } from "../content/site";
 import Reveal from "../components/Reveal";
 
 // Real, user-set prices (decisions, not fabricated proof). 2oz is a one-time sample.
@@ -10,6 +9,11 @@ const PRICES: Record<number, { sub?: number; once: number; sample?: boolean }> =
   8: { sub: 59, once: 68 },
   16: { sub: 109, once: 125 },
 };
+
+const VIEWS = [
+  { label: "Bag", src: CLIPS.bag },
+  { label: "Bean", src: CLIPS.beansPhoto },
+];
 
 const chip = (on: boolean) =>
   `rounded border px-4 py-2 font-sans transition-colors ${
@@ -35,11 +39,13 @@ export default function Product() {
   return (
     <section className="container-page grid gap-12 py-16 lg:grid-cols-2">
       <div>
-        <MediaPlaceholder label={`Strawberry Hill Reserve bag, ${img === 0 ? "front" : "detail"} (supply real product shot)`} kind="product" ratio="1 / 1" />
+        <div className="flex items-center justify-center overflow-hidden rounded border border-line bg-bg-warm" style={{ aspectRatio: "1 / 1" }}>
+          <img src={VIEWS[img].src} alt={`${HERO_LINE}, ${VIEWS[img].label.toLowerCase()}`} className={img === 0 ? "h-full w-auto max-w-[80%] object-contain drop-shadow-2xl" : "h-full w-full object-cover"} />
+        </div>
         <div className="mt-3 flex gap-3">
-          {["Front", "Detail"].map((t, i) => (
-            <button key={t} onClick={() => setImg(i)} aria-pressed={img === i} aria-label={t} className={`w-20 overflow-hidden rounded border ${img === i ? "border-accent" : "border-line"}`}>
-              <MediaPlaceholder label={t} kind="product" ratio="1 / 1" />
+          {VIEWS.map((v, i) => (
+            <button key={v.label} onClick={() => setImg(i)} aria-pressed={img === i} aria-label={v.label} className={`w-20 overflow-hidden rounded border bg-bg-warm ${img === i ? "border-accent" : "border-line"}`} style={{ aspectRatio: "1 / 1" }}>
+              <img src={v.src} alt="" className={i === 0 ? "h-full w-full object-contain p-1" : "h-full w-full object-cover"} />
             </button>
           ))}
         </div>
@@ -47,14 +53,14 @@ export default function Product() {
 
       <div>
         <Reveal>
-          <p className="eyebrow">The Reserve drop</p>
+          <p className="eyebrow">The featured drop</p>
           <p className="font-signature text-fg" style={{ fontSize: "var(--step-3)", lineHeight: 1 }}>Strawberry Hill</p>
           <h1 className="display mt-1 text-fg" style={{ fontSize: "var(--step-3)" }}>Reserve</h1>
-          <p className="lead mt-4">Certified Jamaica Blue Mountain, roasted and sealed at origin. A genuine limited quarterly drop.</p>
+          <p className="lead mt-4">Certified Jamaica Blue Mountain, roasted to order and sealed at origin. A genuine limited quarterly drop.</p>
           <p className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 font-sans text-sm text-fg-muted">
-            <span>JACRA cert <Token name="JACRA_CERT_NO" /></span>
-            <span>Roasted <Token name="ROAST_DATE" /></span>
-            <span><Token name="DROP_UNITS_REMAINING" /> bags this drop</span>
+            <span>Certified Jamaica Blue Mountain</span>
+            <span>Roasted to order</span>
+            <span>{DROP.units} bags this drop</span>
           </p>
         </Reveal>
 

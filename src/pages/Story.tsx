@@ -4,7 +4,6 @@ import SteamOverlay from "../components/SteamOverlay";
 import ScrubVideo from "../components/ScrubVideo";
 import KineticHeadline from "../components/KineticHeadline";
 import Reveal from "../components/Reveal";
-import Token from "../components/Token";
 
 export default function Story() {
   return (
@@ -15,27 +14,26 @@ export default function Story() {
         <div className="hero-scrim" />
         <div className="container-page relative z-10 pb-16 pt-28">
           <Reveal><p className="eyebrow">The story</p></Reveal>
-          <KineticHeadline lines={["Most Blue Mountain", "is a lie."]} size="var(--step-4)" className="mt-4" />
+          <KineticHeadline lines={["Start with", "better coffee."]} size="var(--step-4)" className="mt-4" />
         </div>
       </section>
 
       <section className="container-page py-20">
-        <Reveal><p className="lead">Jamaica Blue Mountain is one of the most counterfeited coffees on earth. Far more is sold each year than the mountains can possibly grow. Most of what carries the name is blended, mislabeled, or simply invented. The label leans on a reputation the coffee in the bag never earned.</p></Reveal>
-        <Reveal delay={0.1}><p className="lead mt-6">We exist on the other side of that line. Our Jamaica Blue Mountain, sold as <span className="text-fg">Strawberry Hill Reserve</span>, comes from a single certified estate in the Blue Mountain zone, is certified by JACRA, and is roasted and sealed at origin. Every batch is traceable. Every claim on this site is one a certificate number and a reverse image search can back up.</p></Reveal>
+        <Reveal><p className="lead">Most coffee is bought on price and blended for consistency. That is a fine way to fill a shelf. It is not how you get a cup worth sitting with. We went the other way: buy less, buy higher, and keep the range short enough to know each origin by name.</p></Reveal>
+        <Reveal delay={0.1}><p className="lead mt-6">The featured drop, <span className="text-fg">Strawberry Hill Reserve</span>, is certified Jamaica Blue Mountain from a single estate in the Blue Mountain zone, roasted to order and sealed at origin. It is one of the great high-grown coffees, and one of the most faked, which is exactly why we sell it certified and traceable rather than take the name on faith.</p></Reveal>
       </section>
 
       {PROCESS.map((p, i) => (
         <section key={p.word} className="relative flex min-h-[85vh] items-center overflow-hidden border-t border-line bg-bg-film" aria-labelledby={`beat-${i}`}>
           {i === 3 ? (
-            <ScrubVideo src={p.clip} poster={p.poster} label={`${p.word}: generic coffee craft, scroll-scrubbed (licensed stock)`} />
+            <ScrubVideo src={p.clip} poster={p.poster} label={`${p.word}: coffee craft, scroll-scrubbed (licensed stock)`} />
           ) : (
-            <CinematicVideo src={p.clip} poster={p.poster} label={`${p.word}: generic coffee craft, cinematic (licensed stock)`} fill />
+            <CinematicVideo src={p.clip} poster={p.poster} label={`${p.word}: coffee craft, cinematic (licensed stock)`} fill />
           )}
           <div className="hero-scrim" />
           <div className="container-page relative z-10">
             <KineticHeadline lines={[`${p.word}.`]} />
             <Reveal delay={0.1}><p className="lead mt-4">{p.copy}</p></Reveal>
-            {i === 3 && <p className="mt-2 font-sans text-sm text-accent">(This beat is scroll-scrubbed frame by frame.)</p>}
           </div>
           <h2 id={`beat-${i}`} className="sr-only">{p.word}</h2>
         </section>
@@ -44,10 +42,9 @@ export default function Story() {
       <section className="bg-bg-warm py-20">
         <div className="container-page">
           <Reveal>
-            <p className="eyebrow">What JACRA certification means</p>
-            <h2 className="display mt-3 text-fg" style={{ fontSize: "var(--step-3)" }}>A number you can check.</h2>
-            <p className="lead mt-4">Grown in the certified zone, processed at a licensed works, issued a certificate of origin. Ours renders live from source.</p>
-            <p className="mt-6 flex flex-wrap items-center gap-2 text-fg-muted">Certificate <Token name="JACRA_CERT_NO" /> &middot; roasted <Token name="ROAST_DATE" /> &middot; lot <Token name="LOT_NO" /></p>
+            <p className="eyebrow">On certification</p>
+            <h2 className="display mt-3 text-fg" style={{ fontSize: "var(--step-3)" }}>Proof, not just a name.</h2>
+            <p className="lead mt-4">Real Jamaica Blue Mountain is grown in a defined zone, processed at a licensed works, and issued a certificate of origin. The featured drop carries that certification, and the details live on the bag you receive, not just in the marketing.</p>
           </Reveal>
         </div>
       </section>
