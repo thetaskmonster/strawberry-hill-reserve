@@ -27,10 +27,12 @@ export default function CinematicVideo({
     const io = new IntersectionObserver(
       (entries) =>
         entries.forEach((e) => {
+          // rootMargin pre-buffers the clip before it scrolls into view so it is
+          // ready to play on arrival instead of stalling from a cold start.
           if (e.isIntersecting) v.play().catch(() => {});
           else v.pause();
         }),
-      { threshold: 0.1 }
+      { threshold: 0.01, rootMargin: "400px 0px" }
     );
     io.observe(v);
     return () => io.disconnect();
