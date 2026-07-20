@@ -131,7 +131,7 @@ export default function Home() {
                       alt={`${o.place}, representative`}
                       loading="lazy"
                       className="absolute inset-0 h-full w-full object-cover"
-                      style={{ filter: "grayscale(1) contrast(1.05)", opacity: o.state === "live" ? 0.55 : o.state === "waitlist" ? 0.4 : 0.22 }}
+                      style={{ filter: "grayscale(1) contrast(1.05)", opacity: o.state === "live" ? 0.8 : o.state === "waitlist" ? 0.4 : 0.22 }}
                     />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(5,5,5,0.15) 0%, rgba(5,5,5,0.55) 55%, var(--bg-film) 100%)" }} />
                     <span className="eyebrow relative z-10 self-start rounded-sm border border-line-strong bg-bg-film/70 px-2 py-1 backdrop-blur-sm" style={{ color: o.state === "live" ? "var(--accent-strong)" : undefined }}>{o.state === "live" ? "Live" : o.state === "waitlist" ? "Waitlist" : "Sourcing"}</span>

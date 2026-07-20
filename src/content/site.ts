@@ -39,7 +39,7 @@ export const PROCESS = [
 // img is generic, representative regional/craft imagery (free-license), never a
 // specific-estate claim; alt text stays generic and the state chips keep it honest.
 export const ORIGINS = [
-  { name: "Strawberry Hill Reserve", place: "Jamaica Blue Mountain", state: "live", note: "The featured drop. Certified, single-estate, quarterly.", img: "/assets/video/mountain.jpg" },
+  { name: "Strawberry Hill Reserve", place: "Jamaica Blue Mountain", state: "live", note: "The featured drop. Certified, single-estate, quarterly.", img: "/assets/img/bm-peak.png" },
   { name: "Kenya", place: "Nyeri, high-grown", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: "/assets/video/forest.jpg" },
   { name: "Ethiopia", place: "Heirloom, washed", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: "/assets/video/harvest.jpg" },
   { name: "The next ridgeline", place: "Under evaluation", state: "dark", note: "Sourced only when it clears the bar. No buyable ghosts.", img: "/assets/video/steam.jpg" },
