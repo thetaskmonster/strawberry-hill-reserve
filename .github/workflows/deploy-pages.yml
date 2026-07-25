@@ -29,6 +29,7 @@ jobs:
       - name: Build
         env:
           VITE_BASE: /
+          VITE_CHECKOUT_ENDPOINT: https://berrova-checkout.thetaskmonster.workers.dev/create-checkout-session
         run: npm run build
       - name: SPA fallback copy
         run: cp dist/index.html dist/404.html
