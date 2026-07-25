@@ -28,8 +28,7 @@ jobs:
       - run: npm ci
       - name: Build
         env:
-          VITE_BASE: /strawberry-hill-reserve/
-          VITE_HASH_ROUTER: "1"
+          VITE_BASE: /
         run: npm run build
       - name: SPA fallback copy
         run: cp dist/index.html dist/404.html

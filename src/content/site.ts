@@ -1,11 +1,11 @@
-// Central copy. Ridgeline is the working house-brand name (multi-origin luxury
+// Central copy. Berrova is the house-brand name (multi-origin luxury
 // coffee); Strawberry Hill Reserve is the featured drop, not the whole company.
 // No invented numbers anywhere: certificate numbers and roast dates live on the
 // physical bag and render from source at launch, so marketing copy states the
 // claim ("JACRA certified") without printing a fabricated value. The drop values
 // below (200 bags, Sept 1) are the founder's real launch parameters.
 
-export const BRAND = "Ridgeline"; // house brand; change here once formally locked
+export const BRAND = "Berrova"; // house brand (locked 2026-07-24)
 export const HERO_LINE = "Strawberry Hill Reserve";
 export const INQUIRY_EMAIL = "wecare@gsccapitalgroup.com";
 
@@ -50,7 +50,7 @@ export const ORIGINS = [
 ];
 
 export const FAQ = [
-  { q: "What is Ridgeline?", a: "A small coffee house built on high-grown, honestly sourced origins, roasted to order. We keep the range short and let each origin earn its place. Strawberry Hill Reserve, our certified Jamaica Blue Mountain, is the featured drop." },
+  { q: "What is Berrova?", a: "A small coffee house built on high-grown, honestly sourced origins, roasted to order. We keep the range short and let each origin earn its place. Strawberry Hill Reserve, our certified Jamaica Blue Mountain, is the featured drop." },
   { q: "How does the subscription work?", a: "You choose a cadence and control it yourself: skip, pause, swap origin, size, or grind, or cancel, all self-serve. Subscribers pay a lower per-bag price and get first access to drops before the public." },
   { q: "Subscribe or one-time?", a: "Both, on every coffee, never forced. Subscribing is the better deal on price and access; one-time is the same coffee with zero commitment, no account, no auto-renew." },
   { q: "When will my order ship?", a: "We produce close to each drop, so orders carry a stated ship window at checkout. The first orders of a drop can run a little longer while the batch is produced. The window is always shown before you pay, and if we cannot meet it, you can have a refund." },

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { BRAND, NAV } from "../content/site";
 
-function RidgelineMark() {
+function BerrovaMark() {
   return (
     <svg viewBox="0 0 32 20" width="30" height="19" fill="none" aria-hidden="true">
       <path d="M2 18L9 7l4 5.5L20 3l10 15" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
@@ -17,7 +17,7 @@ export default function Nav() {
     <header className="sticky top-0 z-50 border-b border-line bg-bg/85 backdrop-blur">
       <div className="container-page flex items-center justify-between py-4">
         <Link to="/" className="flex items-center gap-3 text-accent" aria-label={`${BRAND} home`}>
-          <RidgelineMark />
+          <BerrovaMark />
           <span className="font-display text-fg" style={{ letterSpacing: "0.18em", fontSize: "1.1rem" }}>{BRAND}</span>
         </Link>
         <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
