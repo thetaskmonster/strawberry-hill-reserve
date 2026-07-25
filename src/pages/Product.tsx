@@ -1,13 +1,22 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CLIPS, HERO_LINE, DROP } from "../content/site";
+import { getSku, formatUsd, SHIP_WINDOW } from "../content/store";
+import { useCart } from "../store/cart";
+import {
+  startCheckout,
+  checkoutReady,
+  CHECKOUT_PENDING_NOTE,
+} from "../lib/checkout";
 import Reveal from "../components/Reveal";
 
-// Real, user-set prices (decisions, not fabricated proof). 2oz is a one-time sample.
-const PRICES: Record<number, { sub?: number; once: number; sample?: boolean }> = {
-  2: { once: 14, sample: true },
-  8: { sub: 59, once: 68 },
-  16: { sub: 109, once: 125 },
+// The configurator's size chips map onto the locked store SKUs. Grind is a
+// product option only; it does not change price and the Worker builds the Stripe
+// line item from the SKU id alone, so grind is not yet a priced variant.
+const SIZE_TO_ID: Record<number, string> = {
+  2: "shr-sample",
+  8: "shr-8oz",
+  16: "shr-16oz",
 };
 
 const VIEWS = [
@@ -25,16 +34,43 @@ export default function Product() {
   const [grind, setGrind] = useState("whole");
   const [mode, setMode] = useState<"sub" | "once">("sub");
   const [img, setImg] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const p = PRICES[size];
-  const sample = !!p.sample;
+  const { add, open } = useCart();
+
+  const sku = getSku(SIZE_TO_ID[size])!;
+  const sample = sku.subscribeCents === null;
   const effMode = sample ? "once" : mode;
-  const price = effMode === "sub" && p.sub ? p.sub : p.once;
+  const subCents = sku.subscribeCents;
+
   const cta = sample
-    ? `Add sample to cart - $${p.once}`
-    : effMode === "sub"
-    ? `Subscribe - $${p.sub}/mo`
-    : `Add to cart - $${p.once}`;
+    ? `Add sample to cart -- ${formatUsd(sku.oneTimeCents)}`
+    : effMode === "sub" && subCents !== null
+    ? `Subscribe -- ${formatUsd(subCents)}/mo`
+    : `Add to cart -- ${formatUsd(sku.oneTimeCents)}`;
+
+  // Subscribe redirects to Stripe directly; one-time drops into the cart drawer.
+  const subscribeMode = effMode === "sub" && !sample;
+  const ctaGated = subscribeMode && !checkoutReady;
+
+  const onCta = async () => {
+    if (subscribeMode) {
+      setError(null);
+      setBusy(true);
+      try {
+        await startCheckout([{ id: sku.id, qty: 1, mode: "subscription" }]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong.");
+        setBusy(false);
+      }
+      return;
+    }
+    add(sku.id, 1);
+    open();
+  };
+
+  const giftbox = getSku("shr-giftbox")!;
 
   return (
     <section className="container-page grid gap-12 py-16 lg:grid-cols-2">
@@ -93,7 +129,7 @@ export default function Product() {
               className={`rounded-lg border p-4 text-left transition ${effMode === "sub" && !sample ? "border-accent shadow-[0_0_0_1px_var(--accent)]" : "border-line"} ${sample ? "opacity-40" : ""}`}
             >
               <span className="eyebrow">Better deal</span>
-              <p className="mt-1 font-sans text-fg" style={{ fontSize: "var(--step-1)" }}>Subscribe {sample ? "" : <span className="text-accent-strong">${p.sub}/mo</span>}</p>
+              <p className="mt-1 font-sans text-fg" style={{ fontSize: "var(--step-1)" }}>Subscribe {sample || subCents === null ? "" : <span className="text-accent-strong">{formatUsd(subCents)}/mo</span>}</p>
               <p className="mt-1 font-sans text-sm text-fg-muted">Save on every bag, skip / pause / swap anytime, first access to drops.</p>
             </button>
             <button
@@ -103,7 +139,7 @@ export default function Product() {
               className={`rounded-lg border p-4 text-left transition ${effMode === "once" ? "border-accent shadow-[0_0_0_1px_var(--accent)]" : "border-line"}`}
             >
               <span className="eyebrow">No commitment</span>
-              <p className="mt-1 font-sans text-fg" style={{ fontSize: "var(--step-1)" }}>One-time <span className="text-accent-strong">${p.once}</span></p>
+              <p className="mt-1 font-sans text-fg" style={{ fontSize: "var(--step-1)" }}>One-time <span className="text-accent-strong">{formatUsd(sku.oneTimeCents)}</span></p>
               <p className="mt-1 font-sans text-sm text-fg-muted">Buy exactly once, no account, no auto-renew.</p>
             </button>
           </div>
@@ -113,17 +149,54 @@ export default function Product() {
           <div className="mt-6 rounded border border-line bg-bg-elev p-4">
             <span className="eyebrow">Your subscription, your control</span>
             <div className="mt-3 grid grid-cols-2 gap-3 font-sans text-sm text-fg-muted sm:grid-cols-4">
-              <div><strong className="block text-fg">Cadence</strong>Every 2-8 weeks</div>
+              <div><strong className="block text-fg">Cadence</strong>Monthly</div>
               <div><strong className="block text-fg">Skip</strong>One click</div>
-              <div><strong className="block text-fg">Pause</strong>30 / 60 / 90 days</div>
-              <div><strong className="block text-fg">Swap</strong>Origin, size, grind</div>
+              <div><strong className="block text-fg">Pause</strong>Anytime</div>
+              <div><strong className="block text-fg">Cancel</strong>Self-serve</div>
             </div>
           </div>
         )}
 
-        <button className="mt-8 w-full rounded bg-accent px-6 py-4 font-sans text-bg-film" data-price={price} data-grind={grind}>{cta}</button>
-        <p className="mt-3 font-sans text-sm text-fg-muted">Presale: fresh-to-order origin batch. Ships in about 2 to 3 weeks; the first drop orders carry a slightly longer window. Stated window honored or refunded (FTC Mail Order Rule). Checkout wires to the store at build.</p>
-        <p className="mt-2 font-sans text-sm text-fg-muted">Prefer a full bag? <Link to="/reserve" className="text-accent underline">Back to sizes</Link></p>
+        {error && (
+          <p role="alert" className="mt-6 font-sans text-sm" style={{ color: "var(--danger)" }}>{error}</p>
+        )}
+
+        <button
+          type="button"
+          onClick={onCta}
+          disabled={ctaGated || busy}
+          aria-disabled={ctaGated || busy}
+          data-grind={grind}
+          className="mt-8 w-full rounded bg-accent px-6 py-4 font-sans text-bg-film transition disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {busy ? "Opening checkout..." : cta}
+        </button>
+        {ctaGated && (
+          <p className="mt-2 font-sans text-sm text-fg-muted">{CHECKOUT_PENDING_NOTE}</p>
+        )}
+        <p className="mt-3 font-sans text-sm text-fg-muted">{SHIP_WINDOW}</p>
+
+        <div className="mt-10 border-t border-line pt-6">
+          <span className="eyebrow">Also in the drop</span>
+          <div className="mt-3 flex flex-col gap-3 rounded border border-line bg-bg-elev p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-sans text-fg">{giftbox.name}</p>
+              <p className="mt-1 font-sans text-sm text-fg-muted">{giftbox.blurb}</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="font-sans text-fg">{formatUsd(giftbox.oneTimeCents)}</span>
+              <button
+                type="button"
+                onClick={() => { add(giftbox.id, 1); open(); }}
+                className="rounded border border-line-strong px-5 py-2 font-sans text-sm text-fg hover:border-accent"
+              >
+                Add to cart
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-4 font-sans text-sm text-fg-muted">Prefer a different size? <Link to="/reserve" className="text-accent underline">Back to sizes</Link></p>
       </div>
     </section>
   );

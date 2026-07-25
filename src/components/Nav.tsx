@@ -1,6 +1,33 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { BRAND, NAV } from "../content/site";
+import { useCart } from "../store/cart";
+
+function CartButton() {
+  const { count, open } = useCart();
+  return (
+    <button
+      type="button"
+      onClick={open}
+      className="relative rounded border border-line p-2 text-fg hover:border-accent"
+      aria-label={count > 0 ? `Open cart, ${count} item${count === 1 ? "" : "s"}` : "Open cart"}
+    >
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M4 5h2l1.2 10.2a1.5 1.5 0 0 0 1.5 1.3h8.1a1.5 1.5 0 0 0 1.5-1.2L20 8H7" />
+        <circle cx="9.5" cy="20" r="1" />
+        <circle cx="17.5" cy="20" r="1" />
+      </svg>
+      {count > 0 && (
+        <span
+          aria-hidden="true"
+          className="absolute -right-1.5 -top-1.5 grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-accent px-1 font-sans text-xs text-bg-film"
+        >
+          {count}
+        </span>
+      )}
+    </button>
+  );
+}
 
 function BerrovaMark() {
   return (
@@ -27,6 +54,7 @@ export default function Nav() {
         </nav>
         <div className="flex items-center gap-3">
           <Link to="/reserve" className="hidden rounded bg-accent px-4 py-2 font-sans text-sm text-bg-film md:inline-block">Shop the drop</Link>
+          <CartButton />
           <button
             className="md:hidden rounded border border-line p-2 text-fg"
             aria-expanded={open}

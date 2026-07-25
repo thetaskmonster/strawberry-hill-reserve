@@ -1,0 +1,17 @@
+# Cloudflare Worker config for the Berrova checkout endpoint.
+#
+# SECRETS ARE NOT STORED HERE. The Stripe secret key is set out of band with:
+#   wrangler secret put STRIPE_SECRET_KEY
+# Only non-secret vars live in [vars].
+
+name = "berrova-checkout"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+# Non-secret configuration. SITE_ORIGIN gates CORS and builds the return URLs.
+# Override per environment as needed. No trailing slash.
+[vars]
+SITE_ORIGIN = "https://berrova.com"
+
+# Local development reads secrets from .dev.vars (git-ignored). See
+# .dev.vars.example for the variable names.

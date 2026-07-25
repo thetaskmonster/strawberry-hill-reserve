@@ -1,0 +1,11 @@
+# Local development secrets for `wrangler dev`.
+# Copy this file to `.dev.vars` (which is git-ignored) and fill in real values.
+# NEVER commit `.dev.vars`. In production the secret is set with
+#   wrangler secret put STRIPE_SECRET_KEY
+# and is NOT read from this file.
+
+# Stripe secret key. Use a TEST key (sk_test_...) for local development.
+STRIPE_SECRET_KEY=sk_test_replace_me
+
+# The site origin allowed by CORS and used to build return URLs. No trailing slash.
+SITE_ORIGIN=http://localhost:5173
