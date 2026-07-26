@@ -100,7 +100,7 @@ export default function Home() {
           </Reveal>
           <Reveal delay={0.1}>
             <p className="eyebrow">The featured drop</p>
-            <p className="font-signature text-fg" style={{ fontSize: "var(--step-4)", lineHeight: 1 }}>Strawberry Hill</p>
+            <p className="font-signature text-fg" style={{ fontSize: "var(--step-4)", lineHeight: 1.2, marginTop: "0.35em" }}>Strawberry Hill</p>
             <h2 id="drop-h" className="display mt-2 text-fg" style={{ fontSize: "var(--step-3)" }}>When it&rsquo;s gone, it&rsquo;s gone.</h2>
             <p className="lead mt-4">We buy what we can secure, and not one bag more. Subscribers pour first, before a single bag goes to the public.</p>
             <dl className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
