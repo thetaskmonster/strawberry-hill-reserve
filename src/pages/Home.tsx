@@ -46,7 +46,10 @@ export default function Home() {
       <Marquee items={["High-grown, hand-picked", "Roasted to order", "Certified origins", "Sealed the day it ships"]} />
 
       {/* PROCESS - grown to poured */}
-      <section className="container-page py-20" aria-labelledby="process-h">
+      <section className="relative overflow-hidden py-20" aria-labelledby="process-h">
+        <CinematicVideo src={CLIPS.beansBroll.src} poster={CLIPS.beansBroll.poster} label="Dark-roast beans tumbling (licensed stock, generic)" fill className="opacity-15" />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, var(--bg) 0%, rgba(10,10,10,0.7) 50%, var(--bg) 100%)" }} />
+        <div className="container-page relative z-10">
         <Reveal>
           <p className="eyebrow">Seed to cup</p>
           <h2 id="process-h" className="display mt-3 text-fg" style={{ fontSize: "var(--step-3)" }}>Slow where it counts.</h2>
@@ -64,11 +67,14 @@ export default function Home() {
             </li>
           ))}
         </ol>
+        </div>
       </section>
 
       {/* SOURCING / CERTIFICATION - the standard, framed as craft */}
-      <section className="bg-bg-warm py-20" aria-labelledby="auth-h">
-        <div className="container-page grid gap-12 lg:grid-cols-2 lg:items-center">
+      <section className="relative overflow-hidden bg-bg-warm py-20" aria-labelledby="auth-h">
+        <CinematicVideo src={CLIPS.ridgeBroll.src} poster={CLIPS.ridgeBroll.poster} label="Misted mountain ridge above the coffee belt (licensed stock, generic)" fill className="opacity-20" />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, var(--bg-warm) 0%, rgba(20,18,16,0.72) 50%, var(--bg-warm) 100%)" }} />
+        <div className="container-page relative z-10 grid gap-12 lg:grid-cols-2 lg:items-center">
           <Reveal>
             <p className="eyebrow">The standard</p>
             <h2 id="auth-h" className="display mt-3 text-fg" style={{ fontSize: "var(--step-3)" }}>We only sell what we can vouch for.</h2>
@@ -93,6 +99,7 @@ export default function Home() {
       {/* RESERVE DROP - cinematic reveal, real bag */}
       <section className="relative overflow-hidden bg-bg-film py-24" aria-labelledby="drop-h">
         <CinematicVideo src={CLIPS.reveal.src} poster={CLIPS.reveal.poster} label="Coffee beans, close (licensed stock, generic)" fill className="opacity-40" />
+        <CinematicVideo src={CLIPS.pourBroll.src} poster={CLIPS.pourBroll.poster} label="Overhead pour into a dark cup (licensed stock, generic)" fill className="opacity-25" />
         <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, var(--bg-film) 0%, rgba(5,5,5,0.55) 50%, var(--bg-film) 100%)" }} />
         <div className="container-page relative z-10 grid gap-12 lg:grid-cols-2 lg:items-center">
           <Reveal className="relative flex justify-center">

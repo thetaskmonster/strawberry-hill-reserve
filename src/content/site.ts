@@ -20,6 +20,10 @@ export const CLIPS = {
   story: { src: import.meta.env.BASE_URL + "assets/video/forest.mp4", poster: import.meta.env.BASE_URL + "assets/video/forest.jpg" },
   reveal: { src: import.meta.env.BASE_URL + "assets/video/beans.mp4", poster: import.meta.env.BASE_URL + "assets/video/beans.jpg" },
   steam: { src: import.meta.env.BASE_URL + "assets/video/steam.mp4", poster: import.meta.env.BASE_URL + "assets/video/steam.jpg" },
+  // Decorative atmospheric b-roll (licensed/generic, makes no specific-business claim).
+  ridgeBroll: { src: import.meta.env.BASE_URL + "assets/video/ridge-broll.mp4", poster: import.meta.env.BASE_URL + "assets/video/ridge-broll.jpg" },
+  beansBroll: { src: import.meta.env.BASE_URL + "assets/video/beans-broll.mp4", poster: import.meta.env.BASE_URL + "assets/video/beans-broll.jpg" },
+  pourBroll: { src: import.meta.env.BASE_URL + "assets/video/pour-broll.mp4", poster: import.meta.env.BASE_URL + "assets/video/pour-broll.jpg" },
   beansPhoto: import.meta.env.BASE_URL + "assets/img/beans-dark.jpg",
   bag: import.meta.env.BASE_URL + "assets/img/bag-front.png",
   certMark: import.meta.env.BASE_URL + "assets/img/jbm-cert-mark.png",
