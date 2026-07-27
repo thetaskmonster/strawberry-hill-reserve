@@ -16,7 +16,7 @@ export const DROP = { units: "200", opens: "Sept 1", opensISO: "2026-09-01" };
 // "/<repo>/" for a GitHub Pages project deploy, so runtime asset URLs resolve there.
 
 export const CLIPS = {
-  hero: { src: import.meta.env.BASE_URL + "assets/video/mountain.mp4", poster: import.meta.env.BASE_URL + "assets/video/mountain.jpg" },
+  hero: { src: import.meta.env.BASE_URL + "assets/video/hero-v2.mp4", poster: import.meta.env.BASE_URL + "assets/video/hero-v2.jpg" },
   story: { src: import.meta.env.BASE_URL + "assets/video/forest.mp4", poster: import.meta.env.BASE_URL + "assets/video/forest.jpg" },
   reveal: { src: import.meta.env.BASE_URL + "assets/video/beans.mp4", poster: import.meta.env.BASE_URL + "assets/video/beans.jpg" },
   steam: { src: import.meta.env.BASE_URL + "assets/video/steam.mp4", poster: import.meta.env.BASE_URL + "assets/video/steam.jpg" },
@@ -38,10 +38,10 @@ export const NAV = [
 ];
 
 export const PROCESS = [
-  { word: "Grown", clip: import.meta.env.BASE_URL + "assets/video/harvest.mp4", poster: import.meta.env.BASE_URL + "assets/video/harvest.jpg", copy: "High on the slope, picked by hand at ripeness. Small lots, grown slow, never rushed for yield." },
+  { word: "Grown", clip: import.meta.env.BASE_URL + "assets/video/grown-tile.mp4", poster: import.meta.env.BASE_URL + "assets/video/grown-tile.jpg", copy: "High on the slope, picked by hand at ripeness. Small lots, grown slow, never rushed for yield." },
   { word: "Roasted", clip: import.meta.env.BASE_URL + "assets/video/fire.mp4", poster: import.meta.env.BASE_URL + "assets/video/fire.jpg", copy: "Roasted to order and date-stamped as it is packed. Freshness you can read on the bag, not just take on faith." },
-  { word: "Sealed", clip: import.meta.env.BASE_URL + "assets/video/beans.mp4", poster: import.meta.env.BASE_URL + "assets/video/beans.jpg", copy: "Whole bean or ground to your brew, then sealed the day it ships. The same lot, start to finish." },
-  { word: "Poured", clip: import.meta.env.BASE_URL + "assets/video/04-pour.mp4", poster: import.meta.env.BASE_URL + "assets/video/04-pour.jpg", copy: "A clean, quiet cup with the balance that only altitude gives. Best taken black, so the coffee is what you taste." },
+  { word: "Sealed", clip: import.meta.env.BASE_URL + "assets/video/sealed-tile.mp4", poster: import.meta.env.BASE_URL + "assets/video/sealed-tile.jpg", copy: "Whole bean or ground to your brew, then sealed the day it ships. The same lot, start to finish." },
+  { word: "Poured", clip: import.meta.env.BASE_URL + "assets/video/poured-tile.mp4", poster: import.meta.env.BASE_URL + "assets/video/poured-tile.jpg", copy: "A clean, quiet cup with the balance that only altitude gives. Best taken black, so the coffee is what you taste." },
 ];
 
 // img is generic, representative regional/craft imagery (free-license), never a
