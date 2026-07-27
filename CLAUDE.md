@@ -54,9 +54,14 @@ Semantic HTML, headings in order, keyboard navigable end to end, visible focus (
       parameter documented at the top of `src/content/site.ts`.
 
 ### Known open items
-- ~1.5 MB of orphaned video ships in `public/assets/video/` (`fire.*`,
-  `04-pour.*`, `mountain.*`, `harvest.mp4`) — referenced nowhere in `src/`.
 - Mobile perf on `/reserve` is the weakest score; no code-splitting yet.
+
+### Asset hygiene
+Orphaned b-roll was removed in the phase 5/6 pass (`fire.*`, `04-pour.*`,
+`mountain.mp4`, `harvest.mp4`, ~1.4 MB). When checking whether an asset is
+unused, grep the **whole repo**, not just `src/` — `mountain.jpg` is the
+Open Graph image in `index.html` and `harvest.jpg` is the Ethiopia origin
+card, so a `src/`-only scan wrongly reports both as orphans.
 
 ## Safety
 Original site is safe in the `second-brain` repo at `ridgeline-site/` on branch `claude/new-session-7i6xo3`. This is a separate repo and cannot touch it.
