@@ -33,12 +33,30 @@ Semantic HTML, headings in order, keyboard navigable end to end, visible focus (
 - Monochrome + platinum: `--bg #0a0a0a`, `--fg #f2f0ec`, `--fg-muted #a8a49c`, `--accent #c7ccd1` (platinum, no gold/champagne).
 
 ## Phase status
-- [x] Phase 1 — identity + tokens (this doc, tokens.css, design-system.md). **At GATE 1.**
-- [ ] Phase 2 — structure (semantic scaffold, placeholder copy, token wiring)
-- [ ] Phase 3 — the film (hero, scroll-scrub seed-to-cup, pins, marquees, alpha reveal)
-- [ ] Phase 4 — commerce (product, gifting, sub toggle, token scarcity, origin states)
-- [ ] Phase 5 — verify (real browser, 375/768/1440, console, a11y, perf)
-- [ ] Phase 6 — ship-ready (Lighthouse, secrets scan, no fabricated proof)
+- [x] Phase 1 — identity + tokens (this doc, tokens.css, design-system.md).
+- [x] Phase 2 — structure (semantic scaffold, copy in `src/content/site.ts`, token wiring).
+- [x] Phase 3 — the film (hero, scroll-scrub seed-to-cup, marquees, alpha reveal).
+      **Pins deferred:** no ScrollTrigger `pin:` is used anywhere; the beats are
+      full-height sections instead. Revisit only if the scroll story needs it.
+- [x] Phase 4 — commerce (product, gifting, sub toggle, token scarcity, origin
+      states, Stripe checkout via Cloudflare Worker, Stripe -> Airtable logging).
+- [x] Phase 5 — verify. Real Chromium at 375/768/1440 across `/`, `/story`,
+      `/reserve`, `/gifting`, `/wholesale`, `/faq`: 0 console errors, 0 page
+      errors, 0 axe WCAG 2.1 A/AA violations, no horizontal overflow, heading
+      order clean. (Media `ERR_ABORTED` entries are the browser cancelling
+      paused/offscreen video fetches, not failures — the files serve 206.)
+- [x] Phase 6 — ship-ready. Lighthouse a11y/best-practices/SEO **100** on every
+      target. Perf: desktop `/` 99, mobile `/` 85, mobile `/reserve` 74 (LCP
+      4.7s; main lever is code-splitting the 328 KB bundle, ~450ms of unused JS).
+      Secrets scan clean (only placeholder keys in `.env.example` /
+      `worker/.dev.vars.example`). No fabricated proof: no ratings, review
+      counts, or testimonials; the one quantity (200 bags) is a real launch
+      parameter documented at the top of `src/content/site.ts`.
+
+### Known open items
+- ~1.5 MB of orphaned video ships in `public/assets/video/` (`fire.*`,
+  `04-pour.*`, `mountain.*`, `harvest.mp4`) — referenced nowhere in `src/`.
+- Mobile perf on `/reserve` is the weakest score; no code-splitting yet.
 
 ## Safety
 Original site is safe in the `second-brain` repo at `ridgeline-site/` on branch `claude/new-session-7i6xo3`. This is a separate repo and cannot touch it.

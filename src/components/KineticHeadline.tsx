@@ -7,10 +7,16 @@ export default function KineticHeadline({
   lines,
   size = "var(--step-kinetic)",
   className = "",
+  level = 1,
+  id,
 }: {
   lines: string[];
   size?: string;
   className?: string;
+  // Display size is set by `size`, never by the tag, so the heading level stays
+  // free to follow document outline. One h1 per page; beats below it are h2.
+  level?: 1 | 2 | 3;
+  id?: string;
 }) {
   const ref = useRef<HTMLHeadingElement>(null);
   useLayoutEffect(() => {
@@ -28,13 +34,14 @@ export default function KineticHeadline({
     }, ref);
     return () => ctx.revert();
   }, []);
+  const Tag = `h${level}` as "h1" | "h2" | "h3";
   return (
-    <h1 ref={ref} className={`display text-fg ${className}`} style={{ fontSize: size }}>
+    <Tag ref={ref} id={id} className={`display text-fg ${className}`} style={{ fontSize: size }}>
       {lines.map((l, i) => (
         <span key={i} className="block overflow-hidden">
           <span data-line-inner className="block">{l}</span>
         </span>
       ))}
-    </h1>
+    </Tag>
   );
 }

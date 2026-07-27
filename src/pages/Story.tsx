@@ -32,10 +32,9 @@ export default function Story() {
           )}
           <div className="hero-scrim" />
           <div className="container-page relative z-10">
-            <KineticHeadline lines={[`${p.word}.`]} />
+            <KineticHeadline lines={[`${p.word}.`]} level={2} id={`beat-${i}`} />
             <Reveal delay={0.1}><p className="lead mt-4">{p.copy}</p></Reveal>
           </div>
-          <h2 id={`beat-${i}`} className="sr-only">{p.word}</h2>
         </section>
       ))}
 
