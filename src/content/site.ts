@@ -24,9 +24,9 @@ export const CLIPS = {
   ridgeBroll: { src: import.meta.env.BASE_URL + "assets/video/ridge-broll.mp4", poster: import.meta.env.BASE_URL + "assets/video/ridge-broll.jpg" },
   beansBroll: { src: import.meta.env.BASE_URL + "assets/video/beans-broll.mp4", poster: import.meta.env.BASE_URL + "assets/video/beans-broll.jpg" },
   pourBroll: { src: import.meta.env.BASE_URL + "assets/video/pour-broll.mp4", poster: import.meta.env.BASE_URL + "assets/video/pour-broll.jpg" },
-  beansPhoto: import.meta.env.BASE_URL + "assets/img/beans-dark.jpg",
-  bag: import.meta.env.BASE_URL + "assets/img/bag-front.png",
-  certMark: import.meta.env.BASE_URL + "assets/img/jbm-cert-mark.png",
+  beansPhoto: import.meta.env.BASE_URL + "assets/img/beans-dark.webp",
+  bag: import.meta.env.BASE_URL + "assets/img/bag-front.webp",
+  certMark: import.meta.env.BASE_URL + "assets/img/jbm-cert-mark.webp",
 };
 
 export const NAV = [
@@ -47,7 +47,7 @@ export const PROCESS = [
 // img is generic, representative regional/craft imagery (free-license), never a
 // specific-estate claim; alt text stays generic and the state chips keep it honest.
 export const ORIGINS = [
-  { name: "Strawberry Hill Reserve", place: "Jamaica Blue Mountain", state: "live", note: "The featured drop. Certified, single-estate, quarterly.", img: import.meta.env.BASE_URL + "assets/img/bm-peak.png" },
+  { name: "Strawberry Hill Reserve", place: "Jamaica Blue Mountain", state: "live", note: "The featured drop. Certified, single-estate, quarterly.", img: import.meta.env.BASE_URL + "assets/img/bm-peak.webp" },
   { name: "Kenya", place: "Nyeri, high-grown", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: import.meta.env.BASE_URL + "assets/video/forest.jpg" },
   { name: "Ethiopia", place: "Heirloom, washed", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: import.meta.env.BASE_URL + "assets/video/harvest.jpg" },
   { name: "The next ridgeline", place: "Under evaluation", state: "dark", note: "Sourced only when it clears the bar. No buyable ghosts.", img: import.meta.env.BASE_URL + "assets/video/steam.jpg" },

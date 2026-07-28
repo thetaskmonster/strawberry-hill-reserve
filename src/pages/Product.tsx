@@ -76,7 +76,9 @@ export default function Product() {
     <section className="container-page grid gap-12 py-16 lg:grid-cols-2">
       <div>
         <div className="flex items-center justify-center overflow-hidden rounded border border-line bg-bg-warm" style={{ aspectRatio: "1 / 1" }}>
-          <img src={VIEWS[img].src} alt={`${HERO_LINE}, ${VIEWS[img].label.toLowerCase()}`} className={img === 0 ? "h-full w-auto max-w-[80%] object-contain drop-shadow-2xl" : "h-full w-full object-cover"} />
+          {/* This is the LCP element on /reserve, so it loads eagerly at high
+              priority rather than competing with below-fold media. */}
+          <img src={VIEWS[img].src} alt={`${HERO_LINE}, ${VIEWS[img].label.toLowerCase()}`} fetchPriority="high" decoding="async" className={img === 0 ? "h-full w-auto max-w-[80%] object-contain drop-shadow-2xl" : "h-full w-full object-cover"} />
         </div>
         <div className="mt-3 flex gap-3">
           {VIEWS.map((v, i) => (
