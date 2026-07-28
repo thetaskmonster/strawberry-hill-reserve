@@ -4,6 +4,7 @@ import SteamOverlay from "../components/SteamOverlay";
 import ScrubVideo from "../components/ScrubVideo";
 import KineticHeadline from "../components/KineticHeadline";
 import Reveal from "../components/Reveal";
+import CherryAnatomy from "../components/CherryAnatomy";
 
 export default function Story() {
   return (
@@ -22,6 +23,8 @@ export default function Story() {
         <Reveal><p className="lead">Most coffee is bought on price and blended for consistency. That is a fine way to fill a shelf. It is not how you get a cup worth sitting with. We went the other way: buy less, buy higher, and keep the range short enough to know each origin by name.</p></Reveal>
         <Reveal delay={0.1}><p className="lead mt-6">The featured drop, <span className="text-fg">Strawberry Hill Reserve</span>, is certified Jamaica Blue Mountain from a single estate in the Blue Mountain zone, roasted to order and sealed at origin. It is one of the great high-grown coffees, and one of the most faked, which is exactly why we sell it certified and traceable rather than take the name on faith.</p></Reveal>
       </section>
+
+      <CherryAnatomy />
 
       {PROCESS.map((p, i) => (
         <section key={p.word} className="relative flex min-h-[85vh] items-center overflow-hidden border-t border-line bg-bg-film" aria-labelledby={`beat-${i}`}>

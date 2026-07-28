@@ -149,7 +149,8 @@ action. Everything else is black, off-white, and photography.
 
 ## 7. What is worth stealing (technique only)
 
-1. **The anatomy beat with hairline callouts.** The single best idea on the page,
+1. **The anatomy beat with hairline callouts.** *(Built — `src/components/CherryAnatomy.tsx`,
+   on `/story`.)* The single best idea on the page,
    and it maps cleanly onto coffee — cherry, parchment, green, roast, grind, cup —
    as a scroll-scrubbed exploded diagram with labeled leader lines. This is
    exactly the kind of beat our seed-to-cup story wants, and it is honest: a

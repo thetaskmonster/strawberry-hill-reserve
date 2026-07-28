@@ -44,6 +44,19 @@ export const PROCESS = [
   { word: "Poured", clip: import.meta.env.BASE_URL + "assets/video/poured-tile.mp4", poster: import.meta.env.BASE_URL + "assets/video/poured-tile.jpg", copy: "A clean, quiet cup with the balance that only altitude gives. Best taken black, so the coffee is what you taste." },
 ];
 
+// Anatomy of a coffee cherry, outermost layer inward. Generic botany: this is what
+// every coffee cherry is, so it names no lot, estate, or harvest and makes no
+// provenance claim. That is why the beat can be drawn rather than filmed - it needs
+// no footage to back it, and no placeholder frame either.
+export const CHERRY_ANATOMY = [
+  { term: "Skin", sub: "Exocarp", note: "Stripped at the mill within hours of picking." },
+  { term: "Pulp", sub: "Mesocarp", note: "Sweet fruit flesh. A picked cherry cannot wait." },
+  { term: "Mucilage", sub: "Pectin layer", note: "Ferments off. It sets how clean the cup reads." },
+  { term: "Parchment", sub: "Endocarp", note: "A papery shell the seed dries down inside." },
+  { term: "Silverskin", sub: "Spermoderm", note: "The last membrane, left as chaff in the roaster." },
+  { term: "The bean", sub: "The seed", note: "Everything above comes off before coffee is coffee." },
+];
+
 // img is generic, representative regional/craft imagery (free-license), never a
 // specific-estate claim; alt text stays generic and the state chips keep it honest.
 export const ORIGINS = [

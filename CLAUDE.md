@@ -38,6 +38,10 @@ Semantic HTML, headings in order, keyboard navigable end to end, visible focus (
 - [x] Phase 3 — the film (hero, scroll-scrub seed-to-cup, marquees, alpha reveal).
       **Pins deferred:** no ScrollTrigger `pin:` is used anywhere; the beats are
       full-height sections instead. Revisit only if the scroll story needs it.
+      The one scroll-held beat (`CherryAnatomy` on `/story`) uses CSS
+      `position: sticky` over a tall track, which is not a pin and keeps that
+      decision intact. Its sticky box must stay exactly `h-screen` — a taller box
+      releases before the scrub finishes.
 - [x] Phase 4 — commerce (product, gifting, sub toggle, token scarcity, origin
       states, Stripe checkout via Cloudflare Worker, Stripe -> Airtable logging).
 - [x] Phase 5 — verify. Real Chromium at 375/768/1440 across `/`, `/story`,
