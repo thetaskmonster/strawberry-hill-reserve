@@ -88,9 +88,13 @@ async function main() {
         { timeout: 30_000 }
       );
       const html = "<!doctype html>\n" + (await page.evaluate(() => document.documentElement.outerHTML));
-      const outDir = route === "/" ? DIST : join(DIST, route.slice(1));
-      await mkdir(outDir, { recursive: true });
-      await writeFile(join(outDir, "index.html"), html);
+      // Non-root routes are written as <route>.html, NOT <route>/index.html:
+      // GitHub Pages serves extensionless /story from story.html with a clean
+      // 200, whereas a story/ directory makes /story 301 to /story/, which
+      // contradicts the canonical and puts redirecting URLs in the sitemap.
+      const outFile = route === "/" ? join(DIST, "index.html") : join(DIST, route.slice(1) + ".html");
+      await mkdir(dirname(outFile), { recursive: true });
+      await writeFile(outFile, html);
       const title = await page.title();
       console.log(`prerendered ${route.padEnd(11)} -> ${title}`);
     } catch (err) {
