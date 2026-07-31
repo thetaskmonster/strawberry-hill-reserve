@@ -29,7 +29,13 @@ jobs:
       - name: Build
         env:
           VITE_BASE: /
-          VITE_CHECKOUT_ENDPOINT: https://berrova-checkout.thetaskmonster.workers.dev/create-checkout-session
+          # Custom domain, NOT the *.workers.dev hostname. Free-hosting TLDs are
+          # widely flagged by consumer security suites (Bitdefender blocked the
+          # workers.dev fetch on 2026-07-31, surfacing as "Failed to fetch" in
+          # the cart with no server-side fault). A checkout blocked by a
+          # customer's AV fails silently and looks like a broken store.
+          # Requires the Worker's Custom Domain to be configured first.
+          VITE_CHECKOUT_ENDPOINT: https://checkout.berrova.com/create-checkout-session
         run: npm run build
       # 404.html must be the clean SPA shell, copied BEFORE prerender
       # overwrites dist/index.html with the rendered homepage.

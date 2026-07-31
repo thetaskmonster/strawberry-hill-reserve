@@ -15,7 +15,10 @@ export type CheckoutItem = {
   mode: CheckoutMode;
 };
 
-// Full endpoint URL, e.g. https://berrova-checkout.<sub>.workers.dev/create-checkout-session
+// Full endpoint URL, e.g. https://checkout.berrova.com/create-checkout-session
+// Use the Worker's CUSTOM DOMAIN, never the *.workers.dev hostname: consumer
+// security suites flag free-hosting TLDs, and a blocked checkout fetch surfaces
+// only as the browser's "Failed to fetch" with no server-side fault to find.
 const ENDPOINT = (import.meta.env.VITE_CHECKOUT_ENDPOINT ?? "").trim();
 
 export const checkoutReady = ENDPOINT.length > 0;
