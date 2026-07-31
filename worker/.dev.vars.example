@@ -9,3 +9,10 @@ STRIPE_SECRET_KEY=sk_test_replace_me
 
 # The site origin allowed by CORS and used to build return URLs. No trailing slash.
 SITE_ORIGIN=http://localhost:5173
+
+# Shared guard token the Worker requires on every POST (X-Berrova-Guard
+# header). In production this is set with:
+#   wrangler secret put CHECKOUT_GUARD_TOKEN
+# never in wrangler.toml [vars], never committed. Pick any random value for
+# local dev and put the same value in the website's VITE_CHECKOUT_GUARD_TOKEN.
+CHECKOUT_GUARD_TOKEN=replace_me_with_a_random_value
