@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { usePageMeta } from "./lib/seo";
 import Nav from "./components/Nav";
 import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
@@ -14,6 +15,9 @@ import OrderCancelled from "./pages/OrderCancelled";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
+  // Per-route title/description/canonical/OG/JSON-LD, applied on every
+  // navigation and captured by the build-time prerender.
+  usePageMeta(useLocation().pathname);
   return (
     <CartProvider>
       <a className="skip-link" href="#main">Skip to content</a>

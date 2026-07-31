@@ -31,8 +31,16 @@ jobs:
           VITE_BASE: /
           VITE_CHECKOUT_ENDPOINT: https://berrova-checkout.thetaskmonster.workers.dev/create-checkout-session
         run: npm run build
+      # 404.html must be the clean SPA shell, copied BEFORE prerender
+      # overwrites dist/index.html with the rendered homepage.
       - name: SPA fallback copy
         run: cp dist/index.html dist/404.html
+      - name: Install Chromium for prerender
+        run: npx playwright install --with-deps chromium
+      # Prerenders the six public routes to real HTML files (fixes the SPA
+      # 404-status + empty-shell SEO problem) and writes dist/sitemap.xml.
+      - name: Prerender routes
+        run: node scripts/prerender.mjs
       - uses: actions/configure-pages@v5
         with:
           enablement: true
