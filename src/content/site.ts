@@ -11,6 +11,26 @@ export const INQUIRY_EMAIL = "wecare@gsccapitalgroup.com";
 
 export const DROP = { units: "200", opens: "Sept 1", opensISO: "2026-09-01" };
 
+// Presale gate. "waitlist" hides every purchase path and routes intent into the
+// drop waitlist; "live" restores the full store. Flip this ONE value on drop
+// day. While "waitlist", nothing on the site can take money, so the FTC
+// ship-window clock never starts before inventory is real.
+export const PRESALE_MODE = "waitlist" as "waitlist" | "live";
+
+// Drop waitlist capture. Posts form-encoded (no CORS preflight) to the n8n
+// "Berrova Waitlist Capture" webhook, which validates and writes the Airtable
+// Waitlist row. Copy honors the honesty line: 200 bags and Sept 1 are real
+// launch parameters; first access is the real mechanic; nothing is invented.
+export const WAITLIST = {
+  endpoint: "https://capturethisvibe.app.n8n.cloud/webhook/berrova-waitlist-a7c2",
+  headline: "POUR FIRST",
+  sub: "The first drop is 200 bags, opening Sept 1. The waitlist gets first access before it opens to the public. When they are gone, the drop closes.",
+  button: "Join the waitlist",
+  placeholder: "you@email.com",
+  success: "You are on the list. When the drop opens, you pour first.",
+  failure: "That did not go through. Check the email and try again.",
+};
+
 // Base-aware asset paths. import.meta.env.BASE_URL is "/" for a root/artifact build
 // (folds back to "/assets/..." so the single-file inliner still matches) and
 // "/<repo>/" for a GitHub Pages project deploy, so runtime asset URLs resolve there.
