@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../store/cart";
+import { PRESALE_MODE } from "../content/site";
 import { getSku, formatUsd, SHIP_WINDOW } from "../content/store";
 import {
   startCheckout,
@@ -22,6 +23,8 @@ const FOCUSABLE =
   'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])';
 
 export default function CartDrawer() {
+  // Waitlist mode: no purchasing exists, so the drawer never renders.
+  if (PRESALE_MODE === "waitlist") return null;
   const { lines, subtotalCents, setQty, remove, isOpen, close } = useCart();
   const panelRef = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);

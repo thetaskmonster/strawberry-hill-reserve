@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { CLIPS, HERO_LINE, DROP } from "../content/site";
+import { CLIPS, HERO_LINE, DROP, PRESALE_MODE, WAITLIST } from "../content/site";
+import WaitlistForm from "../components/WaitlistForm";
 import { getSku, formatUsd, SHIP_WINDOW } from "../content/store";
 import { useCart } from "../store/cart";
 import {
@@ -120,6 +121,26 @@ export default function Product() {
           </div>
         </div>
 
+        {PRESALE_MODE === "waitlist" && (
+          <div className="mt-8 rounded-lg border border-accent bg-bg-elev p-6">
+            <span className="eyebrow">The drop opens {DROP.opens}</span>
+            <h2 className="display mt-2 text-fg" style={{ fontSize: "var(--step-2)" }}>{WAITLIST.headline}</h2>
+            <p className="mt-3 font-sans text-fg-muted">{WAITLIST.sub}</p>
+            <div className="mt-5">
+              <WaitlistForm source="reserve" compact />
+            </div>
+            <p className="mt-4 font-sans text-sm text-fg-muted">
+              {sample
+                ? `Sample ${formatUsd(sku.oneTimeCents)} at the drop.`
+                : subCents !== null
+                ? `${formatUsd(subCents)}/mo subscribed, ${formatUsd(sku.oneTimeCents)} one-time, at the drop.`
+                : `${formatUsd(sku.oneTimeCents)} at the drop.`}
+              {" "}No card now, no commitment. First access only.
+            </p>
+          </div>
+        )}
+
+        {PRESALE_MODE === "live" && (<>
         <div className="mt-6">
           <span className="eyebrow">How to buy</span>
           <div className="mt-2 grid gap-3 sm:grid-cols-2">
@@ -178,6 +199,8 @@ export default function Product() {
         )}
         <p className="mt-3 font-sans text-sm text-fg-muted">{SHIP_WINDOW}</p>
 
+        </>)}
+
         <div className="mt-10 border-t border-line pt-6">
           <span className="eyebrow">Also in the drop</span>
           <div className="mt-3 flex flex-col gap-3 rounded border border-line bg-bg-elev p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -187,13 +210,15 @@ export default function Product() {
             </div>
             <div className="flex items-center gap-4">
               <span className="font-sans text-fg">{formatUsd(giftbox.oneTimeCents)}</span>
-              <button
-                type="button"
-                onClick={() => { add(giftbox.id, 1); open(); }}
-                className="rounded border border-line-strong px-5 py-2 font-sans text-sm text-fg hover:border-accent"
-              >
-                Add to cart
-              </button>
+              {PRESALE_MODE === "live" && (
+                <button
+                  type="button"
+                  onClick={() => { add(giftbox.id, 1); open(); }}
+                  className="rounded border border-line-strong px-5 py-2 font-sans text-sm text-fg hover:border-accent"
+                >
+                  Add to cart
+                </button>
+              )}
             </div>
           </div>
         </div>

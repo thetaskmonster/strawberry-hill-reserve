@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { HERO_LINE, PROCESS, ORIGINS, CLIPS, DROP } from "../content/site";
+import { HERO_LINE, PROCESS, ORIGINS, CLIPS, DROP, PRESALE_MODE, WAITLIST } from "../content/site";
+import WaitlistForm from "../components/WaitlistForm";
 import Marquee from "../components/Marquee";
 import CinematicVideo from "../components/CinematicVideo";
 import SteamOverlay from "../components/SteamOverlay";
@@ -35,10 +36,23 @@ export default function Home() {
               A small coffee house built on altitude, patience, and origins we can stand behind. We keep the range short and
               let each one earn its place, led right now by <span className="text-fg">{HERO_LINE}</span>, our certified Jamaica Blue Mountain drop.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/reserve" className="rounded bg-accent px-6 py-3 font-sans text-bg-film">Shop the drop</Link>
-              <Link to="/story" className="rounded border border-line-strong px-6 py-3 font-sans text-fg">How we source</Link>
-            </div>
+            {PRESALE_MODE === "waitlist" ? (
+              <div className="mt-8 max-w-xl">
+                <p className="font-sans text-fg">{WAITLIST.sub}</p>
+                <div className="mt-4">
+                  <WaitlistForm source="home-hero" compact />
+                </div>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <Link to="/reserve" className="rounded border border-line-strong px-6 py-3 font-sans text-fg">See the drop</Link>
+                  <Link to="/story" className="rounded border border-line-strong px-6 py-3 font-sans text-fg">How we source</Link>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link to="/reserve" className="rounded bg-accent px-6 py-3 font-sans text-bg-film">Shop the drop</Link>
+                <Link to="/story" className="rounded border border-line-strong px-6 py-3 font-sans text-fg">How we source</Link>
+              </div>
+            )}
           </Reveal>
         </div>
       </section>

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { BRAND, NAV } from "../content/site";
+import { BRAND, NAV, PRESALE_MODE } from "../content/site";
+
+const DROP_CTA = PRESALE_MODE === "waitlist" ? "Join the drop" : "Shop the drop";
 import { useCart } from "../store/cart";
 
 function CartButton() {
@@ -53,8 +55,8 @@ export default function Nav() {
           ))}
         </nav>
         <div className="flex items-center gap-3">
-          <Link to="/reserve" className="hidden rounded bg-accent px-4 py-2 font-sans text-sm text-bg-film md:inline-block">Shop the drop</Link>
-          <CartButton />
+          <Link to="/reserve" className="hidden rounded bg-accent px-4 py-2 font-sans text-sm text-bg-film md:inline-block">{DROP_CTA}</Link>
+          {PRESALE_MODE === "live" && <CartButton />}
           <button
             className="md:hidden rounded border border-line p-2 text-fg"
             aria-expanded={open}
@@ -71,7 +73,7 @@ export default function Nav() {
             {NAV.map((n) => (
               <li key={n.label}><Link to={n.to} className="block py-3 font-sans text-fg" onClick={() => setOpen(false)}>{n.label}</Link></li>
             ))}
-            <li><Link to="/reserve" className="block py-3 font-sans text-accent" onClick={() => setOpen(false)}>Shop the drop</Link></li>
+            <li><Link to="/reserve" className="block py-3 font-sans text-accent" onClick={() => setOpen(false)}>{DROP_CTA}</Link></li>
           </ul>
         </nav>
       )}
