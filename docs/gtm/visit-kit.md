@@ -1,0 +1,12 @@
+# Coffee Shop Visit Kit (built 2026-07-31)
+
+- Frame the visit honestly: this is a scouting and relationship visit, not a sales call. Kyle is a customer first — buy a coffee, drink it there, then ask to talk to the owner or head barista for five minutes. Nobody resents a founder who bought something and asked good questions.
+- The one-line intro: 'I'm Kyle, I'm local — Lewisville. I'm launching a certified Jamaica Blue Mountain brand on September 1. Most Blue Mountain sold in the US is blended or faked; ours carries JACRA certification. I'm not here to sell you anything today — my samples land mid-August and I'd rather show up with coffee than a pitch.'
+- What to bring: business cards, a one-page wholesale sheet (certification story, pricing, the wholesale page URL), a card with the waitlist QR code, and a phone or notebook to capture names and notes on the spot. That is the entire kit until samples arrive.
+- Be plainly upfront about the sample gap — it is a feature, not a weakness: 'Samples arrive from Jamaica in about two weeks. Can I put you down for one and come back?' A booked return visit converts a cold walk-in into a scheduled second meeting, which is the actual win of the trip.
+- Questions to ask (listen more than talk): Do customers ever ask for Blue Mountain? What do you pay for your top single-origin lots? Would a $70-130/lb certified lot have a place here — retail bags, a reserve pour-over, something else? Who decides on new beans, and what would make a sample worth their time?
+- The three asks, in order of value: (1) permission to return with a sample on a named date in mid-August, (2) the buying decision-maker's name and contact, (3) honest feedback on the wholesale pricing sheet. If the conversation is warm, offer the waitlist card for them personally — many shop people are exactly the connoisseur DTC customer.
+- Never do: leave fake urgency ('shops are lining up'), overstate inventory or traction, or promise wholesale terms not on the sheet. The brand's entire position is provable honesty; the visit must embody it.
+- After every visit (10 min, AI-assisted): log the shop, contact, temperature, and committed next step in the B2B pipeline table, and set the follow-up date. An unlogged visit is a wasted visit.
+
+**Critic's amendment:** never promise a sample DATE ('mid-August'); say 'as soon as my first shipment lands, I'll text you the day it arrives.' Cap visits at 2/week per the 10-hour priority stack.
