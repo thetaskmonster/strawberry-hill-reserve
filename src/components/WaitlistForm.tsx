@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useSearchParams } from "react-router-dom";
 import { WAITLIST } from "../content/site";
 
 // Drop-waitlist capture. Posts application/x-www-form-urlencoded so the
@@ -11,6 +12,12 @@ type Phase = "idle" | "busy" | "done" | "error";
 export default function WaitlistForm({ source, compact = false }: { source: string; compact?: boolean }) {
   const [email, setEmail] = useState("");
   const [phase, setPhase] = useState<Phase>("idle");
+  // A page-level default (e.g. "home-hero") is the fallback. A "?src=" query
+  // param on the URL overrides it, so the same page can be linked from
+  // Instagram, TikTok, or a specific post and still land as a distinct row in
+  // the Waitlist table's Source column, real attribution, nothing invented.
+  const [params] = useSearchParams();
+  const effectiveSource = params.get("src")?.trim() || source;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -20,7 +27,7 @@ export default function WaitlistForm({ source, compact = false }: { source: stri
       const res = await fetch(WAITLIST.endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ email: email.trim(), source }),
+        body: new URLSearchParams({ email: email.trim(), source: effectiveSource }),
       });
       const data = (await res.json()) as { ok?: boolean };
       setPhase(res.ok && data.ok ? "done" : "error");
