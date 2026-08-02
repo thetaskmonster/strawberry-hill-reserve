@@ -17,6 +17,10 @@ export interface Env {
   // The site origin allowed by CORS and used to build return URLs.
   // e.g. https://berrova.com  (configurable per environment)
   SITE_ORIGIN: string;
+  // Shared-secret guard token. Set with: wrangler secret put CHECKOUT_GUARD_TOKEN
+  // Required on every POST via the X-Berrova-Guard header. See the comment on
+  // guardTokenValid() below for what this does and does not protect against.
+  CHECKOUT_GUARD_TOKEN: string;
 }
 
 type Mode = "payment" | "subscription";
@@ -47,7 +51,10 @@ function corsHeaders(origin: string): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    // X-Berrova-Guard carries the shared guard token (see guardTokenValid).
+    // It has to be listed here or the browser's real POST never leaves the
+    // preflight stage.
+    "Access-Control-Allow-Headers": "Content-Type, X-Berrova-Guard",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };
@@ -62,7 +69,7 @@ function json(body: unknown, status: number, cors: Record<string, string>): Resp
 
 // Narrow and validate the request body. Returns either a clean item list plus
 // the uniform session mode, or an error string.
-function parseItems(raw: unknown): { items: IncomingItem[]; mode: Mode } | { error: string } {
+export function parseItems(raw: unknown): { items: IncomingItem[]; mode: Mode } | { error: string } {
   if (!raw || typeof raw !== "object" || !Array.isArray((raw as { items?: unknown }).items)) {
     return { error: "Body must be { items: [...] }." };
   }
@@ -105,7 +112,7 @@ function parseItems(raw: unknown): { items: IncomingItem[]; mode: Mode } | { err
 
 // Build the application/x-www-form-urlencoded body Stripe expects, including the
 // nested line_items and price_data. Amounts come from PRICE_MAP only.
-function buildForm(items: IncomingItem[], mode: Mode, origin: string): URLSearchParams {
+export function buildForm(items: IncomingItem[], mode: Mode, origin: string): URLSearchParams {
   const form = new URLSearchParams();
   form.set("mode", mode);
 
@@ -134,11 +141,52 @@ function buildForm(items: IncomingItem[], mode: Mode, origin: string): URLSearch
   return form;
 }
 
+// Constant-time byte compare for secret strings. Workers' crypto.subtle does
+// not expose a timingSafeEqual, and Node's crypto.timingSafeEqual is not
+// available in the Workers runtime, so this hand-rolls the XOR-accumulate
+// comparison. The length check short-circuits (not constant-time), but a
+// token's length is not sensitive here, only its content is, so that leak is
+// accepted; this is a hygiene-grade guard, not a cryptographic primitive.
+export function timingSafeEqual(a: string, b: string): boolean {
+  const aBytes = new TextEncoder().encode(a);
+  const bBytes = new TextEncoder().encode(b);
+  if (aBytes.length !== bBytes.length) return false;
+  let diff = 0;
+  for (let i = 0; i < aBytes.length; i++) {
+    diff |= aBytes[i] ^ bBytes[i];
+  }
+  return diff === 0;
+}
+
+// The real gate. Origin headers are trivially spoofed by any script that
+// isn't a browser (see the comment in fetch() below), so this shared token is
+// what actually stands between the endpoint and a bot spamming empty-cart
+// checkout sessions. It is not strong auth: the token ships in the site's
+// public JS bundle (see src/lib/checkout.ts on the website), so it stops
+// blind/naive scripts hitting the known Worker URL, not a motivated attacker
+// willing to read the bundle. Fails closed if the secret itself is unset.
+export function guardTokenValid(request: Request, env: Env): boolean {
+  const expected = env.CHECKOUT_GUARD_TOKEN ?? "";
+  if (!expected) return false;
+  const provided = request.headers.get("X-Berrova-Guard") ?? "";
+  if (!provided) return false;
+  return timingSafeEqual(provided, expected);
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const allowedOrigin = (env.SITE_ORIGIN || "https://berrova.com").replace(/\/$/, "");
     const cors = corsHeaders(allowedOrigin);
 
+    // OPTIONS preflight is exempt from both the Origin and guard-token checks
+    // below. Browsers issue preflight automatically before a cross-origin POST
+    // that carries a custom header (X-Berrova-Guard) or a non-simple
+    // Content-Type, and they do so WITHOUT the custom header or body present
+    // (that's the point of preflight: asking permission before sending them).
+    // Gating preflight on the guard token would make the token itself
+    // impossible to deliver, breaking every real browser request. Preflight
+    // grants no access on its own, it only reports which headers/methods are
+    // allowed, so exempting it costs nothing.
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
     }
@@ -148,10 +196,23 @@ export default {
       return json({ error: "Not found." }, 404, cors);
     }
 
-    // Only accept posts from the configured site origin.
+    // Hygiene fix, not the real gate: only accept POSTs whose Origin header is
+    // present AND matches SITE_ORIGIN. The previous check
+    // (`reqOrigin && reqOrigin !== allowedOrigin`) only rejected a MISMATCHED
+    // Origin, so any non-browser client (curl, a bot) that simply omitted the
+    // Origin header sailed straight through. Origin is still trivially
+    // spoofable by a direct script, which never runs in a browser and can set
+    // (or omit) any header it likes, so this alone is not real protection,
+    // just a bar for browser-originated requests and casual scripts. The
+    // actual gate is the guard token below.
     const reqOrigin = request.headers.get("Origin");
-    if (reqOrigin && reqOrigin.replace(/\/$/, "") !== allowedOrigin) {
+    if (!reqOrigin || reqOrigin.replace(/\/$/, "") !== allowedOrigin) {
       return json({ error: "Origin not allowed." }, 403, cors);
+    }
+
+    // The real gate. See guardTokenValid() for what this does and does not do.
+    if (!guardTokenValid(request, env)) {
+      return json({ error: "Not authorized." }, 403, cors);
     }
 
     if (!env.STRIPE_SECRET_KEY) {

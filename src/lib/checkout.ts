@@ -21,6 +21,15 @@ export type CheckoutItem = {
 // only as the browser's "Failed to fetch" with no server-side fault to find.
 const ENDPOINT = (import.meta.env.VITE_CHECKOUT_ENDPOINT ?? "").trim();
 
+// Shared guard token sent as X-Berrova-Guard, checked against the Worker's
+// CHECKOUT_GUARD_TOKEN secret. NOT strong auth: this is a client-side env var
+// baked into the shipped JS bundle, so anyone who reads the bundle can read
+// it. It exists to raise the bar above blind/naive scripts that hit the known
+// Worker URL with no idea a token is required; it does nothing against
+// someone who actually inspects the site's JS. See .env.example and
+// worker/src/index.ts (guardTokenValid).
+const GUARD_TOKEN = (import.meta.env.VITE_CHECKOUT_GUARD_TOKEN ?? "").trim();
+
 export const checkoutReady = ENDPOINT.length > 0;
 
 // Small, user-facing note reused wherever a button is gated off.
@@ -38,7 +47,7 @@ export async function startCheckout(items: CheckoutItem[]): Promise<void> {
 
   const res = await fetch(ENDPOINT, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "X-Berrova-Guard": GUARD_TOKEN },
     body: JSON.stringify({ items }),
   });
 
