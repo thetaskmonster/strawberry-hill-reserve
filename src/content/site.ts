@@ -3,13 +3,13 @@
 // No invented numbers anywhere: certificate numbers and roast dates live on the
 // physical bag and render from source at launch, so marketing copy states the
 // claim ("JACRA certified") without printing a fabricated value. The drop values
-// below (200 bags, Sept 1) are the founder's real launch parameters.
+// below (200 bags, Oct 1) are the founder's real launch parameters.
 
 export const BRAND = "Berrova"; // house brand (locked 2026-07-24)
 export const HERO_LINE = "Strawberry Hill Reserve";
 export const INQUIRY_EMAIL = "wecare@gsccapitalgroup.com";
 
-export const DROP = { units: "200", opens: "Sept 1", opensISO: "2026-09-01" };
+export const DROP = { units: "200", opens: "Oct 1", opensISO: "2026-10-01" };
 
 // Presale gate. "waitlist" hides every purchase path and routes intent into the
 // drop waitlist; "live" restores the full store. Flip this ONE value on drop
@@ -19,12 +19,12 @@ export const PRESALE_MODE = "waitlist" as "waitlist" | "live";
 
 // Drop waitlist capture. Posts form-encoded (no CORS preflight) to the n8n
 // "Berrova Waitlist Capture" webhook, which validates and writes the Airtable
-// Waitlist row. Copy honors the honesty line: 200 bags and Sept 1 are real
+// Waitlist row. Copy honors the honesty line: 200 bags and Oct 1 are real
 // launch parameters; first access is the real mechanic; nothing is invented.
 export const WAITLIST = {
   endpoint: "https://capturethisvibe.app.n8n.cloud/webhook/berrova-waitlist-a7c2",
   headline: "POUR FIRST",
-  sub: "The first drop is 200 bags, opening Sept 1. The waitlist gets first access before it opens to the public. When they are gone, the drop closes.",
+  sub: "The first drop is 200 bags, opening Oct 1. The waitlist gets first access before it opens to the public. When they are gone, the drop closes.",
   button: "Join the waitlist",
   placeholder: "you@email.com",
   success: "You are on the list. When the drop opens, you pour first.",
@@ -79,4 +79,5 @@ export const FAQ = [
   { q: "Subscribe or one-time?", a: "Both, on every coffee, never forced. Subscribing is the better deal on price and access; one-time is the same coffee with zero commitment, no account, no auto-renew." },
   { q: "When will my order ship?", a: "We produce close to each drop, so orders carry a stated ship window at checkout. The first orders of a drop can run a little longer while the batch is produced. The window is always shown before you pay, and if we cannot meet it, you can have a refund." },
   { q: "Why only limited drops?", a: "We buy only what we can secure and sell exactly that, then the drop closes until the next one. It keeps the coffee fresh and the story honest. When a drop sells out, it is genuinely gone." },
+  { q: "What if I don't love it?", a: "Message us within 30 days of your first order and we will refund it, no need to send anything back. This covers your first order, once per customer. It is separate from the ship-window promise above, that one covers us being late, this one covers you not liking the coffee." },
 ];
