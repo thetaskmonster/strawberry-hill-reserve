@@ -68,5 +68,13 @@ export function formatUsd(cents: number): string {
 
 // FTC Mail Order Rule ship-window copy. Shown before payment, on the cart and the
 // order-success page. Kept verbatim so legal review has one place to check.
+//
+// Widened from "about 2 to 3 weeks" to 8 weeks on 2026-08-05. The rule requires a
+// reasonable basis for whatever time we state, and we do not have one for 2 to 3
+// weeks: the supplier's lead time is 4 to 6 weeks, payment is wired before the
+// batch is produced, and packing and outbound shipping sit on top of that. The
+// honest chain runs 5 to 7 weeks from charge to dispatch, so 8 is the number we
+// can actually stand behind. Do not shorten this without a supplier lead time in
+// writing, or without inventory already landed in Lewisville.
 export const SHIP_WINDOW =
-  "Fresh-to-order origin batch. Ships in about 2 to 3 weeks; first orders of a drop may run a little longer. The window is shown before you pay, and if we cannot meet it you can have a refund.";
+  "Roasted and packaged to order at origin. Because each batch is produced in Jamaica after you order, we ship within 8 weeks. The window is shown before you pay, and if we cannot meet it you can cancel for a full refund.";
