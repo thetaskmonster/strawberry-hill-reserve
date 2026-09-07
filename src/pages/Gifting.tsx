@@ -26,13 +26,13 @@ export default function Gifting() {
         <Reveal>
           <p className="eyebrow">For teams and clients</p>
           <h1 className="display mt-3 text-fg" style={{ fontSize: "var(--step-4)" }}>Gifting they remember.</h1>
-          <p className="lead mt-4">Certified coffee, presented well and priced for volume. Your branding, one point of contact.</p>
+          <p className="lead mt-4">JACRA-certified coffee, presented well and priced for volume. Your branding, one point of contact.</p>
         </Reveal>
       </section>
 
       <section className="container-page grid gap-4 pb-16 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          ["01", "Certified, not commodity", "Certified Blue Mountain and a short, high-grown range. A gift that reads as considered, not bulk-bought."],
+          ["01", "Certified, not commodity", "JACRA-certified Blue Mountain and a short, high-grown range. A gift that reads as considered, not bulk-bought."],
           ["02", "Your branding", "Custom cards, notes, presentation. Co-branded boxes for larger runs."],
           ["03", "Volume pricing", "Real quotes at 100+ units. 50% deposit on order, balance at delivery."],
           ["04", "One human contact", "No portal runaround. You talk to a person from quote to delivery."],

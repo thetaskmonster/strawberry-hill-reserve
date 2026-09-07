@@ -20,7 +20,7 @@ export default function Story() {
 
       <section className="container-page py-20">
         <Reveal><p className="lead">Most coffee is bought on price and blended for consistency. That is a fine way to fill a shelf. It is not how you get a cup worth sitting with. We went the other way: buy less, buy higher, and keep the range short enough to know each origin by name.</p></Reveal>
-        <Reveal delay={0.1}><p className="lead mt-6">The featured drop, <span className="text-fg">Strawberry Hill Reserve</span>, is certified Jamaica Blue Mountain from a single estate in the Blue Mountain zone, roasted to order and sealed at origin. It is one of the great high-grown coffees, and one of the most faked, which is exactly why we sell it certified and traceable rather than take the name on faith.</p></Reveal>
+        <Reveal delay={0.1}><p className="lead mt-6">The featured drop, <span className="text-fg">Strawberry Hill Reserve</span>, is JACRA-certified Jamaica Blue Mountain, grown on farms above 3,000 ft in the Blue Mountain zone, roasted to order and sealed at origin. It is one of the great high-grown coffees, and one of the most faked, which is exactly why we buy it through a JACRA-licensed dealer whose licences are on the public registry rather than take the name on faith.</p></Reveal>
       </section>
 
       {PROCESS.map((p, i) => (

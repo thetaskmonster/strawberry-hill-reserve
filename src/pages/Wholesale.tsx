@@ -5,10 +5,10 @@ export default function Wholesale() {
     <section className="container-page py-16">
       <p className="eyebrow">For cafes, roasters, and fine dining</p>
       <h1 className="display mt-3 text-fg" style={{ fontSize: "var(--step-4)" }}>Wholesale.</h1>
-      <p className="lead mt-4">Certified Blue Mountain and a short high-grown range for the top of your menu. Volume pricing, a real person on the other end, no auto-quotes.</p>
+      <p className="lead mt-4">JACRA-certified Blue Mountain and a short high-grown range for the top of your menu. Volume pricing, a real person on the other end, no auto-quotes.</p>
       <div className="mt-10 grid gap-4 sm:grid-cols-3">
         {[
-          ["Certified, traceable", "JACRA certificate and traceable lots, so what you pour is what you say it is."],
+          ["Certified, checkable", "A JACRA-licensed dealer whose licences are on the public registry, so what you pour is what you say it is."],
           ["Supply that holds", "Quarterly Reserve plus a steady house range, so the menu never goes dark."],
           ["One contact", "A direct line from first sample to standing order."],
         ].map(([h, p]) => (

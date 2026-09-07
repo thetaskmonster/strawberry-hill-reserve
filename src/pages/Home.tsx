@@ -34,7 +34,7 @@ export default function Home() {
           <Reveal delay={0.15}>
             <p className="lead mt-6">
               A small coffee house built on altitude, patience, and origins we can stand behind. We keep the range short and
-              let each one earn its place, led right now by <span className="text-fg">{HERO_LINE}</span>, our certified Jamaica Blue Mountain drop.
+              let each one earn its place, led right now by <span className="text-fg">{HERO_LINE}</span>, our JACRA-certified Jamaica Blue Mountain drop.
             </p>
             {PRESALE_MODE === "waitlist" ? (
               <div className="mt-8 max-w-xl">
@@ -57,7 +57,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Marquee items={["High-grown, hand-picked", "Roasted to order", "Certified origins", "Sealed the day it ships"]} />
+      <Marquee items={["High-grown, hand-picked", "Roasted to order", "JACRA-certified Blue Mountain", "Sealed the day it ships"]} />
 
       {/* PROCESS - grown to poured */}
       <section className="relative overflow-hidden py-20" aria-labelledby="process-h">
@@ -92,11 +92,11 @@ export default function Home() {
           <Reveal>
             <p className="eyebrow">The standard</p>
             <h2 id="auth-h" className="display mt-3 text-fg" style={{ fontSize: "var(--step-3)" }}>We only sell what we can vouch for.</h2>
-            <p className="lead mt-5">Great coffee starts long before the roast, in the choice of what to buy. We keep the range short so every origin is one we know the way back to. The featured drop, Strawberry Hill Reserve, is certified Jamaica Blue Mountain, named to its estate and sold only when it is real coffee in hand.</p>
+            <p className="lead mt-5">Great coffee starts long before the roast, in the choice of what to buy. We keep the range short so every origin is one we know the way back to. The featured drop, Strawberry Hill Reserve, is JACRA-certified Jamaica Blue Mountain, grown on farms above 3,000 ft and sold only when it is real coffee in hand.</p>
             <ul className="mt-6 space-y-3 text-fg-muted">
-              <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> Certified Jamaica Blue Mountain, verified on the bag</li>
+              <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> JACRA-certified Jamaica Blue Mountain, verified on the bag</li>
               <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> Roasted to order, then sealed the day it ships</li>
-              <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> A named estate, a traceable lot, and no blending</li>
+              <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> Farms above 3,000 ft, a JACRA-licensed dealer, and no blending</li>
             </ul>
           </Reveal>
           <Reveal delay={0.1} className="relative">
@@ -172,7 +172,7 @@ export default function Home() {
           <div className="rounded-lg border border-line bg-bg-elev p-10 md:p-14">
             <p className="eyebrow">For teams and clients</p>
             <h2 className="display mt-3 text-fg" style={{ fontSize: "var(--step-3)" }}>Gifting they actually keep.</h2>
-            <p className="lead mt-4">Certified coffee that feels considered, priced for volume, with one person to talk to from quote to delivery.</p>
+            <p className="lead mt-4">JACRA-certified coffee that feels considered, priced for volume, with one person to talk to from quote to delivery.</p>
             <Link to="/gifting" className="mt-6 inline-block rounded border border-line-strong px-6 py-3 font-sans text-fg">Start a gifting inquiry</Link>
           </div>
         </Reveal>

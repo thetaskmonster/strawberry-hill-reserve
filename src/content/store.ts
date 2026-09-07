@@ -22,7 +22,7 @@ export const CATALOG: Sku[] = [
     id: "shr-8oz",
     name: "Strawberry Hill Reserve 8 oz",
     size: "8 oz",
-    blurb: "The everyday bag. Certified Jamaica Blue Mountain, roasted to order.",
+    blurb: "The everyday bag. JACRA-certified Jamaica Blue Mountain, roasted to order.",
     oneTimeCents: 6800,
     subscribeCents: 5900,
   },
