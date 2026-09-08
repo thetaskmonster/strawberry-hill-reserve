@@ -170,7 +170,7 @@ export default function OriginWaitlistDialog({
         </p>
 
         <div className="mt-5">
-          <WaitlistForm source={target.source} />
+          <WaitlistForm source={target.source} pinSource />
         </div>
 
         <p className="mt-4 font-sans text-sm text-fg-muted">
