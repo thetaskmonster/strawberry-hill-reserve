@@ -9,7 +9,7 @@ export default function Wholesale() {
       <div className="mt-10 grid gap-4 sm:grid-cols-3">
         {[
           ["Certified, inspected", "JACRA-certified and inspected at every stage of processing, so what you pour is what you say it is."],
-          ["Supply that holds", "Quarterly Reserve plus a steady house range, so the menu never goes dark."],
+          ["Supply that holds", "A quarterly drop plus a steady house range, so the menu never goes dark."],
           ["One contact", "A direct line from first sample to standing order."],
         ].map(([h, p]) => (
           <div key={h} className="rounded border border-line bg-bg-elev p-5">

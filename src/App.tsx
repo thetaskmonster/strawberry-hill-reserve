@@ -26,6 +26,10 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/story" element={<Story />} />
+          {/* Path kept as /reserve on purpose. The PRODUCT was renamed to
+              "Strawberry Hill" on 2026-09-08, but seo.ts keys its page meta and
+              product structured data off this literal string, and 14 internal
+              links point here. Renaming the slug is a separate change. */}
           <Route path="/reserve" element={<Product />} />
           <Route path="/gifting" element={<Gifting />} />
           <Route path="/wholesale" element={<Wholesale />} />

@@ -1,12 +1,16 @@
 // Central copy. Berrova is the house-brand name (multi-origin luxury
-// coffee); Strawberry Hill Reserve is the featured drop, not the whole company.
+// coffee); Strawberry Hill is the launch release, not the whole company. The
+// line has more than one tier: Strawberry Hill ships first, and Reserve is a
+// later, dearer tier that is NOT yet available, so nothing here offers it for
+// sale. Listing names match what is printed on the bag ("Strawberry Hill"),
+// which is why "Reserve" was taken out of the SKU names on 2026-09-08.
 // No invented numbers anywhere: certificate numbers and roast dates live on the
 // physical bag and render from source at launch, so marketing copy states the
 // claim ("JACRA certified") without printing a fabricated value. The drop values
 // below (200 bags, Oct 1) are the founder's real launch parameters.
 
 export const BRAND = "Berrova"; // house brand (locked 2026-07-24)
-export const HERO_LINE = "Strawberry Hill Reserve";
+export const HERO_LINE = "Strawberry Hill";
 export const INQUIRY_EMAIL = "wecare@gsccapitalgroup.com";
 
 export const DROP = { units: "200", opens: "Oct 1", opensISO: "2026-10-01" };
@@ -67,14 +71,14 @@ export const PROCESS = [
 // img is generic, representative regional/craft imagery (free-license), never a
 // specific-estate claim; alt text stays generic and the state chips keep it honest.
 export const ORIGINS = [
-  { name: "Strawberry Hill Reserve", place: "Jamaica Blue Mountain", state: "live", note: "The featured drop. 100%, JACRA-certified, quarterly.", img: import.meta.env.BASE_URL + "assets/img/bm-peak.webp" },
+  { name: "Strawberry Hill", place: "Jamaica Blue Mountain", state: "live", note: "The launch release. 100%, JACRA-certified, quarterly.", img: import.meta.env.BASE_URL + "assets/img/bm-peak.webp" },
   { name: "Kenya", place: "Nyeri, high-grown", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: import.meta.env.BASE_URL + "assets/video/forest.jpg" },
   { name: "Ethiopia", place: "Heirloom, washed", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: import.meta.env.BASE_URL + "assets/video/harvest.jpg" },
   { name: "The next ridgeline", place: "Under evaluation", state: "dark", note: "Sourced only when it clears the bar. No buyable ghosts.", img: import.meta.env.BASE_URL + "assets/video/steam.jpg" },
 ];
 
 export const FAQ = [
-  { q: "What is Berrova?", a: "A small coffee house built on high-grown, honestly sourced origins, roasted to order. We keep the range short and let each origin earn its place. Strawberry Hill Reserve, our certified Jamaica Blue Mountain, is the featured drop." },
+  { q: "What is Berrova?", a: "A small coffee house built on high-grown, honestly sourced origins, roasted to order. We keep the range short and let each origin earn its place. Strawberry Hill, our certified Jamaica Blue Mountain, is the launch release." },
   { q: "How does the subscription work?", a: "You choose a cadence and control it yourself: skip, pause, swap origin, size, or grind, or cancel, all self-serve. Subscribers pay a lower per-bag price and get first access to drops before the public." },
   { q: "Subscribe or one-time?", a: "Both, on every coffee, never forced. Subscribing is the better deal on price and access; one-time is the same coffee with zero commitment, no account, no auto-renew." },
   { q: "When will my order ship?", a: "Within 8 weeks. Nothing sits in a warehouse waiting for you: your coffee is roasted and packaged in Jamaica after you order, then shipped to us and out to you. That is slower than most coffee you can buy, and it is the honest cost of buying it this way. The window is always shown before you pay, and if we cannot meet it, you can cancel for a full refund." },
