@@ -7,6 +7,7 @@ import CinematicVideo from "../components/CinematicVideo";
 import SteamOverlay from "../components/SteamOverlay";
 import KineticHeadline from "../components/KineticHeadline";
 import Reveal from "../components/Reveal";
+import OriginWaitlistDialog, { type OriginDialogTarget } from "../components/OriginWaitlistDialog";
 
 function daysUntil(iso: string): number {
   const target = new Date(iso + "T00:00:00").getTime();
@@ -16,6 +17,8 @@ function daysUntil(iso: string): number {
 
 export default function Home() {
   const [days, setDays] = useState(() => daysUntil(DROP.opensISO));
+  // Which origin card opened the waitlist dialog, null when closed.
+  const [originTarget, setOriginTarget] = useState<OriginDialogTarget | null>(null);
   useEffect(() => {
     const id = setInterval(() => setDays(daysUntil(DROP.opensISO)), 60_000);
     return () => clearInterval(id);
@@ -142,26 +145,66 @@ export default function Home() {
             <p className="lead mt-4">An origin appears for sale only when its coffee is paid for and landed. Everything else is a waitlist, so you always know what is really pourable.</p>
           </Reveal>
           <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {ORIGINS.map((o, i) => (
-              <li key={o.name}>
-                <Reveal delay={i * 0.05}>
-                  <div className="relative flex min-h-[300px] flex-col justify-end overflow-hidden rounded border border-line bg-bg-film p-5">
-                    <img
-                      src={o.img}
-                      alt={`${o.place}, representative`}
-                      loading="lazy"
-                      className="absolute inset-0 h-full w-full object-cover"
-                      style={{ filter: "grayscale(1) contrast(1.05)", opacity: o.state === "live" ? 0.8 : o.state === "waitlist" ? 0.4 : 0.22 }}
-                    />
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(5,5,5,0.15) 0%, rgba(5,5,5,0.55) 55%, var(--bg-film) 100%)" }} />
-                    <span className="eyebrow relative z-10 self-start rounded-sm border border-line-strong bg-bg-film/70 px-2 py-1 backdrop-blur-sm" style={{ color: o.state === "live" ? "var(--accent-strong)" : undefined }}>{o.state === "live" ? "Live" : o.state === "waitlist" ? "Waitlist" : "Sourcing"}</span>
-                    <h3 className="relative z-10 mt-auto pt-10 font-sans text-fg" style={{ fontSize: "var(--step-1)" }}>{o.name}</h3>
-                    <p className="relative z-10 mt-0.5 font-sans text-xs uppercase tracking-wide text-accent">{o.place}</p>
-                    <p className="relative z-10 mt-1 font-sans text-sm text-fg-muted">{o.note}</p>
-                  </div>
-                </Reveal>
-              </li>
-            ))}
+            {ORIGINS.map((o, i) => {
+              // The whole card is the hit area, so the click lives inside the
+              // photo rather than on a separate link underneath it.
+              // live      -> the product page
+              // waitlist  -> per-origin email capture, no navigation
+              // dark      -> nothing to click; there is no page and no list to
+              //              join for an origin that is still under evaluation,
+              //              so it is deliberately inert and shows no affordance.
+              const interactive = o.state === "live" || o.state === "waitlist";
+              const body = (
+                <>
+                  <img
+                    src={o.img}
+                    alt={`${o.place}, representative`}
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04] motion-reduce:transform-none motion-reduce:transition-none"
+                    style={{ filter: "grayscale(1) contrast(1.05)", opacity: o.state === "live" ? 0.8 : o.state === "waitlist" ? 0.4 : 0.22 }}
+                  />
+                  <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(5,5,5,0.15) 0%, rgba(5,5,5,0.55) 55%, var(--bg-film) 100%)" }} />
+                  <span className="eyebrow relative z-10 self-start rounded-sm border border-line-strong bg-bg-film/70 px-2 py-1 backdrop-blur-sm" style={{ color: o.state === "live" ? "var(--accent-strong)" : undefined }}>{o.state === "live" ? "Live" : o.state === "waitlist" ? "Waitlist" : "Sourcing"}</span>
+                  <h3 className="relative z-10 mt-auto pt-10 font-sans text-fg" style={{ fontSize: "var(--step-1)" }}>{o.name}</h3>
+                  <p className="relative z-10 mt-0.5 font-sans text-xs uppercase tracking-wide text-accent">{o.place}</p>
+                  <p className="relative z-10 mt-1 font-sans text-sm text-fg-muted">{o.note}</p>
+                  {interactive && (
+                    <span className="relative z-10 mt-3 inline-flex items-center gap-1 font-sans text-sm text-accent-strong">
+                      {o.state === "live" ? "See the drop" : "Join the waitlist"}
+                      <span aria-hidden="true">-&gt;</span>
+                    </span>
+                  )}
+                </>
+              );
+              const shell =
+                "group relative flex min-h-[300px] w-full flex-col justify-end overflow-hidden rounded border border-line bg-bg-film p-5 text-left" +
+                (interactive
+                  ? " cursor-pointer transition-colors hover:border-accent focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  : "");
+              return (
+                <li key={o.name}>
+                  <Reveal delay={i * 0.05}>
+                    {o.state === "live" ? (
+                      <Link to="/reserve" className={shell} aria-label={`${o.name}, ${o.place}. See the drop.`}>
+                        {body}
+                      </Link>
+                    ) : o.state === "waitlist" ? (
+                      <button
+                        type="button"
+                        className={shell}
+                        aria-haspopup="dialog"
+                        aria-label={`${o.name}, ${o.place}. Join the waitlist.`}
+                        onClick={() => setOriginTarget({ name: o.name, place: o.place, source: `origin-${o.slug}` })}
+                      >
+                        {body}
+                      </button>
+                    ) : (
+                      <div className={shell}>{body}</div>
+                    )}
+                  </Reveal>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </section>
@@ -177,6 +220,8 @@ export default function Home() {
           </div>
         </Reveal>
       </section>
+
+      <OriginWaitlistDialog target={originTarget} onClose={() => setOriginTarget(null)} />
     </>
   );
 }

@@ -17,6 +17,14 @@ export const DROP = { units: "200", opens: "Oct 1", opensISO: "2026-10-01" };
 // ship-window clock never starts before inventory is real.
 export const PRESALE_MODE = "waitlist" as "waitlist" | "live";
 
+// Price visibility. While the drop is a waitlist we do not publish the price
+// list: the page teases access, not numbers, and every figure returns on the
+// same flip that opens the store. NOTE the honest limit -- the CATALOG in
+// content/store.ts still ships inside the JS bundle, so this hides prices from
+// the page, not from anyone who opens devtools. It is a launch tease, not a
+// secret. The Worker remains the authority at charge time either way.
+export const SHOW_PRICES = PRESALE_MODE === "live";
+
 // Drop waitlist capture. Posts form-encoded (no CORS preflight) to the n8n
 // "Berrova Waitlist Capture" webhook, which validates and writes the Airtable
 // Waitlist row. Copy honors the honesty line: 200 bags and Oct 1 are real
@@ -67,10 +75,10 @@ export const PROCESS = [
 // img is generic, representative regional/craft imagery (free-license), never a
 // specific-estate claim; alt text stays generic and the state chips keep it honest.
 export const ORIGINS = [
-  { name: "Strawberry Hill Reserve", place: "Jamaica Blue Mountain", state: "live", note: "The featured drop. JACRA-certified, quarterly.", img: import.meta.env.BASE_URL + "assets/img/bm-peak.webp" },
-  { name: "Kenya", place: "Nyeri, high-grown", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: import.meta.env.BASE_URL + "assets/video/forest.jpg" },
-  { name: "Ethiopia", place: "Heirloom, washed", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: import.meta.env.BASE_URL + "assets/video/harvest.jpg" },
-  { name: "The next ridgeline", place: "Under evaluation", state: "dark", note: "Sourced only when it clears the bar. No buyable ghosts.", img: import.meta.env.BASE_URL + "assets/video/steam.jpg" },
+  { name: "Strawberry Hill Reserve", slug: "strawberry-hill-reserve", place: "Jamaica Blue Mountain", state: "live", note: "The featured drop. JACRA-certified, quarterly.", img: import.meta.env.BASE_URL + "assets/img/bm-peak.webp" },
+  { name: "Kenya", slug: "kenya", place: "Nyeri, high-grown", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: import.meta.env.BASE_URL + "assets/video/forest.jpg" },
+  { name: "Ethiopia", slug: "ethiopia", place: "Heirloom, washed", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: import.meta.env.BASE_URL + "assets/video/harvest.jpg" },
+  { name: "The next ridgeline", slug: "next-ridgeline", place: "Under evaluation", state: "dark", note: "Sourced only when it clears the bar. No buyable ghosts.", img: import.meta.env.BASE_URL + "assets/video/steam.jpg" },
 ];
 
 export const FAQ = [

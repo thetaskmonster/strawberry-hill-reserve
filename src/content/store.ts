@@ -13,6 +13,11 @@ export type Sku = {
   blurb: string;
   oneTimeCents: number;
   subscribeCents: number | null; // null = no subscription offered for this SKU
+  // Optional supporting points rendered under the SKU. Every line here must be
+  // true of the physical product. Nothing aspirational, nothing borrowed from
+  // the corporate gifting lane (custom cards, co-branding) -- that is a
+  // different, quote-based offer and does not describe this box.
+  points?: string[];
 };
 
 export const CURRENCY = "usd";
@@ -41,6 +46,20 @@ export const CATALOG: Sku[] = [
     blurb: "Three sealed 2 oz tins in a boxed set. A one-time gift, no commitment.",
     oneTimeCents: 7900,
     subscribeCents: null,
+    // VERIFIED-ONLY. Each line restates something already claimed elsewhere on
+    // the site or implied by the SKU definition itself.
+    //
+    // NOT WRITTEN, because nobody has confirmed them and the no-fabrication
+    // rule covers product claims: an included card or note, reusable or
+    // branded tins, ship-direct-to-recipient, gift wrapping, or three
+    // DIFFERENT origins in the box. Any of those would carry the price on its
+    // own. Confirm first, then add.
+    points: [
+      "Three individually sealed 2 oz tins, not one bag split three ways.",
+      "The same JACRA-certified lot as the full bags, roasted to order and sealed at origin.",
+      "Arrives as a boxed set, ready to hand over as it is.",
+      "One-time. No subscription, no auto-renew, nothing for them to cancel later.",
+    ],
   },
   {
     id: "shr-sample",
