@@ -46,8 +46,19 @@ export const CATALOG: Sku[] = [
     blurb: "Three sealed 2 oz tins in a boxed set. A one-time gift, no commitment.",
     oneTimeCents: 7900,
     subscribeCents: null,
-    // VERIFIED-ONLY. Each line restates something already claimed elsewhere on
-    // the site or implied by the SKU definition itself.
+    // Kyle's ruling, 2026-09-08: THE PRESENTATION IS THE PRODUCT. The box and
+    // the sealed tins are what the buyer is paying for, so the copy sells
+    // gifting rather than apologising for the per-ounce number. An earlier
+    // draft led with "the same lot as the full bags", which invites exactly
+    // the comparison it was trying to survive -- and the proof gate could not
+    // check lot parity against any source of truth in this repo, so that line
+    // is gone on both counts.
+    //
+    // VERIFIED-ONLY. Each line restates something already on the site or
+    // implied by the SKU definition itself:
+    //   boxed set, 3 x 2 oz sealed tins  -> this SKU's own size and blurb
+    //   JACRA-certified, roasted to order, sealed at origin -> pages/Story.tsx
+    //   one-time, no subscription        -> subscribeCents: null, below
     //
     // NOT WRITTEN, because nobody has confirmed them and the no-fabrication
     // rule covers product claims: an included card or note, reusable or
@@ -55,9 +66,9 @@ export const CATALOG: Sku[] = [
     // DIFFERENT origins in the box. Any of those would carry the price on its
     // own. Confirm first, then add.
     points: [
-      "Three individually sealed 2 oz tins, not one bag split three ways.",
-      "The same JACRA-certified lot as the full bags, roasted to order and sealed at origin.",
-      "Arrives as a boxed set, ready to hand over as it is.",
+      "A boxed set, not a bag in a mailer. What arrives is the gift, ready to hand over as it is.",
+      "Three individually sealed 2 oz tins. Each one opens fresh, so it keeps giving after the first pour.",
+      "JACRA-certified Jamaica Blue Mountain, roasted to order and sealed at origin. The certification does the explaining for you.",
       "One-time. No subscription, no auto-renew, nothing for them to cancel later.",
     ],
   },
