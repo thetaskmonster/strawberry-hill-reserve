@@ -20,7 +20,7 @@ export default function Story() {
 
       <section className="container-page py-20">
         <Reveal><p className="lead">Most coffee is bought on price and blended for consistency. That is a fine way to fill a shelf. It is not how you get a cup worth sitting with. We went the other way: buy less, buy higher, and keep the range short enough to know each origin by name.</p></Reveal>
-        <Reveal delay={0.1}><p className="lead mt-6">The featured drop, <span className="text-fg">Strawberry Hill Reserve</span>, is certified Jamaica Blue Mountain from a single estate in the Blue Mountain zone, roasted to order and sealed at origin. It is one of the great high-grown coffees, and one of the most faked, which is exactly why we sell it certified and traceable rather than take the name on faith.</p></Reveal>
+        <Reveal delay={0.1}><p className="lead mt-6">The featured drop, <span className="text-fg">Strawberry Hill Reserve</span>, is 100% Jamaica Blue Mountain, grown on farms above 3,000 ft in the certified zone, roasted to order and sealed at origin. There is no single estate behind it, and we would rather say so than imply one: at real volume, one farm cannot supply this coffee. What we have instead is an inspected chain, where JACRA checks the crop at float, pulp, dry, sort, polish, grade and roast, so nothing else gets in along the way. It is one of the great high-grown coffees, and one of the most faked, which is exactly why we sell it certified rather than take the name on faith.</p></Reveal>
       </section>
 
       {PROCESS.map((p, i) => (

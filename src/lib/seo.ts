@@ -34,7 +34,7 @@ const ROUTE_META: Record<string, RouteMeta> = {
   "/story": {
     title: `The Story · ${BRAND}`,
     description:
-      "Most Blue Mountain coffee never saw the Blue Mountains. Ours is JACRA-certified, single-estate, roasted at origin, and traceable to its lot. The story of how we keep it honest.",
+      "Most Blue Mountain coffee never saw the Blue Mountains. Ours is 100% Jamaica Blue Mountain, JACRA-certified, grown above 3,000 ft and roasted at origin. The story of how we keep it honest.",
   },
   "/reserve": {
     title: `${HERO_LINE} · Certified Jamaica Blue Mountain | ${BRAND}`,
