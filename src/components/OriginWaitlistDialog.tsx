@@ -3,8 +3,15 @@
 // the card lands as its own row rather than being routed to the generic drop
 // form further down the page.
 //
-// Accessibility mirrors CartDrawer: role="dialog" + aria-modal, focus trap,
-// Esc to close, body scroll lock, focus returns to the card that opened it.
+// Accessibility: role="dialog" + aria-modal, focus trap, Esc to close, body
+// scroll lock, focus returns to the card that opened it.
+//
+// DO NOT write "mirrors CartDrawer" here. That sentence stood in this file
+// through two rounds and was false in a different direction each time: first
+// because the scrim did NOT match CartDrawer's and dropped focus on <body>,
+// then because the Tab trap below is now STRONGER than CartDrawer's, which
+// still only handles focus being identically the first or last item. A reader
+// who trusts the sentence assumes CartDrawer is equally guarded. It is not.
 //
 // House style: no em dashes.
 
@@ -32,6 +39,10 @@ export default function OriginWaitlistDialog({
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
+  // Latest onClose, so the key-handling effect below never has to depend on
+  // its identity. See the note on that effect's dependency list.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   const open = target !== null;
 
   // Remember the trigger so focus can go back to it on close.
@@ -67,7 +78,7 @@ export default function OriginWaitlistDialog({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab") return;
@@ -110,7 +121,30 @@ export default function OriginWaitlistDialog({
       document.removeEventListener("keydown", onKey);
       restoreRef.current?.focus?.();
     };
-  }, [open, onClose]);
+    // onClose is deliberately NOT in this dependency list; it is read through
+    // a ref instead.
+    //
+    // The proof gate found this on 2026-09-08. Home passes a fresh arrow
+    // function as onClose on every render, so listing it here tore this effect
+    // down and rebuilt it on any Home re-render, and the cleanup restores
+    // focus to the card. Home re-renders on a 60-second countdown timer; most
+    // ticks set the same value and React bails out, but the once-a-day
+    // rollover does not. Observed with the clock run fast, with the user
+    // typing an email and then doing nothing at all:
+    //
+    //   OUT BUTTON|Kenya, Nyeri, high-grown. Join the waitlist.
+    //   IN  INPUT|
+    //
+    // Focus jumped to the card BEHIND a still-open aria-modal dialog and then
+    // back to the email field, discarding wherever the user was. A modal must
+    // never move focus without the user asking.
+    //
+    // The ref is the fix rather than useCallback in Home, because it makes the
+    // dialog correct against ANY caller. A useCallback in Home fixes today's
+    // one caller and silently breaks again the first time somebody adds a
+    // second one. Bound the failure, do not list it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   if (!target) return null;
 

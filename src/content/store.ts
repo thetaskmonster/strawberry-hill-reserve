@@ -57,6 +57,15 @@ export const CATALOG: Sku[] = [
     // VERIFIED-ONLY. Each line restates something already on the site or
     // implied by the SKU definition itself:
     //   boxed set, 3 x 2 oz sealed tins  -> this SKU's own size and blurb
+    //
+    // POINT 1 WAS CORRECTED ON 2026-09-08. It read "not a bag in a mailer",
+    // which is a claim about how the OTHER SKUs ship, and grep for "mailer"
+    // across src/ returned exactly one hit: that sentence itself. Nothing in
+    // this repo says the full bags ship in a mailer. It was an invented
+    // contrast sitting inside a block headed VERIFIED-ONLY, which is the
+    // worst place for one, and the proof gate caught it. The rewrite keeps
+    // Kyle's ruling (the presentation is the product) and says only what the
+    // SKU itself establishes.
     //   JACRA-certified, roasted to order, sealed at origin -> pages/Story.tsx
     //   one-time, no subscription        -> subscribeCents: null, below
     //
@@ -66,7 +75,7 @@ export const CATALOG: Sku[] = [
     // DIFFERENT origins in the box. Any of those would carry the price on its
     // own. Confirm first, then add.
     points: [
-      "A boxed set, not a bag in a mailer. What arrives is the gift, ready to hand over as it is.",
+      "A boxed set of three, ready to hand over as it is. What arrives is the gift.",
       "Three individually sealed 2 oz tins. Each one opens fresh, so it keeps giving after the first pour.",
       "JACRA-certified Jamaica Blue Mountain, roasted to order and sealed at origin. The certification does the explaining for you.",
       "One-time. No subscription, no auto-renew, nothing for them to cancel later.",

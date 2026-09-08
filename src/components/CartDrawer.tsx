@@ -95,6 +95,32 @@ export default function CartDrawer() {
       const first = nodes[0];
       const last = nodes[nodes.length - 1];
       const active = document.activeElement as HTMLElement | null;
+
+      // Focus outside the set entirely. Same bounded shape as
+      // OriginWaitlistDialog: a guard that only fires on an EXPECTED IDENTITY
+      // (active === first, active === last) silently no-ops on every state
+      // nobody thought of, and Tab then walks out of an aria-modal drawer into
+      // the page it has just declared inert.
+      //
+      // Added 2026-09-08 after the proof gate found the reachable version of
+      // this in the origin dialog and reported the same code shape here. Be
+      // exact about the basis, because they are not equal claims: in the
+      // dialog the escape was MEASURED, a form replacing its own focused
+      // submit button. Here it was NOT reached. Three attempts failed, and the
+      // reason each failed is the point -- every cart mutation changes
+      // lines.length, which is in this effect's dependency list, so the effect
+      // re-runs and re-focuses. That is an ACCIDENTAL guard. Nobody wrote it to
+      // do this, no test pins it, and dropping lines.length from the deps as a
+      // tidy-up would open the hole with no error anywhere.
+      //
+      // So this is not a fix for an observed bug. It is removing the
+      // dependence on a coincidence before the store goes live.
+      if (!active || !panel.contains(active) || !nodes.includes(active)) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+        return;
+      }
+
       if (e.shiftKey && active === first) {
         e.preventDefault();
         last.focus();
