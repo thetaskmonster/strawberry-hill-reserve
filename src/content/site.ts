@@ -60,7 +60,7 @@ export const NAV = [
 export const PROCESS = [
   { word: "Grown", clip: import.meta.env.BASE_URL + "assets/video/grown-tile.mp4", poster: import.meta.env.BASE_URL + "assets/video/grown-tile.jpg", copy: "High on the slope, picked by hand at ripeness. Small lots, grown slow, never rushed for yield." },
   { word: "Roasted", clip: import.meta.env.BASE_URL + "assets/video/roasted-tile.mp4", poster: import.meta.env.BASE_URL + "assets/video/roasted-tile.jpg", copy: "Roasted to order and date-stamped as it is packed. Freshness you can read on the bag, not just take on faith." },
-  { word: "Sealed", clip: import.meta.env.BASE_URL + "assets/video/sealed-tile.mp4", poster: import.meta.env.BASE_URL + "assets/video/sealed-tile.jpg", copy: "Whole bean or ground to your brew, then sealed the day it ships. The same lot, start to finish." },
+  { word: "Sealed", clip: import.meta.env.BASE_URL + "assets/video/sealed-tile.mp4", poster: import.meta.env.BASE_URL + "assets/video/sealed-tile.jpg", copy: "Whole bean or ground to your brew, then sealed the day it ships. Nothing mixed in along the way." },
   { word: "Poured", clip: import.meta.env.BASE_URL + "assets/video/poured-tile.mp4", poster: import.meta.env.BASE_URL + "assets/video/poured-tile.jpg", copy: "A clean, quiet cup with the balance that only altitude gives. Best taken black, so the coffee is what you taste." },
 ];
 

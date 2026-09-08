@@ -30,7 +30,7 @@ export const CATALOG: Sku[] = [
     id: "shr-16oz",
     name: "Strawberry Hill Reserve 16 oz",
     size: "16 oz",
-    blurb: "The full pour. Same lot, more of it, at a better per-ounce price.",
+    blurb: "The full pour. The same coffee, more of it, at a better per-ounce price.",
     oneTimeCents: 12500,
     subscribeCents: 10900,
   },
