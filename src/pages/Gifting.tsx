@@ -63,9 +63,24 @@ export default function Gifting() {
     // else took over -- almost always the mail client. If NEITHER happens
     // within the grace window, the navigation went nowhere.
     //
-    // Deliberately biased toward showing the fallback: a browser that does
-    // not blur on a mailto would show it unnecessarily, which costs the
-    // visitor one ignorable panel. The other direction costs a lead.
+    // This errs in BOTH directions, and the second one is the expensive one,
+    // so it is named here rather than left to be discovered.
+    //
+    // FALSE POSITIVE, cheap: a browser that does not blur on a mailto shows
+    // the panel unnecessarily. The visitor sees an ignorable extra block.
+    //
+    // FALSE NEGATIVE, costly: ANY unrelated blur inside the grace window
+    // reads as a successful handoff. Alt-tab, a system notification stealing
+    // focus, the phone backgrounding the tab -- all suppress the panel even
+    // though no mail app opened, and the lead is lost silently. That is the
+    // exact failure this fix exists to end, so the fix does not close the
+    // hole, it narrows it.
+    //
+    // Blur is a PROXY for "the mail client took over" and it cannot tell the
+    // two apart, because nothing in the browser reports whether a scheme
+    // navigation was handled. The real close is the server-side save named
+    // in the header comment: save first, and the mail step stops being the
+    // only record at all.
     let handedOff = false;
     const markHandedOff = () => { handedOff = true; };
     const cleanup = () => {
