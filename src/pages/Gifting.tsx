@@ -76,6 +76,10 @@ export default function Gifting() {
     // ok:true all leave it false, which is the honest reading: we do not
     // hold the inquiry unless we were told we do.
     let saved = false;
+    // Set only when the webhook refuses the INPUT (400) and says why. That is
+    // a different outcome from a failed save and it gets a different answer:
+    // see the branch below.
+    let rejected: string | null = null;
     try {
       const res = await fetch(GIFTING.endpoint, {
         method: "POST",
@@ -85,12 +89,35 @@ export default function Gifting() {
           qty: q.qty, message: q.message, source,
         }),
       });
-      const data = (await res.json()) as { ok?: boolean };
+      const data = (await res.json()) as { ok?: boolean; error?: string };
       saved = res.ok && data.ok === true;
+      if (!saved && res.status === 400 && typeof data.error === "string" && data.error) {
+        rejected = data.error;
+      }
     } catch {
       saved = false;
     }
     setBusy(false);
+
+    // THE VISITOR'S TYPO IS NOT OUR OUTAGE. The check above this fetch is
+    // presence-only on purpose -- the webhook owns what counts as a valid
+    // email, and duplicating that regex here would be the same rule in two
+    // places at two ages with no declared winner. The cost of that split is
+    // that a malformed address round-trips, and the webhook answers 400 with
+    // the sentence that says what to fix.
+    //
+    // Throwing that sentence away is how "bob" in the email field got
+    // reported back as "we could not record your inquiry" -- blaming us for
+    // something only they can fix, and then opening a mail draft whose reply
+    // address is the malformed one, which helps nobody.
+    //
+    // So a 400 stops here: show their message, keep them on the form, open no
+    // mail, offer no copy-it-yourself panel. There is nothing to recover yet
+    // because nothing was lost.
+    if (rejected) {
+      setNote(rejected);
+      return;
+    }
 
     if (saved) {
       setNote("We have your inquiry and we will reply personally. Opening your email app in case you want to add anything. Nothing is auto-sent.");
