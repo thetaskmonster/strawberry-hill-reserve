@@ -8,7 +8,7 @@
 # result table quoted in tests/README.md is reproducible rather than a figure
 # somebody wrote down once.
 #
-# IT COMPARES THREE THINGS, NOT ONE, AND THAT IS THE POINT.
+# IT COMPARES FIVE THINGS, NOT ONE, AND THAT IS THE POINT.
 #
 # The first version compared exit codes alone. Three of the four fixes it was
 # advertised as covering do not change any exit code, so it printed a clean run
@@ -18,15 +18,27 @@
 # by this script.
 #
 #   1. the EXIT CODE, against the expected table in the fixture module;
-#   2. the FAILURE COUNT the verdict names, because deleting a whole branch can
+#   2. the VERDICT LINE COUNT, because a lost verdict line does not move the
+#      exit code;
+#   3. the FAILURE COUNT the verdict names, because deleting a whole branch can
 #      leave the exit code alone and only change how many things failed;
-#   3. a MATCH string pinning WHICH branch fired, because two branches can
+#   4. a MATCH string pinning WHICH branch fired, because two branches can
 #      report the same count;
-#   4. the absence of U+FFFD, which is what per-chunk decoding produces on a
+#   5. the absence of U+FFFD, which is what per-chunk decoding produces on a
 #      multibyte character landing on a chunk seam, also without moving it.
 #
-# 2 and 3 were added on 2026-09-09 after a gate found three rows that stayed
-# green while the exact guard each named was deleted outright.
+# 3 and 4 were added on 2026-09-09 after a gate found three rows that stayed
+# green while the exact guard each named was deleted outright. This comment
+# said THREE while listing four and running five, for one commit.
+#
+# THE MATCH IS TESTED AGAINST WHAT THE SCRIPT PRINTED, NOT AGAINST THE ECHOED
+# BODY. contract-live.sh echoes the whole response body into the same stream,
+# so a match string that also occurs in the fixture body was satisfied by the
+# echo whatever branch fired -- true of 8 of the 24 shapes as first shipped,
+# and proven by deleting the ONLY branch that prints `nested`'s match string
+# and watching the match still pass. The body region is cut out below before
+# the match is looked for. Without that cut, comparison 4 is decoration on a
+# third of the table while every document claims it pins the branch.
 #
 # And it runs a second kind of case entirely: INTERPRETER behaviours, where a
 # stub stands in for node. No answer shape can reach the guard that refuses a
@@ -107,10 +119,11 @@ MATRIX_NONCE="$NONCE" "$NODE_BIN" --input-type=module -e "
 " >/dev/null 2>&1 &
 SERVER_PID=$!
 OUT=$(mktemp 2>/dev/null) || { echo "CANNOT CHECK: could not create a temp file."; exit 2; }
+JUDGED=$(mktemp 2>/dev/null) || { echo "CANNOT CHECK: could not create a temp file."; exit 2; }
 STUBDIR=""
 cleanup() {
   kill "$SERVER_PID" 2>/dev/null; wait "$SERVER_PID" 2>/dev/null
-  rm -f "$OUT"
+  rm -f "$OUT" "$JUDGED"
   [ -n "$STUBDIR" ] && rm -rf "$STUBDIR"
   return 0
 }
@@ -151,6 +164,15 @@ for name in $NAMES; do
   want=$(printf '%s' "$W" | sed -n '1p' | cut -d' ' -f1)
   wantf=$(printf '%s' "$W" | sed -n '1p' | cut -d' ' -f2)
   wantm=$(printf '%s' "$W" | sed -n '2p')
+  # SYMMETRY WITH THE INTERPRETER SIDE, which has refused a case declaring no
+  # match since it was written. This side merely skipped the comparison, so
+  # emptying a shape's match string silently dropped it from five checks to
+  # four -- on the row the README names as the motivating example.
+  if [ -z "$wantm" ]; then
+    echo "CANNOT CHECK: answer shape '$name' declares no match string, so"
+    echo "nothing pins which branch fired for it. Give it one or remove the row."
+    exit 2
+  fi
   # THROUGH A PIPE, DELIBERATELY, AND NOT INTO THE FILE DIRECTLY.
   # node's stdout is synchronous when it is a file and asynchronous when it is
   # a pipe, and process.exit only discards pending writes in the second case.
@@ -180,14 +202,29 @@ for name in $NAMES; do
   fi
 
   # U+FFFD is the replacement character. It appears only when something
-  # decoded a multibyte character across a buffer boundary.
+  # decoded a multibyte character across a buffer boundary. Counted over the
+  # WHOLE output, echoed body included, and it counts LINES carrying one rather
+  # than characters -- which is what the message below says.
   MANGLED=$(grep -c $'\xef\xbf\xbd' "$OUT")
+
+  # THE JUDGED STREAM: the output with the echoed response body cut out, so a
+  # match string can only be satisfied by something the script itself printed.
+  # The cut runs from the `  body:` line to the first line the parser or the
+  # shell verdict block emits. It is deliberately a region and not a single
+  # line, because a body carrying a newline prints across several lines and
+  # only the first one is prefixed. A shape refused before the body is echoed
+  # never enters the cut at all.
+  awk '
+    /^  body:/ { skip = 1 }
+    /^(PASS|FAIL|=== |CANNOT CHECK)/ { skip = 0 }
+    !skip
+  ' "$OUT" >"$JUDGED"
 
   WHY=""
   [ "$want" = "$got" ]        || WHY="expected exit $want, got $got"
   [ "$VERDICTS" = "$WANT_V" ] || WHY="${WHY:+$WHY; }expected $WANT_V verdict line(s), saw $VERDICTS"
   [ "$wantf" = "$SAWF" ]      || WHY="${WHY:+$WHY; }expected $wantf failure(s), saw $SAWF"
-  if [ -n "$wantm" ] && ! grep -qF -- "$wantm" "$OUT"; then
+  if ! grep -qF -- "$wantm" "$JUDGED"; then
     WHY="${WHY:+$WHY; }output never says [$wantm], so a different branch fired"
   fi
   [ "$MANGLED" = "0" ]        || WHY="${WHY:+$WHY; }$MANGLED line(s) carry a replacement character"

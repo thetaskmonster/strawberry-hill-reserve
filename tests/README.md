@@ -201,9 +201,11 @@ the output straight to a file, and `process.exit` only discards pending writes
 when stdout is a **pipe**. The same defect, one layer inside the fix for it.
 The runner now pipes through `cat` and reads `PIPESTATUS`, and the mutant dies.
 
-And for `contract-matrix.sh` itself, all eight planted and observed the same
-day, then **all of them re-run again after the tightening**, because a new net
-can retire an old test without either one changing.
+And for `contract-matrix.sh` itself, every row below planted and observed, then
+**all of them re-run again after the tightening**, because a new net can retire
+an old test without either one changing. The count is the table's own length,
+so read it there rather than from a sentence -- this paragraph said "all eight"
+for one commit while the table under it had grown to nine.
 
 | Mutant | Dies at |
 |---|---|
@@ -214,6 +216,8 @@ can retire an old test without either one changing.
 | the interpreter loop broken out of early | exit 2, "handed 5 interpreter cases and ran 1" |
 | a stale server left on the fixture port | exit 2, "is not this run's fixture server" |
 | an interpreter case with no `match` string | exit 2, "declares no match string" |
+| an answer shape with no `match` string | exit 2, "declares no match string" |
+| the echoed-body cut reverted, with a branch deleted | the `match` clause vanishes; the cut is load-bearing |
 | the stub failing to install, so the real `node` answers | exit 2, "not what PATH resolves node to" |
 | node absent from `PATH` | exit 2 |
 | any mutant of `contract-live.sh` above | the named rows print WRONG, exit 1 |
@@ -235,7 +239,10 @@ never out of the runner**, so there is one copy rather than two.
 
 Per shape it compares five things: the **exit code**, the **number of verdict
 lines** in stdout, the **failure count** the parser reports, a **substring the
-shape's own branch prints**, and the **absence of replacement characters**.
+shape's own branch prints** (looked for in the script's own output, with the
+echoed response body cut out), and **whether any line carries a replacement
+character**. That last one counts LINES, not characters -- it is a `grep -c` --
+and the runtime message says so.
 Three of this commit's four fixes move no exit code at all, so an exit-code
 comparison alone is a net with holes in it -- which is how the first version of
 this runner shipped.
@@ -247,6 +254,31 @@ same exit code, so the row stayed green. With `match` and the failure count in
 place, deleting `Array.isArray` prints `WRONG array`, deleting the non-object
 branch prints `WRONG scalar` and `WRONG nullbody`, and deleting the BOM strip
 prints `WRONG bom`.
+
+**And the `match` shipped decorative on a third of the table, which this file
+claimed as coverage for a commit.** `contract-live.sh` echoes the whole response
+body into the same stream the matrix greps, so any match string that also
+occurs in the fixture body was satisfied by the echo whatever branch fired --
+**8 of the 24 shapes**. Measured off the fixture rather than counted by hand:
+
+```
+node --input-type=module -e "const m = await import('./tests/contract-shapes.mjs');
+  const weak = Object.keys(m.SHAPES).filter(k => String(m.SHAPES[k][2]).includes(m.EXPECTED[k].match));
+  console.log(weak.length, weak.join(', '));"
+```
+
+Proven rather than reasoned: deleting the **only** branch that prints `nested`'s
+match string left the match passing, on the echoed body line, while the row was
+caught by the failure count alone. The runner now cuts the echoed body region
+out before looking for the match, and the same mutant prints
+`output never says ["rate_limited"]`. Reverting only the cut, with the mutant
+still planted, makes that clause disappear again -- which is what makes the cut
+load-bearing rather than assumed.
+
+**This is the same defect as round four, one layer in.** A comparison was added,
+a claim about what it pins was written next to it, and nobody measured the claim
+against the thing being compared. The general form: **a guard is only as wide as
+the stream it reads, and an echo of the input is not evidence about the code.**
 
 It then runs a second kind of case. **Interpreter cases** put a stub in place of
 `node` and require exit 2 from every one: a parser that ran and said nothing, a
@@ -277,8 +309,13 @@ status codes. That split is a structural count, so read it off the fixture
 rather than off this sentence:
 
 ```
-node --input-type=module -e "const m = await import('./tests/contract-shapes.mjs'); console.log(Object.keys(m.SHAPES).length, Object.keys(m.INTERPRETERS).length)"
-``` The rows that earned their place are the
+node --input-type=module -e "const m = await import('./tests/contract-shapes.mjs');
+  const k = Object.keys(m.SHAPES), st = k.filter(x => /^s[0-9]{3}\$/.test(x));
+  console.log('shapes', k.length, 'body', k.length - st.length, 'status', st.length,
+              'interpreters', Object.keys(m.INTERPRETERS).length);"
+```
+
+The rows that earned their place are the
 ones that once returned the wrong answer -- `array`, `nested`, both
 newline-in-code rows, `bom`, `bigerr`, and `split`.
 
