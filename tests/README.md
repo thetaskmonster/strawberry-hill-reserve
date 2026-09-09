@@ -55,8 +55,15 @@ later line was read as the wrong field:
 ```
 
 That printed two PASS lines and CONTRACT HOLDS, while the real site opened a
-mail draft carrying the malformed address. Every value crosses that boundary
-JSON-encoded now.
+mail draft carrying the malformed address.
+
+**So the boundary is gone rather than patched.** Encoding each value fixes the
+instance; the class is a structured value squeezed through an unstructured
+channel, and it had already produced two false-clean runs one layer apart. The
+whole body check now runs inside node, which prints its own verdict, and the
+shell reads only its EXIT CODE. Any exit the script does not recognise is
+CANNOT CHECK, not a pass. Both refusals were observed: a stub interpreter
+exiting 7, and node absent from `PATH`.
 
 **And it briefly failed in the other direction.** A body with a leading
 byte-order mark was reported as "not JSON at all", when the browser strips a
