@@ -61,3 +61,33 @@ export const EXPECTED = {
   nullbody: 1, empty: 1,
   s200: 1, s500: 2, s404: 2,
 };
+
+// Interpreter behaviours, which are a DIFFERENT KIND OF CASE from an answer
+// shape and the reason this file has a second list.
+//
+// An answer shape varies what the endpoint says. It can never exercise what
+// contract-live.sh does when its own parser misbehaves, because a real node
+// always behaves. The guard that catches a parser which runs and says nothing
+// is therefore invisible to a matrix of answer shapes alone -- which is exactly
+// how it was shipped with no regression net at all, one layer above the guard
+// it was written to restore.
+//
+// Each entry is a tiny `sh` script installed as `node` at the front of PATH.
+// Every one of them must produce exit 2: nothing about the contract can be
+// established when the parser did not answer.
+export const INTERPRETERS = {
+  silent:   { script: 'cat >/dev/null\nexit 0\n',
+              why: 'drains stdin, prints nothing, exits 0 -- the case that was a false pass' },
+  forged:   { script: 'cat >/dev/null\necho "=== CONTRACT HOLDS ==="\nexit 0\n',
+              why: 'prints the verdict text on stdout, which is not the channel it is read from' },
+  bare1:    { script: 'cat >/dev/null\nexit 1\n',
+              why: 'claims BROKEN without having established it' },
+  odd:      { script: 'cat >/dev/null\nexit 7\n',
+              why: 'an exit code this script never issues' },
+  signal:   { script: 'cat >/dev/null\nkill -9 $$\n',
+              why: 'killed rather than exiting' },
+};
+
+// Every interpreter case expects the same thing, and it is stated once rather
+// than repeated per row: a parser that did not answer is CANNOT CHECK.
+export const INTERPRETER_EXPECT = 2;

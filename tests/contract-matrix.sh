@@ -8,6 +8,25 @@
 # result table quoted in tests/README.md is reproducible rather than a figure
 # somebody wrote down once.
 #
+# IT COMPARES THREE THINGS, NOT ONE, AND THAT IS THE POINT.
+#
+# The first version compared exit codes alone. Three of the four fixes it was
+# advertised as covering do not change any exit code, so it printed a clean run
+# on a tree with those three reverted -- while tests/README.md said it killed
+# all four. That is a guard advertised wider than it is, shipped one layer above
+# the guard the same commit was written to restore. Found by a proof gate, not
+# by this script.
+#
+#   1. the EXIT CODE, against the expected table in the fixture module;
+#   2. the VERDICT LINE's presence in stdout, which is what a parser losing its
+#      output past the 64 KiB pipe buffer destroys without moving the exit code;
+#   3. the absence of U+FFFD, which is what per-chunk decoding produces on a
+#      multibyte character landing on a chunk seam, also without moving it.
+#
+# And it runs a second kind of case entirely: INTERPRETER behaviours, where a
+# stub stands in for node. No answer shape can reach the guard that refuses a
+# parser which ran and said nothing, because a real node always answers.
+#
 # Run it:  bash tests/contract-matrix.sh
 # No network beyond localhost. It never touches the live endpoint or Airtable.
 set -o pipefail
@@ -62,7 +81,11 @@ fi
   }).listen($PORT, '127.0.0.1', () => console.log('up'));
 " >/dev/null 2>&1 &
 SERVER_PID=$!
-cleanup() { kill "$SERVER_PID" 2>/dev/null; wait "$SERVER_PID" 2>/dev/null; }
+OUT=$(mktemp 2>/dev/null) || { echo "CANNOT CHECK: could not create a temp file."; exit 2; }
+cleanup() {
+  kill "$SERVER_PID" 2>/dev/null; wait "$SERVER_PID" 2>/dev/null
+  rm -f "$OUT"
+}
 trap cleanup EXIT
 
 curl -s --retry 30 --retry-all-errors --retry-delay 1 --max-time 30 \
@@ -85,16 +108,103 @@ for name in $NAMES; do
       const v=o[process.argv[1]];
       process.stdout.write(v === undefined ? "?" : String(v));
     });' "$name")
-  GIFTING_ENDPOINT="http://127.0.0.1:$PORT/$name" bash "$HERE/contract-live.sh" >/dev/null 2>&1
-  got=$?
+  # THROUGH A PIPE, DELIBERATELY, AND NOT INTO THE FILE DIRECTLY.
+  # node's stdout is synchronous when it is a file and asynchronous when it is
+  # a pipe, and process.exit only discards pending writes in the second case.
+  # Redirecting straight to $OUT made the verdict-line count below unable to
+  # fail on the exact mutant it was added for -- the same "a check that cannot
+  # fail" defect, one layer inside the fix for it. Measured: file -> mutant
+  # passes, pipe -> mutant loses the line. `cat` is what makes it a pipe.
+  GIFTING_ENDPOINT="http://127.0.0.1:$PORT/$name" bash "$HERE/contract-live.sh" 2>&1 \
+    | cat >"$OUT"
+  got=${PIPESTATUS[0]}
   RAN=$((RAN + 1))
-  if [ "$want" = "$got" ]; then
+
+  # A shape that reaches the parser must leave exactly one verdict line. A
+  # shape refused before the parser (exit 2) must leave none. Counting this
+  # is what makes a lost verdict line visible: the exit code does not move.
+  VERDICTS=$(grep -c 'CONTRACT HOLDS\|CONTRACT FAILURE(S)' "$OUT")
+  if [ "$want" = "2" ]; then WANT_V=0; else WANT_V=1; fi
+
+  # U+FFFD is the replacement character. It appears only when something
+  # decoded a multibyte character across a buffer boundary.
+  MANGLED=$(grep -c $'\xef\xbf\xbd' "$OUT")
+
+  WHY=""
+  [ "$want" = "$got" ]        || WHY="expected exit $want, got $got"
+  [ "$VERDICTS" = "$WANT_V" ] || WHY="${WHY:+$WHY; }expected $WANT_V verdict line(s), saw $VERDICTS"
+  [ "$MANGLED" = "0" ]        || WHY="${WHY:+$WHY; }$MANGLED line(s) carry a replacement character"
+
+  if [ -z "$WHY" ]; then
     printf '  ok    %-10s exit %s\n' "$name" "$got"
   else
-    printf '  WRONG %-10s expected %s, got %s\n' "$name" "$want" "$got"
+    printf '  WRONG %-10s %s\n' "$name" "$WHY"
     BAD=$((BAD + 1))
   fi
 done
+
+# INTERPRETER CASES. Same script, a stub standing in for node. These are the
+# only cases that can reach the verdict-channel guard, because a real parser
+# always answers and so never exercises the refusal for one that does not.
+INAMES=$("$NODE_BIN" --input-type=module -e "
+  const m = await import('file://$HERE/contract-shapes.mjs');
+  console.log(Object.keys(m.INTERPRETERS).join(' '));
+" 2>&1) || {
+  echo "CANNOT CHECK: could not read the interpreter case list."
+  echo "$INAMES"
+  exit 2
+}
+IEXPECT=$("$NODE_BIN" --input-type=module -e "
+  const m = await import('file://$HERE/contract-shapes.mjs');
+  console.log(String(m.INTERPRETER_EXPECT));
+")
+set -- $INAMES
+ITOTAL=$#
+if [ "$ITOTAL" -lt 3 ]; then
+  echo "CANNOT CHECK: the interpreter case list came back with $ITOTAL entries."
+  echo "Read that as the fixture being broken, not as a small suite."
+  exit 2
+fi
+
+STUBDIR=$(mktemp -d 2>/dev/null) || {
+  echo "CANNOT CHECK: could not create a directory for the interpreter stubs."
+  exit 2
+}
+IRAN=0
+echo ""
+for iname in $INAMES; do
+  "$NODE_BIN" --input-type=module -e "
+    import fs from 'node:fs';
+    const m = await import('file://$HERE/contract-shapes.mjs');
+    fs.writeFileSync('$STUBDIR/node', '#!/bin/sh\n' + m.INTERPRETERS['$iname'].script, { mode: 0o755 });
+  " || { echo "CANNOT CHECK: could not install the '$iname' stub."; exit 2; }
+
+  # PROVE THE STUB IS THE ONE BEING RUN. Without this the whole block passes
+  # for the wrong reason the moment the stub fails to install: the real node
+  # answers, the shape holds, and a refusal that never happened reads as one.
+  if ! PATH="$STUBDIR:$PATH" command -v node | grep -q "^$STUBDIR/node$"; then
+    echo "CANNOT CHECK: the '$iname' stub is not what PATH resolves node to."
+    exit 2
+  fi
+
+  PATH="$STUBDIR:$PATH" GIFTING_ENDPOINT="http://127.0.0.1:$PORT/good" \
+    bash "$HERE/contract-live.sh" 2>&1 | cat >"$OUT"
+  igot=${PIPESTATUS[0]}
+  IRAN=$((IRAN + 1))
+  if [ "$igot" = "$IEXPECT" ]; then
+    printf '  ok    %-10s exit %s (stub)\n' "$iname" "$igot"
+  else
+    printf '  WRONG %-10s expected %s, got %s (stub)\n' "$iname" "$IEXPECT" "$igot"
+    BAD=$((BAD + 1))
+  fi
+done
+rm -rf "$STUBDIR"
+
+if [ "$IRAN" -ne "$ITOTAL" ]; then
+  echo ""
+  echo "CANNOT CHECK: handed $ITOTAL interpreter cases and ran $IRAN."
+  exit 2
+fi
 
 # COUNT WHAT WAS ACTUALLY CONSUMED. A loop whose body carries the only
 # assertions has to compare that against what it was handed, or a list that
@@ -105,8 +215,8 @@ if [ "$RAN" -ne "$TOTAL" ]; then
   exit 2
 fi
 if [ "$BAD" -ne 0 ]; then
-  echo "=== $BAD of $RAN SHAPES EXITED WRONG ==="
+  echo "=== $BAD CASE(S) WRONG, out of $RAN answer shapes and $IRAN interpreters ==="
   exit 1
 fi
-echo "=== all $RAN answer shapes exit as tests/contract-shapes.mjs says ==="
+echo "=== all $RAN answer shapes and $IRAN interpreter cases behave as tests/contract-shapes.mjs says ==="
 exit 0

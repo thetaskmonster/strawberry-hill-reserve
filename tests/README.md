@@ -160,25 +160,49 @@ fix it covers rather than breaking the whole file.
 | `saved` forced true, either as `= true` or as `= data !== null` | B2, B3, B4, B5, H2, H4, H5, H6, I3, I4, I5 |
 | the form's `aria-label` renamed | fixture guard refuses, exit 2 |
 
-And for `contract-live.sh`, each run through `contract-matrix.sh` on
-2026-09-09. Every one names the exact fix it covers.
+And for `contract-live.sh`, each planted and run through `contract-matrix.sh`
+on 2026-09-09, each naming the exact fix it covers.
+
+| Mutant | Dies at | Which comparison catches it |
+|---|---|---|
+| the verdict-file check dropped, exit code trusted alone | `silent`, `forged`, `bare1` | interpreter cases |
+| `process.exitCode` back to `process.exit` | `bigerr`, `split` | verdict-line count |
+| the blank-error branch back to plain truthiness | `wserr` | exit code |
+| stdin decoded per chunk instead of once | `split` | replacement-character count |
+
+**The third column is not decoration, and this table said something false
+without it.** The first version of the matrix compared **exit codes only**, and
+three of those four mutants do not move an exit code. It printed a clean run on
+a tree with them reverted, while this file claimed it killed all four -- a guard
+advertised wider than it is, shipped one layer above the guard the same commit
+was written to restore. Found by a proof gate, not by the matrix.
+
+It now compares three things per shape (exit code, verdict-line count,
+replacement-character count) and runs a second kind of case entirely.
+**Interpreter cases** install a stub in place of `node`. No answer shape can
+reach the guard that refuses a parser which ran and said nothing, because a
+real parser always answers -- which is precisely why that guard shipped with no
+net.
+
+**And the verdict-line count could not fail either, at first.** The runner sent
+the output straight to a file, and `process.exit` only discards pending writes
+when stdout is a **pipe**. The same defect, one layer inside the fix for it.
+The runner now pipes through `cat` and reads `PIPESTATUS`, and the mutant dies.
+
+And for `contract-matrix.sh` itself, all eight planted and observed the same
+day. The five that predate the widening were re-run afterwards, because a new
+net can retire an old test without either one changing.
 
 | Mutant | Dies at |
 |---|---|
-| the verdict-file check dropped, exit code trusted alone | a silent stub reports HOLDS instead of exit 2 |
-| `process.exitCode` back to `process.exit` | `bigerr` loses its verdict line through a pipe; the small body still prints |
-| the blank-error branch back to plain truthiness | `wserr` goes exit 1 -> exit 0 |
-| stdin decoded per chunk instead of once | `split` renders the accent as two replacement characters |
-
-And for `contract-matrix.sh` itself, all observed the same day:
-
-| Mutant | Dies at |
-|---|---|
-| any mutant of `contract-live.sh` above | the matching row prints WRONG, exit 1 |
 | a shape removed from `EXPECTED` but not `SHAPES` | exit 2, naming the shape |
 | the shape list shrunk to one entry | exit 2, refusing rather than running a one-case suite |
-| the loop broken out of early | exit 2, "handed 23 shapes and ran 3" |
+| the shape loop broken out of early | exit 2, "handed 23 shapes and ran 3" |
+| the interpreter list shrunk below three | exit 2 |
+| the interpreter loop broken out of early | exit 2, "handed 5 interpreter cases and ran 2" |
+| the stub failing to install, so the real `node` answers | exit 2, "not what PATH resolves node to" |
 | node absent from `PATH` | exit 2 |
+| any mutant of `contract-live.sh` above | the named rows print WRONG, exit 1 |
 
 ## The contract check's own matrix
 
@@ -191,25 +215,44 @@ bash tests/contract-matrix.sh
 ```
 
 It reads `tests/contract-shapes.mjs`, drives `contract-live.sh` against every
-shape there, and refuses if any one of them exits differently from the expected
-table in that same file. **The list of shapes comes out of the fixture module,
-never out of the runner**, so there is one list rather than two.
+shape there, and refuses if any one of them behaves differently from the
+expected table in that same file. **The lists come out of the fixture module,
+never out of the runner**, so there is one copy rather than two.
+
+Per shape it compares three things: the **exit code**, the **presence of a
+verdict line** in stdout, and the **absence of replacement characters**. Two of
+this commit's four fixes move no exit code at all, so an exit-code comparison
+alone is a net with holes in it -- which is how the first version of this
+runner shipped.
+
+It then runs a second kind of case. **Interpreter cases** put a stub in place of
+`node` and require exit 2 from every one: a parser that ran and said nothing, a
+parser that printed the verdict text on the wrong channel, one that claimed a
+verdict it never established, one exiting a code this script never issues, and
+one killed by a signal.
 
 That command is here because the row table below used to be measured against a
 mock in a scratchpad. The numbers were real and nobody reading them could
 re-run them, which is how a measured figure goes stale with nobody touching it.
 
-Measured 2026-09-09: **23 shapes, all exiting as the table says.** Twenty are
-body shapes, three are status codes. The rows that earned their place are the
+Measured 2026-09-09: **23 answer shapes and 5 interpreter cases, all behaving
+as the fixture says.** Of the shapes, twenty are body shapes and three are
+status codes. The rows that earned their place are the
 ones that once returned the wrong answer -- `array`, `nested`, both
 newline-in-code rows, `bom`, `bigerr`, and `split`.
 
-`split` is worth singling out. It places a two-byte character astride the
-65536-byte pipe chunk boundary, which is the only position where decoding each
-stdin chunk separately corrupts anything. The first fixture written for that
-fix put its accents near the end of a long string, nowhere near a seam, and so
-**passed on the mutant it was written to kill**. It was replaced with one that
-computes its own padding, and that one does die on the mutant.
+`split` is worth singling out. It places a two-byte character astride byte
+65536, a pipe chunk boundary, which is where decoding each stdin chunk
+separately corrupts it. **Seams recur at every 65536-byte multiple**, not only
+the first: measured on 2026-09-09, an accent astride 65536, 131072 or 196608
+all produce two replacement characters. One fixture is enough to catch the
+defect, so `split` sits at the first seam; the point of saying this is that the
+next fixture does not have to.
+
+The first fixture written for that fix put its accents near the end of a long
+string, nowhere near any seam, and so **passed on the mutant it was written to
+kill**. It was replaced with one that computes its own padding, and that one
+does die on the mutant.
 
 The live reject cases were run the same day against the live webhook, and they
 are not covered by the matrix because they need the network:
@@ -217,7 +260,7 @@ are not covered by the matrix because they need the network:
 ```
 curl's default User-Agent            -> 2  (the ignoreBots 403, nothing tested)
 a path the workflow does not answer  -> 2  (404, a service problem)
-an unreachable host                  -> 2  (curl exit 7)
+an unreachable host                  -> 2  (a non-zero curl status)
 the real endpoint, missing name      -> 0  (400, code invalid_input, real message)
 ```
 
@@ -261,9 +304,9 @@ raised the suspicion; re-running them is what turned it into a finding.
 2 means the suite got far enough to refuse, 3 means it never started.
 
 `contract-live.sh` uses 0 for holds, 1 for broken, 2 for nothing tested.
-`contract-matrix.sh` uses 0 for every shape matching, 1 for any shape exiting
-wrong, and 2 for the fixture list being unreadable, self-contradictory,
-implausibly short, or only partly consumed.
+`contract-matrix.sh` uses 0 for every case matching, 1 for any case behaving
+wrong, and 2 for a fixture list that is unreadable, self-contradictory,
+implausibly short, only partly consumed, or whose stub did not install.
 
 ## Known unexercised branch
 
