@@ -84,17 +84,27 @@ command -v "$NODE_BIN" >/dev/null 2>&1 || {
 # The list of shapes comes out of the fixture module, never out of this script.
 # Two copies of a list is two lists, and the second one is the one nobody
 # remembers to update.
+# STDERR IS NOT THE FINDING CHANNEL, here least of all: merged, a single node
+# warning became a SHAPE NAME, and the run went on to refuse a case called
+# `(node:1)`. An invented name in a diagnostic is worse than a crash, because
+# it sends the next reader looking for a row that does not exist.
+NAMES_ERR=$(mktemp 2>/dev/null) || { echo "CANNOT CHECK: could not create a temp file."; exit 2; }
 NAMES=$("$NODE_BIN" --input-type=module -e "
   const m = await import('file://$HERE/contract-shapes.mjs');
   const s = Object.keys(m.SHAPES), e = Object.keys(m.EXPECTED);
   const gap = s.filter(k => !e.includes(k)).concat(e.filter(k => !s.includes(k)));
   if (gap.length) { console.error('SHAPES and EXPECTED disagree on: ' + gap.join(', ')); process.exit(3); }
   console.log(s.join(' '));
-" 2>&1) || {
-  echo "CANNOT CHECK: could not read the shape list."
-  echo "$NAMES"
+" 2>"$NAMES_ERR")
+NAMES_RC=$?
+if [ "$NAMES_RC" != "0" ] || [ -s "$NAMES_ERR" ]; then
+  echo "CANNOT CHECK: could not read the shape list. The reader exited"
+  echo "$NAMES_RC and wrote this to its error stream:"
+  cat "$NAMES_ERR"
+  rm -f "$NAMES_ERR"
   exit 2
-}
+fi
+rm -f "$NAMES_ERR"
 
 # A FIXTURE THAT CAN VANISH WHILE THE TEST STILL PASSES IS NOT A TEST. If the
 # list comes back empty this script would otherwise run zero cases and print a
@@ -108,34 +118,53 @@ if [ "$TOTAL" -lt 10 ]; then
   exit 2
 fi
 
-# NO FIXTURE BODY MAY FORGE A TERMINATOR. The body cut below ends at the first
-# line shaped like something contract-live.sh prints. A multi-line body whose
-# continuation reproduces one of those shapes ends the cut early and puts the
-# rest of the body back into the stream the match is looked for in, which is
+# NO FIXTURE BODY MAY FORGE A TERMINATOR, AND ONLY A CONTINUATION LINE CAN.
+# The cut ends at the first line shaped like something contract-live.sh prints.
+# A body's FIRST line cannot end it: it is echoed behind `  body:   `, so it
+# never starts at column 0 whatever it says. Only lines 2 and after of a
+# multi-line body land at column 0, and one of those reproducing a terminator
+# shape ends the cut early and hands the rest of the body back to the match --
 # the weakness the cut exists to remove, walking back in through the fixture.
-# No shipped body does this -- almost every body is single-line because
-# JSON.stringify escapes newlines -- so this refuses nothing today. That is
-# the point: it is here so the property stays true as rows are added, rather
-# than staying true by luck and being rediscovered by the next gate.
+#
+# THE FIRST VERSION OF THIS GUARD CHECKED EVERY LINE, INCLUDING THE FIRST, so
+# it refused a perfectly safe single-line body while its message asserted a
+# cut-ends-early mechanism the same run disproved. It failed closed, so it
+# never passed anything bad; it was wrong about WHY, which is how a guard
+# teaches the next reader something false.
+#
+# No shipped body trips this -- almost every body is single-line, because
+# JSON.stringify escapes newlines -- so it refuses nothing today. That is the
+# point: it is here so the property stays true as rows are added, rather than
+# staying true by luck and being rediscovered by the next gate.
+FORGE_ERR=$(mktemp 2>/dev/null) || { echo "CANNOT CHECK: could not create a temp file."; exit 2; }
 FORGE=$("$NODE_BIN" --input-type=module -e "
   const m = await import('file://$HERE/contract-shapes.mjs');
   const bad = [];
   for (const [k, v] of Object.entries(m.SHAPES)) {
-    for (const line of String(v[2]).split('\n')) {
+    // slice(1): the first line is echoed behind a prefix and cannot end the cut.
+    for (const line of String(v[2]).split('\n').slice(1)) {
       if (/^(PASS  |FAIL  |=== |CANNOT CHECK:)/.test(line)) bad.push(k + ': ' + line);
     }
   }
   console.log(bad.join(' | '));
-" 2>&1) || {
-  echo "CANNOT CHECK: could not read the fixture bodies to check them for"
-  echo "forged terminators."
-  echo "$FORGE"
+" 2>"$FORGE_ERR")
+FORGE_RC=$?
+# STDERR IS NOT THE FINDING CHANNEL. Merging them made any node warning read as
+# a forged terminator, and in the shape reader below it invented a shape called
+# `(node:1)`. Read the two apart, and refuse on ANY non-zero status rather than
+# on a list of the ones anybody thought of.
+if [ "$FORGE_RC" != "0" ] || [ -s "$FORGE_ERR" ]; then
+  echo "CANNOT CHECK: the fixture-body probe exited $FORGE_RC and wrote to its"
+  echo "error stream, so nothing was established about forged terminators."
+  cat "$FORGE_ERR"
+  rm -f "$FORGE_ERR"
   exit 2
-}
+fi
+rm -f "$FORGE_ERR"
 if [ -n "$FORGE" ]; then
-  echo "CANNOT CHECK: a fixture body carries a line shaped like one of this"
-  echo "script's own output lines, so the body cut would end early and the"
-  echo "match comparison for that row would read body text as script output."
+  echo "CANNOT CHECK: a fixture body carries a CONTINUATION line shaped like one"
+  echo "of this script's own output lines, so the body cut would end early and"
+  echo "the match comparison for that row would read body text as script output."
   echo "$FORGE"
   exit 2
 fi
@@ -205,6 +234,26 @@ readwant() {
     });' "$1"
 }
 
+# ONE SHARED READER, because two readers of the same thing buy the same bug
+# twice and the second copy is the one nobody remembers. The interpreter loop
+# below greps the SAME cut stream as the shape loop. It did not, for one
+# commit: round six's fix went into the shape loop only, and every interpreter
+# case was still matching against the raw output with `good`'s body echoed into
+# it. Proven by moving the interpreter match strings into that body -- the
+# whole run went green with the branch that prints them deleted.
+#
+# THE CUT: from the `  body:` line to the first line contract-live.sh itself
+# emits. A region and not a single line, because a body carrying a newline
+# prints across several lines and only the first is prefixed. A case refused
+# before the body is echoed never enters the cut at all.
+judge() {
+  awk '
+    /^  body:/ { skip = 1 }
+    /^(PASS  |FAIL  |=== |CANNOT CHECK:)/ { skip = 0 }
+    !skip
+  ' "$OUT" >"$JUDGED"
+}
+
 RAN=0
 BAD=0
 for name in $NAMES; do
@@ -255,18 +304,7 @@ for name in $NAMES; do
   # than characters -- which is what the message below says.
   MANGLED=$(grep -c $'\xef\xbf\xbd' "$OUT")
 
-  # THE JUDGED STREAM: the output with the echoed response body cut out, so a
-  # match string can only be satisfied by something the script itself printed.
-  # The cut runs from the `  body:` line to the first line the parser or the
-  # shell verdict block emits. It is deliberately a region and not a single
-  # line, because a body carrying a newline prints across several lines and
-  # only the first one is prefixed. A shape refused before the body is echoed
-  # never enters the cut at all.
-  awk '
-    /^  body:/ { skip = 1 }
-    /^(PASS  |FAIL  |=== |CANNOT CHECK:)/ { skip = 0 }
-    !skip
-  ' "$OUT" >"$JUDGED"
+  judge   # cut the echoed body out of $OUT into $JUDGED
 
   WHY=""
   [ "$want" = "$got" ]        || WHY="expected exit $want, got $got"
@@ -288,14 +326,20 @@ done
 # INTERPRETER CASES. Same script, a stub standing in for node. These are the
 # only cases that can reach the verdict-channel guard, because a real parser
 # always answers and so never exercises the refusal for one that does not.
+INAMES_ERR=$(mktemp 2>/dev/null) || { echo "CANNOT CHECK: could not create a temp file."; exit 2; }
 INAMES=$("$NODE_BIN" --input-type=module -e "
   const m = await import('file://$HERE/contract-shapes.mjs');
   console.log(Object.keys(m.INTERPRETERS).join(' '));
-" 2>&1) || {
-  echo "CANNOT CHECK: could not read the interpreter case list."
-  echo "$INAMES"
+" 2>"$INAMES_ERR")
+INAMES_RC=$?
+if [ "$INAMES_RC" != "0" ] || [ -s "$INAMES_ERR" ]; then
+  echo "CANNOT CHECK: could not read the interpreter case list. The reader"
+  echo "exited $INAMES_RC and wrote this to its error stream:"
+  cat "$INAMES_ERR"
+  rm -f "$INAMES_ERR"
   exit 2
-}
+fi
+rm -f "$INAMES_ERR"
 IEXPECT=$("$NODE_BIN" --input-type=module -e "
   const m = await import('file://$HERE/contract-shapes.mjs');
   console.log(String(m.INTERPRETER_EXPECT));
@@ -346,9 +390,10 @@ for iname in $INAMES; do
     bash "$HERE/contract-live.sh" 2>&1 | cat >"$OUT"
   igot=${PIPESTATUS[0]}
   IRAN=$((IRAN + 1))
+  judge
   IWHY=""
   [ "$igot" = "$IEXPECT" ] || IWHY="expected exit $IEXPECT, got $igot"
-  grep -qF -- "$IMATCH" "$OUT" || IWHY="${IWHY:+$IWHY; }output never says [$IMATCH], so this stub did not do the thing this case names"
+  grep -qF -- "$IMATCH" "$JUDGED" || IWHY="${IWHY:+$IWHY; }output never says [$IMATCH], so this stub did not do the thing this case names"
   if [ -z "$IWHY" ]; then
     printf '  ok    %-10s exit %s (stub)\n' "$iname" "$igot"
   else

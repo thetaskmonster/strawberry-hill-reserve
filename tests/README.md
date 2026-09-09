@@ -313,6 +313,48 @@ a claim about what it pins was written next to it, and nobody measured the claim
 against the thing being compared. The general form: **a guard is only as wide as
 the stream it reads, and an echo of the input is not evidence about the code.**
 
+### The cut went into one loop, and the file has two
+
+**The fix above was applied to the shape loop only.** The interpreter loop, forty
+lines further down, went on grepping the raw output with the echoed body still in
+it -- so every interpreter case was matching against exactly the stream the round
+before had just proven worthless. One round's fix, one loop, and the second copy
+is the one nobody remembers.
+
+Proven, not argued. Move all four interpreter match strings into `good`'s fixture
+body and delete the branch in `contract-live.sh` that prints them:
+
+- interpreter loop reading the raw output: `ok silent`, `ok bare1`, `ok odd`,
+  `ok signal` -- all four green on an echo of the fixture, with the code that
+  produces those lines deleted.
+- interpreter loop reading the cut stream: all four report `output never says
+  [...]`, which is the truth.
+
+There is **one shared reader** now, `judge()`, and both loops call it. That is the
+general rule this file keeps re-earning: when two code paths read the same thing,
+give them one reader, or you buy the same bug twice and fix it once.
+
+### The forge guard refused fixtures that were safe
+
+The first version of that startup guard checked **every** line of a fixture body.
+A body's first line is echoed behind `  body:   `, so it can never begin at column
+0 and can never end the cut -- only a continuation line can. The guard therefore
+refused single-line bodies that were fine.
+
+It failed **closed**, so nothing bad ever got through it. What it got wrong was
+the *reason*, which is how a guard teaches the next reader something false. It
+checks continuation lines only now, and its message says so.
+
+### `2>&1` on a probe merges warnings into the finding channel
+
+Three of the startup probes read a node subprocess for findings and captured its
+stderr into the same variable. Any warning node writes -- a deprecation notice,
+anything -- then reads as a finding. In the shape-name reader it invented a shape
+called `(node:1)`.
+
+All three now capture stderr to its own file and refuse on **any** non-zero status
+**or** a non-empty stderr, rather than on the list of failures anybody thought of.
+
 It then runs a second kind of case. **Interpreter cases** put a stub in place of
 `node` and require exit 2 from every one: a parser that ran and said nothing, a
 parser that printed the verdict text on the wrong channel, one that claimed a
