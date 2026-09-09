@@ -172,6 +172,34 @@ on 2026-09-09, each naming the exact fix it covers.
 
 All four were re-planted against the **tightened** runner on 2026-09-09, after
 the failure-count and `match` comparisons went in, and all four still die.
+
+**"All four" means the four in the table above, and it is not all of them.**
+The commit that landed this runner names four mutants too, and only ONE of the
+two sets overlaps: the per-chunk decode. Both sets are real -- a proof gate
+re-planted the commit's set and reproduced its headline figure, `14 CASE(S)
+WRONG`, from forcing exit 0 -- so there are at least **seven** distinct live
+mutants here and neither "all four" is the whole population. Two documents each
+saying "all four" about different sets is a clash with no declared winner, which
+is the failure this file spends a section on elsewhere. **This table is the
+declared winner for what the runner is known to kill.** A commit message cannot
+be edited after it lands, so the reconciliation is recorded here instead.
+
+Read the other set rather than trusting the word "all". Run from the site repo
+root:
+
+```
+git show -s --format=%B a94816f | grep -n 'mutant\|wrong'
+```
+
+That prints the commit's four and the figure each one produced. Compare them
+against the four rows above; one row appears in both.
+
+**One caveat on those figures.** A proof gate re-planted the commit's set and
+matched `forcing exit 0, 14 wrong` exactly, but got **5 wrong** where the commit
+says 10 for `dropping the invalid_input branch`. Neither document states the
+exact mutation, so that is a figure nobody can reproduce rather than a figure
+known to be false. Treat it as unverified, and if you re-plant it, write down
+what you actually changed.
 **One of the four re-plants was wrong, and it read as a retired test.** Writing
 the per-chunk mutant as `setEncoding("utf8")` produced a green run, because
 node's `setEncoding` goes through a `StringDecoder` that holds a partial
@@ -214,10 +242,10 @@ for one commit while the table under it had grown to nine.
 | the shape loop broken out of early | exit 2, "handed 24 shapes and ran 3" |
 | the interpreter list shrunk below three | exit 2 |
 | the interpreter loop broken out of early | exit 2, "handed 5 interpreter cases and ran 1" |
-| a stale server left on the fixture port | exit 2, "is not this run's fixture server" |
+| a stale server left on the fixture port | exit 2, "is not this run's fixture" (the word `server` is on the next line of the message) |
 | an interpreter case with no `match` string | exit 2, "declares no match string" |
 | an answer shape with no `match` string | exit 2, "declares no match string" |
-| a fixture body carrying a line shaped like `PASS  ` | exit 2, "a fixture body carries a line shaped like" |
+| a fixture body carrying a CONTINUATION line shaped like `PASS  ` | exit 2, "carries a CONTINUATION line shaped like one" |
 | the echoed-body cut reverted, with a branch deleted | the `match` clause vanishes; the cut is load-bearing |
 | the stub failing to install, so the real `node` answers | exit 2, "not what PATH resolves node to" |
 | node absent from `PATH` | exit 2 |
