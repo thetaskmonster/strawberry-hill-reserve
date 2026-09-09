@@ -111,27 +111,43 @@ command -v node >/dev/null 2>&1 || {
   exit 2
 }
 
-# THE WHOLE BODY CHECK RUNS INSIDE NODE, and that is the point of this shape.
+# THE WHOLE BODY CHECK RUNS INSIDE NODE, and the shell learns the verdict on a
+# channel the body can never reach.
 #
-# It used to parse in node and hand the values back to the shell as three
-# stdout LINES. That boundary broke it twice in one day, both times in the
-# direction that reports a clean run:
+# How this got here, because the shape is the useful part. Three rounds, one
+# class each time, every one reporting a clean run:
 #
 #   1. a grep over the serialised body matched a string nested under another
 #      key, and matched inside an array the site cannot read at all;
-#   2. the parser that replaced the grep encoded only two of its three values,
-#      so a newline inside the third split across lines and every later line
-#      was read as the wrong field. Two PASS lines, CONTRACT HOLDS, and a real
-#      mail draft carrying the malformed address.
+#   2. the parser that replaced it handed three values back as three stdout
+#      LINES and encoded only two, so a newline inside the third split across
+#      lines and every later line was read as the wrong field;
+#   3. moving the whole judgement into node removed that channel -- and with
+#      it the shell's only way to tell that node had ANSWERED. A stub
+#      interpreter that reads stdin, prints nothing and exits 0 was reported
+#      as CONTRACT HOLDS. The previous version refused that; the refactor
+#      deleted the refusal along with the boundary and nothing counted it.
 #
-# Same defect twice, one layer apart: a structured value squeezed through an
-# unstructured channel. Encoding each value fixes the instance. Not sending
-# values across at all removes the class, so node now makes the judgements and
-# prints them, and the shell only reads its EXIT CODE -- one small integer,
-# which is the one thing that boundary carries safely.
-printf '%s' "$BODY" | node -e '
-let s = "";
-process.stdin.on("data", d => s += d).on("end", () => {
+# So: node writes a fixed token to a PRIVATE FILE, and the shell honours a
+# zero exit only if the token is there. The token never shares a stream with
+# body-derived text, because a body carrying the token would otherwise forge
+# it, which is round 1 again wearing a third costume.
+VERDICT_FILE=$(mktemp 2>/dev/null) || {
+  echo "CANNOT CHECK: could not create a temp file for the verdict channel."
+  exit 2
+}
+trap 'rm -f "$VERDICT_FILE"' EXIT
+
+printf '%s' "$BODY" | CONTRACT_VERDICT_FILE="$VERDICT_FILE" node -e '
+const fs = require("fs");
+const chunks = [];
+process.stdin.on("data", d => chunks.push(Buffer.from(d))).on("end", () => {
+  // Decode ONCE over the joined bytes. Decoding each chunk separately splits
+  // any multibyte character landing on a chunk boundary into replacement
+  // characters. Verdict-neutral today, since JSON structure is ASCII, but it
+  // corrupts the error string this script quotes back at the reader.
+  let s = Buffer.concat(chunks).toString("utf8");
+
   let failed = 0;
   const pass = m => console.log("PASS  " + m);
   const fail = m => { console.log("FAIL  " + m); failed++; };
@@ -155,8 +171,8 @@ process.stdin.on("data", d => s += d).on("end", () => {
   } else if (o === null || typeof o !== "object") {
     fail("the body parsed but is not an object, so `data.code` is undefined to the site.");
   } else {
-    // Mirror src/pages/Gifting.tsx exactly: it reads data.code and data.error
-    // off the TOP LEVEL and requires both to be non-empty strings.
+    // Mirror src/pages/Gifting.tsx: it reads data.code and data.error off the
+    // TOP LEVEL and requires both to be non-empty strings.
     const code = typeof o.code  === "string" ? o.code  : undefined;
     const err  = typeof o.error === "string" ? o.error : undefined;
 
@@ -166,29 +182,50 @@ process.stdin.on("data", d => s += d).on("end", () => {
       fail("the top-level code field is " + JSON.stringify(code === undefined ? null : code) + ", not \"invalid_input\" -- src/pages/Gifting.tsx will stop treating a bad address as the visitor input it is");
     }
 
-    if (err) {
+    // BLANK IS NOT NON-EMPTY, and this is the one place the check is
+    // deliberately stricter than the site. The site tests `data.error` for
+    // truthiness, so "   " passes it and the visitor is held on the form
+    // with an empty message, no panel and no mail draft -- measured against
+    // the built site. The endpoint promised a sentence to show someone. A
+    // string of spaces does not keep that promise, so it fails here even
+    // though the site branch it feeds is technically satisfied.
+    if (err && err.trim()) {
       pass("it carries a non-empty error string to show the visitor :: " + JSON.stringify(err));
+    } else if (err) {
+      fail("the top-level error string is blank once trimmed, so the site shows the visitor an empty message: " + JSON.stringify(err));
     } else {
-      fail("the top-level error string is missing, empty, or not a string; the site would not treat this as the visitor input it is");
+      fail("the top-level error string is missing or not a string; the site would not treat this as the visitor input it is");
     }
   }
 
   console.log("");
-  if (failed === 0) { console.log("=== CONTRACT HOLDS ==="); process.exit(0); }
-  console.log("=== " + failed + " CONTRACT FAILURE(S) ===");
-  process.exit(1);
+  console.log(failed === 0 ? "=== CONTRACT HOLDS ===" : "=== " + failed + " CONTRACT FAILURE(S) ===");
+
+  // Write the verdict token SYNCHRONOUSLY, and set exitCode rather than
+  // calling process.exit. process.exit discards pending async writes, and
+  // node stdout is async when it is a pipe: a single console.log over the
+  // 64 KiB pipe buffer -- an error string that long is enough -- silently
+  // lost the verdict line while the run still exited 0. Measured 2026-09-09
+  // at exactly 65536.
+  const f = process.env.CONTRACT_VERDICT_FILE;
+  if (f) fs.writeFileSync(f, failed === 0 ? "HOLDS" : "BROKEN");
+  process.exitCode = failed === 0 ? 0 : 1;
 });'
 NODE_RC=$?
+VERDICT=$(cat "$VERDICT_FILE" 2>/dev/null)
 
-# Any exit this script did not design for is CANNOT CHECK, never a pass. The
-# rule is to bound the failure rather than list it: a set of codes enumerated
-# once is a set that grows without telling you.
-case "$NODE_RC" in
-  0) exit 0 ;;
-  1) exit 1 ;;
-  *)
-    echo ""
-    echo "CANNOT CHECK: the body check exited $NODE_RC, which it is not written"
-    echo "to return. Nothing was tested. Do not read this as a pass."
-    exit 2 ;;
-esac
+# Bound the failure rather than list it. Only two combinations are answers;
+# everything else -- an exit this script does not issue, a missing token, a
+# token that disagrees with the exit code -- is CANNOT CHECK. A parser that
+# ran without answering must never read as a pass.
+if [ "$NODE_RC" = "0" ] && [ "$VERDICT" = "HOLDS" ]; then
+  exit 0
+fi
+if [ "$NODE_RC" = "1" ] && [ "$VERDICT" = "BROKEN" ]; then
+  exit 1
+fi
+echo ""
+echo "CANNOT CHECK: the body check exited ${NODE_RC} and left verdict"
+echo "[${VERDICT:-none}]. Those do not go together, so nothing about the"
+echo "contract was established. Do not read this as a pass."
+exit 2

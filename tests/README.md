@@ -30,8 +30,9 @@ address in it. It writes no row: a missing name is refused before the Airtable
 node.
 
 **It PARSES the body and reads the top-level `code`, the way the site does.**
-It has now failed this way twice, in two different layers, and both are worth
-knowing before you edit it.
+**It has reported a clean run while proving nothing three times now**, in three
+different layers, and each round is worth knowing before you edit it. The
+pattern across all three is the same: the check answered instead of refusing.
 
 The first version grepped the response as a string. Two shapes reported
 CONTRACT HOLDS while the site saw no code at all:
@@ -60,10 +61,46 @@ mail draft carrying the malformed address.
 **So the boundary is gone rather than patched.** Encoding each value fixes the
 instance; the class is a structured value squeezed through an unstructured
 channel, and it had already produced two false-clean runs one layer apart. The
-whole body check now runs inside node, which prints its own verdict, and the
-shell reads only its EXIT CODE. Any exit the script does not recognise is
-CANNOT CHECK, not a pass. Both refusals were observed: a stub interpreter
-exiting 7, and node absent from `PATH`.
+whole body check now runs inside node, which prints its own verdict.
+
+**Removing the boundary then removed a guard, and that is round three.** With
+the three-line channel gone, the shell read node's EXIT CODE and nothing else.
+An exit code is safe to carry -- an integer cannot be split or nested, which
+was the whole point -- but it is not sufficient, because it carries no evidence
+that anybody spoke. A stub interpreter that drains stdin, prints nothing and
+exits 0 was reported as CONTRACT HOLDS. The previous version had a `*)` arm
+that refused exactly that; the refactor deleted it along with the channel and
+nothing counted the loss.
+
+**A boundary carries two duties and they are not the same duty.** Fidelity is
+whether the value survives the crossing. Sufficiency is whether the receiver
+can tell the sender spoke at all. Removing a boundary settles the first and
+silently drops the second.
+
+So node now also writes a fixed token to a **private file** named in an
+environment variable, and the shell honours an exit code only when the token
+agrees with it. The token never shares a stream with body-derived text: a body
+carrying the token would otherwise forge it, which is round one again wearing a
+third costume. Only `(0, HOLDS)` and `(1, BROKEN)` are answers; every other
+pairing is CANNOT CHECK.
+
+Refusals observed on 2026-09-09, each run against the real script:
+
+```
+stub drains stdin, prints nothing, exits 0   -> 2
+stub prints "=== CONTRACT HOLDS ===", exits 0 -> 2   (forged on the wrong channel)
+stub exits 1 with no token                    -> 2
+stub exits 7                                  -> 2
+stub killed by a signal                       -> 2
+node absent from PATH                         -> 2
+```
+
+**And node sets `process.exitCode` rather than calling `process.exit`.**
+`process.exit` discards pending async writes, and node's stdout is async when
+it is a pipe, so a single `console.log` past the 64 KiB pipe buffer was lost
+while the run still exited 0. Measured at exactly 65536 bytes. The `bigerr`
+shape below pins it, and it dies on the `process.exit` mutant while the
+small-body case still passes.
 
 **And it briefly failed in the other direction.** A body with a leading
 byte-order mark was reported as "not JSON at all", when the browser strips a
@@ -123,24 +160,76 @@ fix it covers rather than breaking the whole file.
 | `saved` forced true, either as `= true` or as `= data !== null` | B2, B3, B4, B5, H2, H4, H5, H6, I3, I4, I5 |
 | the form's `aria-label` renamed | fixture guard refuses, exit 2 |
 
-For `contract-live.sh`, the reject cases were run on 2026-09-09 against the two
-live webhooks and against a mock serving eleven answer shapes. Live: the
-waitlist webhook answers a real 400 with a real message and no `code`, and only
-the code assertion dies (exit 1); curl's default User-Agent gets a 403 and it
-exits 2 rather than reporting a contract failure it never tested; an
-unresolvable host exits 2. Mock, one line each:
+And for `contract-live.sh`, each run through `contract-matrix.sh` on
+2026-09-09. Every one names the exact fix it covers.
+
+| Mutant | Dies at |
+|---|---|
+| the verdict-file check dropped, exit code trusted alone | a silent stub reports HOLDS instead of exit 2 |
+| `process.exitCode` back to `process.exit` | `bigerr` loses its verdict line through a pipe; the small body still prints |
+| the blank-error branch back to plain truthiness | `wserr` goes exit 1 -> exit 0 |
+| stdin decoded per chunk instead of once | `split` renders the accent as two replacement characters |
+
+And for `contract-matrix.sh` itself, all observed the same day:
+
+| Mutant | Dies at |
+|---|---|
+| any mutant of `contract-live.sh` above | the matching row prints WRONG, exit 1 |
+| a shape removed from `EXPECTED` but not `SHAPES` | exit 2, naming the shape |
+| the shape list shrunk to one entry | exit 2, refusing rather than running a one-case suite |
+| the loop broken out of early | exit 2, "handed 23 shapes and ran 3" |
+| node absent from `PATH` | exit 2 |
+
+## The contract check's own matrix
+
+`contract-live.sh` talks to the live webhook, so on its own it only ever sees
+the one answer the endpoint is giving today. The shapes that have actually gone
+wrong are served by a local fixture instead:
 
 ```
-good 0 | whitespace-led 0 | BOM 0 | newline in error 0
-array 1 | nested 1 | no code 1 | empty error 1 | error not a string 1
-wrong-cased key 1 | not JSON 1 | bare scalar 1 | null body 1 | empty body 1
-newline in code 1 | newline in code with a real error 1
-200 -> 1 | 500 -> 2 | 404 -> 2
+bash tests/contract-matrix.sh
 ```
 
-Seventeen of those are body shapes; three are status codes. The rows that
-earned their place are the ones that once returned the wrong answer: array,
-nested, both newline-in-code rows, and BOM.
+It reads `tests/contract-shapes.mjs`, drives `contract-live.sh` against every
+shape there, and refuses if any one of them exits differently from the expected
+table in that same file. **The list of shapes comes out of the fixture module,
+never out of the runner**, so there is one list rather than two.
+
+That command is here because the row table below used to be measured against a
+mock in a scratchpad. The numbers were real and nobody reading them could
+re-run them, which is how a measured figure goes stale with nobody touching it.
+
+Measured 2026-09-09: **23 shapes, all exiting as the table says.** Twenty are
+body shapes, three are status codes. The rows that earned their place are the
+ones that once returned the wrong answer -- `array`, `nested`, both
+newline-in-code rows, `bom`, `bigerr`, and `split`.
+
+`split` is worth singling out. It places a two-byte character astride the
+65536-byte pipe chunk boundary, which is the only position where decoding each
+stdin chunk separately corrupts anything. The first fixture written for that
+fix put its accents near the end of a long string, nowhere near a seam, and so
+**passed on the mutant it was written to kill**. It was replaced with one that
+computes its own padding, and that one does die on the mutant.
+
+The live reject cases were run the same day against the live webhook, and they
+are not covered by the matrix because they need the network:
+
+```
+curl's default User-Agent            -> 2  (the ignoreBots 403, nothing tested)
+a path the workflow does not answer  -> 2  (404, a service problem)
+an unreachable host                  -> 2  (curl exit 7)
+the real endpoint, missing name      -> 0  (400, code invalid_input, real message)
+```
+
+The live runs write no row: a missing name is refused before the Airtable node,
+and the Gifting Inquiries table was confirmed at zero records afterwards.
+
+**One row is deliberately stricter than the site.** `wserr` sends an error of
+three spaces. The site tests `data.error` for truthiness, so `"   "` satisfies
+its branch and the visitor is held on the form with an empty message, no panel
+and no mail draft. The endpoint promised a sentence to show somebody; a string
+of spaces does not keep that promise, so this check fails it even though the
+site branch it feeds is technically satisfied.
 
 The last-but-one row was two rows until 2026-09-09, and both were wrong. They
 claimed different outcomes for what is one mutant: on any answer this suite
@@ -172,6 +261,9 @@ raised the suspicion; re-running them is what turned it into a finding.
 2 means the suite got far enough to refuse, 3 means it never started.
 
 `contract-live.sh` uses 0 for holds, 1 for broken, 2 for nothing tested.
+`contract-matrix.sh` uses 0 for every shape matching, 1 for any shape exiting
+wrong, and 2 for the fixture list being unreadable, self-contradictory,
+implausibly short, or only partly consumed.
 
 ## Known unexercised branch
 
