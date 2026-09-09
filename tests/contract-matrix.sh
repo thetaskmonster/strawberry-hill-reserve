@@ -18,14 +18,27 @@
 # by this script.
 #
 #   1. the EXIT CODE, against the expected table in the fixture module;
-#   2. the VERDICT LINE's presence in stdout, which is what a parser losing its
-#      output past the 64 KiB pipe buffer destroys without moving the exit code;
-#   3. the absence of U+FFFD, which is what per-chunk decoding produces on a
+#   2. the FAILURE COUNT the verdict names, because deleting a whole branch can
+#      leave the exit code alone and only change how many things failed;
+#   3. a MATCH string pinning WHICH branch fired, because two branches can
+#      report the same count;
+#   4. the absence of U+FFFD, which is what per-chunk decoding produces on a
 #      multibyte character landing on a chunk seam, also without moving it.
+#
+# 2 and 3 were added on 2026-09-09 after a gate found three rows that stayed
+# green while the exact guard each named was deleted outright.
 #
 # And it runs a second kind of case entirely: INTERPRETER behaviours, where a
 # stub stands in for node. No answer shape can reach the guard that refuses a
 # parser which ran and said nothing, because a real node always answers.
+#
+# THE FIXTURE SERVER PROVES IT IS THE FIXTURE SERVER. It answers a per-run
+# nonce on a reserved route, and this script refuses unless it gets that exact
+# token back. Without it, a leaked server left on the port from an earlier run
+# -- which the EXIT trap does not clean up if the parent is killed -- answers
+# every probe, the real server dies unheard on EADDRINUSE, and the whole matrix
+# passes against a different process serving a different file while printing
+# "behave as tests/contract-shapes.mjs says". Observed doing exactly that.
 #
 # Run it:  bash tests/contract-matrix.sh
 # No network beyond localhost. It never touches the live endpoint or Airtable.
@@ -67,47 +80,77 @@ if [ "$TOTAL" -lt 10 ]; then
   exit 2
 fi
 
-"$NODE_BIN" --input-type=module -e "
+NONCE=$(od -An -N16 -tx1 /dev/urandom 2>/dev/null | tr -d ' \n')
+if [ -z "$NONCE" ]; then
+  echo "CANNOT CHECK: could not generate a nonce, so this run cannot prove the"
+  echo "server answering it is its own."
+  exit 2
+fi
+
+MATRIX_NONCE="$NONCE" "$NODE_BIN" --input-type=module -e "
   import http from 'node:http';
   const m = await import('file://$HERE/contract-shapes.mjs');
+  const nonce = process.env.MATRIX_NONCE;
   http.createServer((req, res) => {
     const key = req.url.replace(/^\//, '');
-    const hit = m.SHAPES[key];
     let b = ''; req.on('data', d => b += d).on('end', () => {
+      if (key === '__whoami') {
+        res.writeHead(200, {'Content-Type':'text/plain'});
+        return res.end(nonce);
+      }
+      const hit = m.SHAPES[key];
       if (!hit) { res.writeHead(418, {'Content-Type':'text/plain'}); return res.end('unknown shape'); }
       res.writeHead(hit[0], {'Content-Type': hit[1]});
       res.end(hit[2]);
     });
-  }).listen($PORT, '127.0.0.1', () => console.log('up'));
+  }).listen($PORT, '127.0.0.1');
 " >/dev/null 2>&1 &
 SERVER_PID=$!
 OUT=$(mktemp 2>/dev/null) || { echo "CANNOT CHECK: could not create a temp file."; exit 2; }
+STUBDIR=""
 cleanup() {
   kill "$SERVER_PID" 2>/dev/null; wait "$SERVER_PID" 2>/dev/null
   rm -f "$OUT"
+  [ -n "$STUBDIR" ] && rm -rf "$STUBDIR"
+  return 0
 }
 trap cleanup EXIT
 
-curl -s --retry 30 --retry-all-errors --retry-delay 1 --max-time 30 \
-  -o /dev/null -X POST "http://127.0.0.1:$PORT/good" || {
-  echo "CANNOT CHECK: the fixture server never came up on port $PORT."
+# A REACHABLE PORT IS NOT THIS SERVER. Require the nonce back, not a 200.
+SAW=$(curl -s --retry 30 --retry-all-errors --retry-delay 1 --max-time 30 \
+  -X POST "http://127.0.0.1:$PORT/__whoami" 2>/dev/null)
+if [ "$SAW" != "$NONCE" ]; then
+  echo "CANNOT CHECK: whatever is answering port $PORT is not this run's fixture"
+  echo "server. Expected this run's nonce and got [${SAW:-nothing}]."
+  echo "A stale server from an earlier run answers every probe while this run's"
+  echo "own server dies unheard on EADDRINUSE, and every case would then be"
+  echo "measured against a different process. Free the port and re-run."
   exit 2
-}
+fi
 
 EXPECT_JSON=$("$NODE_BIN" --input-type=module -e "
   const m = await import('file://$HERE/contract-shapes.mjs');
   console.log(JSON.stringify(m.EXPECTED));
 ")
 
+# One reader for the expectation row, so the three fields cannot drift apart.
+# Prints: <exit> <failures-or-null> then the match string on its own line.
+readwant() {
+  printf '%s' "$EXPECT_JSON" | "$NODE_BIN" -e '
+    const c=[];process.stdin.on("data",d=>c.push(d)).on("end",()=>{
+      const o=JSON.parse(Buffer.concat(c).toString("utf8"))[process.argv[1]];
+      if (!o) { process.stdout.write("? ?\n\n"); process.exit(0); }
+      process.stdout.write(o.exit + " " + (o.failures === null ? "null" : o.failures) + "\n" + (o.match || "") + "\n");
+    });' "$1"
+}
+
 RAN=0
 BAD=0
 for name in $NAMES; do
-  want=$(printf '%s' "$EXPECT_JSON" | "$NODE_BIN" -e '
-    const c=[];process.stdin.on("data",d=>c.push(d)).on("end",()=>{
-      const o=JSON.parse(Buffer.concat(c).toString("utf8"));
-      const v=o[process.argv[1]];
-      process.stdout.write(v === undefined ? "?" : String(v));
-    });' "$name")
+  W=$(readwant "$name")
+  want=$(printf '%s' "$W" | sed -n '1p' | cut -d' ' -f1)
+  wantf=$(printf '%s' "$W" | sed -n '1p' | cut -d' ' -f2)
+  wantm=$(printf '%s' "$W" | sed -n '2p')
   # THROUGH A PIPE, DELIBERATELY, AND NOT INTO THE FILE DIRECTLY.
   # node's stdout is synchronous when it is a file and asynchronous when it is
   # a pipe, and process.exit only discards pending writes in the second case.
@@ -124,7 +167,17 @@ for name in $NAMES; do
   # shape refused before the parser (exit 2) must leave none. Counting this
   # is what makes a lost verdict line visible: the exit code does not move.
   VERDICTS=$(grep -c 'CONTRACT HOLDS\|CONTRACT FAILURE(S)' "$OUT")
-  if [ "$want" = "2" ]; then WANT_V=0; else WANT_V=1; fi
+  if [ "$wantf" = "null" ]; then WANT_V=0; else WANT_V=1; fi
+
+  # How many failures the verdict names. "null" means no verdict line at all,
+  # which is what a shape refused before the parser must produce.
+  if grep -q '=== CONTRACT HOLDS ===' "$OUT"; then
+    SAWF=0
+  elif grep -q 'CONTRACT FAILURE(S)' "$OUT"; then
+    SAWF=$(grep -oE '=== [0-9]+ CONTRACT FAILURE\(S\) ===' "$OUT" | grep -oE '[0-9]+' | head -1)
+  else
+    SAWF=null
+  fi
 
   # U+FFFD is the replacement character. It appears only when something
   # decoded a multibyte character across a buffer boundary.
@@ -133,6 +186,10 @@ for name in $NAMES; do
   WHY=""
   [ "$want" = "$got" ]        || WHY="expected exit $want, got $got"
   [ "$VERDICTS" = "$WANT_V" ] || WHY="${WHY:+$WHY; }expected $WANT_V verdict line(s), saw $VERDICTS"
+  [ "$wantf" = "$SAWF" ]      || WHY="${WHY:+$WHY; }expected $wantf failure(s), saw $SAWF"
+  if [ -n "$wantm" ] && ! grep -qF -- "$wantm" "$OUT"; then
+    WHY="${WHY:+$WHY; }output never says [$wantm], so a different branch fired"
+  fi
   [ "$MANGLED" = "0" ]        || WHY="${WHY:+$WHY; }$MANGLED line(s) carry a replacement character"
 
   if [ -z "$WHY" ]; then
@@ -187,18 +244,34 @@ for iname in $INAMES; do
     exit 2
   fi
 
+  IMATCH=$("$NODE_BIN" --input-type=module -e "
+    const m = await import('file://$HERE/contract-shapes.mjs');
+    process.stdout.write(m.INTERPRETERS['$iname'].match || '');
+  ")
+  # EVERY CASE MUST CARRY AN OBSERVABLE. Without one the five cases collapse
+  # to a single fact asserted five times: an EMPTY stub, or malformed shell,
+  # exits 2 as well and every row stayed green. Measured 2026-09-09.
+  if [ -z "$IMATCH" ]; then
+    echo "CANNOT CHECK: interpreter case '$iname' declares no match string, so"
+    echo "it cannot be told apart from any other stub that merely exits $IEXPECT."
+    exit 2
+  fi
+
   PATH="$STUBDIR:$PATH" GIFTING_ENDPOINT="http://127.0.0.1:$PORT/good" \
     bash "$HERE/contract-live.sh" 2>&1 | cat >"$OUT"
   igot=${PIPESTATUS[0]}
   IRAN=$((IRAN + 1))
-  if [ "$igot" = "$IEXPECT" ]; then
+  IWHY=""
+  [ "$igot" = "$IEXPECT" ] || IWHY="expected exit $IEXPECT, got $igot"
+  grep -qF -- "$IMATCH" "$OUT" || IWHY="${IWHY:+$IWHY; }output never says [$IMATCH], so this stub did not do the thing this case names"
+  if [ -z "$IWHY" ]; then
     printf '  ok    %-10s exit %s (stub)\n' "$iname" "$igot"
   else
-    printf '  WRONG %-10s expected %s, got %s (stub)\n' "$iname" "$IEXPECT" "$igot"
+    printf '  WRONG %-10s %s (stub)\n' "$iname" "$IWHY"
     BAD=$((BAD + 1))
   fi
 done
-rm -rf "$STUBDIR"
+rm -rf "$STUBDIR"; STUBDIR=""
 
 if [ "$IRAN" -ne "$ITOTAL" ]; then
   echo ""

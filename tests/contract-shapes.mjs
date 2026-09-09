@@ -48,19 +48,56 @@ export const SHAPES = {
 
   // --- status codes, judged before the body is looked at ---
   s200:     [200, J, JSON.stringify({ ok: true })],
+  // 403 is the bot guard rejecting the User-Agent before any validation runs.
+  // It had no offline case at all until 2026-09-09 and was covered only by a
+  // live network run, which is the one branch a reader could not exercise.
+  s403:     [403, 'text/plain', 'Authorization data is wrong!'],
   s500:     [500, J, JSON.stringify({ ok: false, error: 'boom' })],
   s404:     [404, 'text/plain', 'not found'],
 };
 
-// The expected exit code from contract-live.sh for each shape.
-// 0 holds, 1 broken, 2 nothing tested.
+// What contract-live.sh must do for each shape. THREE THINGS PER ROW, not one.
+//
+// `exit`     0 holds, 1 broken, 2 nothing tested.
+// `failures` how many FAILURE lines the verdict names, or null when the shape
+//            is refused before the parser and there is no verdict line at all.
+// `match`    a substring of the output that pins WHICH branch fired.
+//
+// The exit code alone is not enough, and this file said it was for a day.
+// Deleting the Array.isArray branch outright left `array` at exit 1, with a
+// different message and a different failure count, and a matrix comparing exit
+// codes alone reported a clean run on a tree with a whole guard removed.
+// `failures` and `match` are what make each row fail for its OWN reason rather
+// than for a neighbour's.
 export const EXPECTED = {
-  good: 0, ws: 0, bom: 0, nlerr: 0, bigerr: 0, split: 0,
-  array: 1, nested: 1, nocode: 1, codecase: 1, emptyerr: 1, wserr: 1,
-  errnum: 1, errobj: 1, nlcode: 1, nlcode2: 1, notjson: 1, scalar: 1,
-  nullbody: 1, empty: 1,
-  s200: 1, s500: 2, s404: 2,
+  good:     { exit: 0, failures: 0, match: 'Please add your name' },
+  ws:       { exit: 0, failures: 0, match: 'leading whitespace' },
+  bom:      { exit: 0, failures: 0, match: 'BOM body' },
+  nlerr:    { exit: 0, failures: 0, match: 'line two' },
+  bigerr:   { exit: 0, failures: 0, match: 'is "invalid_input"' },
+  split:    { exit: 0, failures: 0, match: 'TAILMARK' },
+
+  array:    { exit: 1, failures: 1, match: 'JSON ARRAY' },
+  nested:   { exit: 1, failures: 1, match: '"rate_limited"' },
+  nocode:   { exit: 1, failures: 1, match: 'code field is null' },
+  codecase: { exit: 1, failures: 1, match: 'code field is null' },
+  emptyerr: { exit: 1, failures: 1, match: 'missing or not a string' },
+  wserr:    { exit: 1, failures: 1, match: 'blank once trimmed' },
+  errnum:   { exit: 1, failures: 1, match: 'missing or not a string' },
+  errobj:   { exit: 1, failures: 1, match: 'missing or not a string' },
+  nlcode:   { exit: 1, failures: 2, match: 'SOMETHING' },
+  nlcode2:  { exit: 1, failures: 1, match: 'SOMETHING' },
+  notjson:  { exit: 1, failures: 1, match: 'not JSON' },
+  scalar:   { exit: 1, failures: 1, match: 'parsed but is not an object' },
+  nullbody: { exit: 1, failures: 1, match: 'parsed but is not an object' },
+  empty:    { exit: 1, failures: 1, match: 'not JSON' },
+
+  s200:     { exit: 1, failures: 1, match: 'ACCEPTED a submission' },
+  s403:     { exit: 2, failures: null, match: 'ignoreBots guard' },
+  s500:     { exit: 2, failures: null, match: 'service problem' },
+  s404:     { exit: 2, failures: null, match: 'service problem' },
 };
+
 
 // Interpreter behaviours, which are a DIFFERENT KIND OF CASE from an answer
 // shape and the reason this file has a second list.
@@ -77,17 +114,30 @@ export const EXPECTED = {
 // established when the parser did not answer.
 export const INTERPRETERS = {
   silent:   { script: 'cat >/dev/null\nexit 0\n',
+              match: 'exited 0 and left verdict',
               why: 'drains stdin, prints nothing, exits 0 -- the case that was a false pass' },
   forged:   { script: 'cat >/dev/null\necho "=== CONTRACT HOLDS ==="\nexit 0\n',
-              why: 'prints the verdict text on stdout, which is not the channel it is read from' },
+              match: '=== CONTRACT HOLDS ===',
+              why: 'prints the verdict text on stdout, which is not the channel it is read from; the run must still refuse WITH that line present' },
   bare1:    { script: 'cat >/dev/null\nexit 1\n',
+              match: 'exited 1 and left verdict',
               why: 'claims BROKEN without having established it' },
   odd:      { script: 'cat >/dev/null\nexit 7\n',
+              match: 'exited 7 and left verdict',
               why: 'an exit code this script never issues' },
   signal:   { script: 'cat >/dev/null\nkill -9 $$\n',
+              match: 'exited 137 and left verdict',
               why: 'killed rather than exiting' },
 };
 
+// EACH CASE CARRIES ITS OWN OBSERVABLE, and that is not decoration.
+//
+// All five collapse to exit 2, so comparing the exit code alone asserts one
+// fact five times. Measured 2026-09-09: replacing every script with an EMPTY
+// one, or with malformed shell, left all five green -- five cases advertised
+// as five distinct behaviours, verifying only "contract-live.sh refuses when
+// node is replaced by something that is not node". `match` is what separates
+// them: an empty stub satisfies `silent` and fails the other four.
 // Every interpreter case expects the same thing, and it is stated once rather
 // than repeated per row: a parser that did not answer is CANNOT CHECK.
 export const INTERPRETER_EXPECT = 2;

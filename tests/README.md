@@ -166,9 +166,20 @@ on 2026-09-09, each naming the exact fix it covers.
 | Mutant | Dies at | Which comparison catches it |
 |---|---|---|
 | the verdict-file check dropped, exit code trusted alone | `silent`, `forged`, `bare1` | interpreter cases |
-| `process.exitCode` back to `process.exit` | `bigerr`, `split` | verdict-line count |
-| the blank-error branch back to plain truthiness | `wserr` | exit code |
+| `process.exitCode` back to `process.exit` | `bigerr`, `split` | verdict-line count, failure count |
+| the blank-error branch back to plain truthiness | `wserr` | exit code, failure count, `match` |
 | stdin decoded per chunk instead of once | `split` | replacement-character count |
+
+All four were re-planted against the **tightened** runner on 2026-09-09, after
+the failure-count and `match` comparisons went in, and all four still die.
+**One of the four re-plants was wrong, and it read as a retired test.** Writing
+the per-chunk mutant as `setEncoding("utf8")` produced a green run, because
+node's `setEncoding` goes through a `StringDecoder` that holds a partial
+character back across a chunk boundary -- it is seam-safe, so that mutant does
+not contain the defect it names. The faithful form accumulates with `acc += d`
+over raw Buffers, which calls `Buffer.prototype.toString()` on each chunk in
+isolation. It kills `split` immediately. **A mutant that passes is a claim about
+the mutant before it is a claim about the guard.**
 
 **The third column is not decoration, and this table said something false
 without it.** The first version of the matrix compared **exit codes only**, and
@@ -177,8 +188,9 @@ a tree with them reverted, while this file claimed it killed all four -- a guard
 advertised wider than it is, shipped one layer above the guard the same commit
 was written to restore. Found by a proof gate, not by the matrix.
 
-It now compares three things per shape (exit code, verdict-line count,
-replacement-character count) and runs a second kind of case entirely.
+It now compares five things per shape (exit code, verdict-line count, failure
+count, a substring the shape's own branch prints, replacement-character count)
+and runs a second kind of case entirely.
 **Interpreter cases** install a stub in place of `node`. No answer shape can
 reach the guard that refuses a parser which ran and said nothing, because a
 real parser always answers -- which is precisely why that guard shipped with no
@@ -190,16 +202,18 @@ when stdout is a **pipe**. The same defect, one layer inside the fix for it.
 The runner now pipes through `cat` and reads `PIPESTATUS`, and the mutant dies.
 
 And for `contract-matrix.sh` itself, all eight planted and observed the same
-day. The five that predate the widening were re-run afterwards, because a new
-net can retire an old test without either one changing.
+day, then **all of them re-run again after the tightening**, because a new net
+can retire an old test without either one changing.
 
 | Mutant | Dies at |
 |---|---|
 | a shape removed from `EXPECTED` but not `SHAPES` | exit 2, naming the shape |
 | the shape list shrunk to one entry | exit 2, refusing rather than running a one-case suite |
-| the shape loop broken out of early | exit 2, "handed 23 shapes and ran 3" |
+| the shape loop broken out of early | exit 2, "handed 24 shapes and ran 3" |
 | the interpreter list shrunk below three | exit 2 |
-| the interpreter loop broken out of early | exit 2, "handed 5 interpreter cases and ran 2" |
+| the interpreter loop broken out of early | exit 2, "handed 5 interpreter cases and ran 1" |
+| a stale server left on the fixture port | exit 2, "is not this run's fixture server" |
+| an interpreter case with no `match` string | exit 2, "declares no match string" |
 | the stub failing to install, so the real `node` answers | exit 2, "not what PATH resolves node to" |
 | node absent from `PATH` | exit 2 |
 | any mutant of `contract-live.sh` above | the named rows print WRONG, exit 1 |
@@ -219,11 +233,20 @@ shape there, and refuses if any one of them behaves differently from the
 expected table in that same file. **The lists come out of the fixture module,
 never out of the runner**, so there is one copy rather than two.
 
-Per shape it compares three things: the **exit code**, the **presence of a
-verdict line** in stdout, and the **absence of replacement characters**. Two of
-this commit's four fixes move no exit code at all, so an exit-code comparison
-alone is a net with holes in it -- which is how the first version of this
-runner shipped.
+Per shape it compares five things: the **exit code**, the **number of verdict
+lines** in stdout, the **failure count** the parser reports, a **substring the
+shape's own branch prints**, and the **absence of replacement characters**.
+Three of this commit's four fixes move no exit code at all, so an exit-code
+comparison alone is a net with holes in it -- which is how the first version of
+this runner shipped.
+
+The `match` substring is what stops a row passing for a neighbour's reason.
+Before it went in, `array`, `scalar` and `nlcode` could not fail against the
+branch each one names: delete the branch and some other branch produces the
+same exit code, so the row stayed green. With `match` and the failure count in
+place, deleting `Array.isArray` prints `WRONG array`, deleting the non-object
+branch prints `WRONG scalar` and `WRONG nullbody`, and deleting the BOM strip
+prints `WRONG bom`.
 
 It then runs a second kind of case. **Interpreter cases** put a stub in place of
 `node` and require exit 2 from every one: a parser that ran and said nothing, a
@@ -231,13 +254,31 @@ parser that printed the verdict text on the wrong channel, one that claimed a
 verdict it never established, one exiting a code this script never issues, and
 one killed by a signal.
 
+**Exit 2 alone collapsed all five into one fact.** An empty stub exits 2. A stub
+whose shell is malformed exits 2. So all five rows passed while proving only
+that something went wrong somewhere. Each case now names a string its refusal
+has to print, and the matrix **refuses a case that declares none** -- observed:
+five empty stubs give four WRONG rows, five malformed stubs give five, and
+removing one case's `match` gives exit 2 rather than a pass.
+
+**And it proves the server answering it is its own.** A fixture server left
+behind on the port by an earlier run answers every probe correctly while this
+run's server dies unheard on `EADDRINUSE`, and the entire matrix then passes
+against a different process. Each run mints a nonce, serves it at `__whoami`,
+and refuses unless it gets that exact token back.
+
 That command is here because the row table below used to be measured against a
 mock in a scratchpad. The numbers were real and nobody reading them could
 re-run them, which is how a measured figure goes stale with nobody touching it.
 
-Measured 2026-09-09: **23 answer shapes and 5 interpreter cases, all behaving
-as the fixture says.** Of the shapes, twenty are body shapes and three are
-status codes. The rows that earned their place are the
+Measured 2026-09-09: **24 answer shapes and 5 interpreter cases, all behaving
+as the fixture says.** Of the shapes, twenty are body shapes and four are
+status codes. That split is a structural count, so read it off the fixture
+rather than off this sentence:
+
+```
+node --input-type=module -e "const m = await import('./tests/contract-shapes.mjs'); console.log(Object.keys(m.SHAPES).length, Object.keys(m.INTERPRETERS).length)"
+``` The rows that earned their place are the
 ones that once returned the wrong answer -- `array`, `nested`, both
 newline-in-code rows, `bom`, `bigerr`, and `split`.
 
