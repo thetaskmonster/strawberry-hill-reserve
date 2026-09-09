@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host",
     "prerender": "node scripts/prerender.mjs",
-    "test:gifting": "bash tests/run-gifting.sh"
+    "test:gifting": "bash tests/run-gifting.sh",
+    "test:gifting:contract": "bash tests/contract-live.sh"
   },
   "dependencies": {
     "gsap": "^3.15.0",

@@ -13,6 +13,23 @@ It builds, serves `dist/`, and refuses if the bytes it fetches do not match the
 bytes the build wrote. Playwright is already a devDependency; no browser
 download is needed if `PLAYWRIGHT_BROWSERS_PATH` is set in the environment.
 
+**Every one of those 43 assertions stubs the webhook**, so they pin what the
+SITE does with a given answer and nothing about what the endpoint sends. The
+other half of that contract is a second script, which talks to the live
+webhook and is deliberately NOT part of the run above:
+
+```
+bash tests/contract-live.sh
+```
+
+It posts a missing name and asserts the refusal carries `code: "invalid_input"`,
+because that string is the only thing that makes the site treat a bad address
+as the visitor's typo rather than our outage. Drop the field in n8n and the
+43 stay green while real typos start opening a mail draft with the malformed
+address in it. It writes no row: a missing name is refused before the Airtable
+node. Unreachable, or a 403 from the bot guard, exits 2 as CANNOT CHECK, never
+as a pass.
+
 ## What each case is for
 
 | Case | Pins |
@@ -56,9 +73,27 @@ fix it covers rather than breaking the whole file.
 | `mailto:` hoisted above the save | G2, H5 |
 | the 400 branch removed | H2, H3, H5, H6 |
 | swallow keyed on status alone, not on the code | I2, I3, I4 |
-| `saved = data !== null` | B2, B3, B4, B5 |
-| `saved = true` always | build refuses, exit 3 |
+| `saved` forced true, either as `= true` or as `= data !== null` | B2, B3, B4, B5, H2, H4, H5, H6, I3, I4, I5 |
 | the form's `aria-label` renamed | fixture guard refuses, exit 2 |
+
+For `contract-live.sh`, the reject cases were run on 2026-09-09: pointed at the
+waitlist webhook, which answers a real 400 with a real message and no `code`,
+only the code assertion dies (exit 1); with curl's default User-Agent the bot
+guard answers 403 and it exits 2 rather than reporting a contract failure it
+never tested; against an unresolvable host it exits 2.
+
+The last-but-one row was two rows until 2026-09-09, and both were wrong. They
+claimed different outcomes for what is one mutant: on any answer this suite
+stubs, `data` is never null, so `data !== null` and `true` are the same
+expression. Re-running them gives the identical eleven failures at exit 1. One
+row had also been written as `build refuses, exit 3`; the build compiles and
+serves, and the suite runs in full. Neither row had been run against this
+version of the suite. They were carried over from an earlier one and reasoned
+about, under a header saying every row was run.
+
+**A mutant result belongs to the exact suite version it ran against.** Cases H
+and I did not exist when those two rows were written, which is most of what
+they got wrong.
 
 ## Exit codes
 
@@ -68,3 +103,15 @@ fix it covers rather than breaking the whole file.
 | 1 | an assertion failed |
 | 2 | CANNOT CHECK: the build gate or a fixture guard refused. Not a pass |
 | 3 | the build or the server failed, so the suite never ran |
+
+`contract-live.sh` uses the same codes: 0 contract holds, 1 the contract is
+broken, 2 nothing was checked.
+
+## Known unexercised branch
+
+`run-gifting.sh` shuts its own preview down and, if something is still serving
+the port afterwards, prints a warning naming the port. **That warning has never
+been observed firing.** The kill-and-wait path was proven on 2026-09-09 (cold
+run, 43 pass, no surviving process, port free); the branch that fires when the
+kill does not work has not been. Read it as written, not as tested.
+

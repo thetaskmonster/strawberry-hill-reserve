@@ -22,9 +22,28 @@ if [ $? -ne 0 ]; then
   exit 3
 fi
 
+# Start the server with `exec` on vite's own entry file, NOT through npx.
+#
+# `npx vite preview &` leaves THREE processes -- npx, an `sh -c`, and node --
+# and `$!` is only the subshell wrapping them. Killing that PID kills nothing
+# that holds the port: the grandchildren reparent to init and the port stays
+# bound for the life of the machine. The consequence was that the cold path
+# below ran once and every later run silently reused a stale server, which is
+# the exact state the digest gate exists to catch and cannot, because the
+# digest is computed against whatever that old server is serving. Observed
+# leaking on 2026-09-09 (`ps -eo pid,ppid,args | grep "vite preview"` showed
+# the npx parent on PPID 1). `exec` replaces the subshell with node itself, so
+# $! IS the server and `wait` below is exact.
+VITE_ENTRY="$REPO/node_modules/vite/bin/vite.js"
 OWN_SERVER=0
 if ! curl -sf -o /dev/null "$BASE/" 2>/dev/null; then
-  (cd "$REPO" && npx vite preview --port "$PORT" --strictPort >/dev/null 2>&1) &
+  if [ ! -f "$VITE_ENTRY" ]; then
+    echo "No vite entry at node_modules/vite/bin/vite.js. Run npm install."
+    echo "Refusing rather than falling back to npx, which leaks a server this"
+    echo "script cannot kill. CANNOT CHECK."
+    exit 3
+  fi
+  (cd "$REPO" && exec node "$VITE_ENTRY" preview --port "$PORT" --strictPort >/dev/null 2>&1) &
   SERVER_PID=$!
   OWN_SERVER=1
   for _ in $(seq 1 40); do
@@ -33,11 +52,29 @@ if ! curl -sf -o /dev/null "$BASE/" 2>/dev/null; then
   done
   if ! curl -sf -o /dev/null "$BASE/"; then
     echo "Could not start a preview server on $PORT. CANNOT CHECK, refusing."
-    kill $SERVER_PID 2>/dev/null
+    kill "$SERVER_PID" 2>/dev/null
     exit 3
   fi
 fi
-cleanup() { [ "$OWN_SERVER" = "1" ] && kill $SERVER_PID 2>/dev/null; }
+
+# Never exit quietly on a server that outlived us. A leak here does not fail
+# anything today; it poisons the NEXT run, which is why it has to be said out
+# loud rather than swallowed.
+cleanup() {
+  [ "$OWN_SERVER" = "1" ] || return 0
+  kill "$SERVER_PID" 2>/dev/null
+  wait "$SERVER_PID" 2>/dev/null
+  if curl -sf -o /dev/null --max-time 2 "$BASE/" 2>/dev/null; then
+    kill -9 "$SERVER_PID" 2>/dev/null
+    wait "$SERVER_PID" 2>/dev/null
+    if curl -sf -o /dev/null --max-time 2 "$BASE/" 2>/dev/null; then
+      echo ""
+      echo "WARNING: something is STILL serving $BASE after this run killed its"
+      echo "own server (pid $SERVER_PID). The next run will reuse it instead of"
+      echo "building. Kill whatever holds port $PORT before trusting another run."
+    fi
+  fi
+}
 trap cleanup EXIT
 
 MANIFEST="$HERE/.dist-manifest-gifting.json"
