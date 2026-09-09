@@ -89,9 +89,22 @@ export default function Gifting() {
           qty: q.qty, message: q.message, source,
         }),
       });
-      const data = (await res.json()) as { ok?: boolean; error?: string };
+      const data = (await res.json()) as { ok?: boolean; code?: string; error?: string };
       saved = res.ok && data.ok === true;
-      if (!saved && res.status === 400 && typeof data.error === "string" && data.error) {
+      // Swallow on the REASON, never on the status. `invalid_input` is the
+      // webhook's contract for "the visitor's own input is wrong", and it is
+      // the only 400 we are entitled to stop on. Any other 400 -- a rate
+      // limit, a payload guard, a dedupe nobody has written yet -- falls
+      // through to the not-saved branch and its panel, which keeps the lead.
+      //
+      // The earlier version keyed off `res.status === 400` plus any error
+      // string. That was correct only because Respond Invalid was the sole
+      // source of a 400, a property written down nowhere and true by luck.
+      // A verifier gate probed four endpoint answers on 2026-09-09 and found
+      // that a second reason for a 400 would swallow real inquiries with no
+      // row, no mail and no panel, and no test would go red.
+      if (!saved && res.status === 400 && data.code === "invalid_input"
+          && typeof data.error === "string" && data.error) {
         rejected = data.error;
       }
     } catch {
@@ -99,7 +112,8 @@ export default function Gifting() {
     }
     setBusy(false);
 
-    // THE VISITOR'S TYPO IS NOT OUR OUTAGE. The check above this fetch is
+    // THE VISITOR'S TYPO IS NOT OUR OUTAGE, and only a 400 the webhook has
+    // NAMED as an input problem gets this branch. The check above this fetch is
     // presence-only on purpose -- the webhook owns what counts as a valid
     // email, and duplicating that regex here would be the same rule in two
     // places at two ages with no declared winner. The cost of that split is
