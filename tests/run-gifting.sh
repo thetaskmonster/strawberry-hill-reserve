@@ -27,20 +27,27 @@ fi
 # `npx vite preview &` leaves THREE processes -- npx, an `sh -c`, and node --
 # and `$!` is only the subshell wrapping them. Killing that PID kills nothing
 # that holds the port: the grandchildren reparent to init and the port stays
-# bound for the life of the machine. The consequence was that the cold path
-# below ran once and every later run silently reused a stale server, which is
-# the exact state the digest gate exists to catch and cannot, because the
-# digest is computed against whatever that old server is serving. Observed
-# leaking on 2026-09-09 (`ps -eo pid,ppid,args | grep "vite preview"` showed
-# the npx parent on PPID 1). `exec` replaces the subshell with node itself, so
-# $! IS the server and `wait` below is exact.
+# bound for the life of the machine. Observed leaking on 2026-09-09
+# (`ps -eo pid,ppid,args | grep "vite preview"` showed the npx parent on
+# PPID 1, and the port still answering 200 after the kill). `exec` replaces
+# the subshell with node itself, so $! IS the server and `wait` below is exact.
+#
+# WHAT THE LEAK DOES AND DOES NOT COST, because the first version of this
+# comment got it wrong and the wrong version was quoted onward. It does NOT
+# defeat the digest gate. Measured on vite 5.4.21, 2026-09-09: `vite preview`
+# reads from disk per request, so a leaked server started from THIS repo
+# serves whatever the current build wrote and there is nothing stale to catch,
+# while one started from a different checkout is caught -- the gate refuses at
+# exit 2 with `served digest != build`. The real cost is stray processes and a
+# --strictPort collision, which makes a later run either silently reuse a
+# server it did not start or fail to start at all.
 VITE_ENTRY="$REPO/node_modules/vite/bin/vite.js"
 OWN_SERVER=0
 if ! curl -sf -o /dev/null "$BASE/" 2>/dev/null; then
   if [ ! -f "$VITE_ENTRY" ]; then
     echo "No vite entry at node_modules/vite/bin/vite.js. Run npm install."
     echo "Refusing rather than falling back to npx, which leaks a server this"
-    echo "script cannot kill. CANNOT CHECK."
+    echo "script cannot kill. Nothing was tested."
     exit 3
   fi
   (cd "$REPO" && exec node "$VITE_ENTRY" preview --port "$PORT" --strictPort >/dev/null 2>&1) &

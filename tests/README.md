@@ -27,8 +27,26 @@ because that string is the only thing that makes the site treat a bad address
 as the visitor's typo rather than our outage. Drop the field in n8n and the
 43 stay green while real typos start opening a mail draft with the malformed
 address in it. It writes no row: a missing name is refused before the Airtable
-node. Unreachable, or a 403 from the bot guard, exits 2 as CANNOT CHECK, never
-as a pass.
+node.
+
+**It PARSES the body and reads the top-level `code`, the way the site does.**
+The first version grepped the response as a string, and a proof gate found two
+shapes where that reported CONTRACT HOLDS while the site saw no code at all:
+
+```
+[{"ok":false,"code":"invalid_input","error":"..."}]      an array
+{"code":"rate_limited","detail":{"code":"invalid_input"}} nested
+```
+
+The array is the one to care about. It is what this n8n node emits the moment
+somebody switches it to return incoming items, which is an ordinary edit.
+
+Its three answers are kept apart on purpose. **Contract broken** is exit 1.
+**Nothing was tested** is exit 2, and that covers unreachable, a 403 from the
+bot guard, and any status that is not 400 or 200: a 500 or a 404 is a service
+problem and says nothing about the code field either way. A **200** is exit 1,
+because accepting a submission with no name is a validation change and may
+have written a junk row.
 
 ## What each case is for
 
@@ -76,11 +94,20 @@ fix it covers rather than breaking the whole file.
 | `saved` forced true, either as `= true` or as `= data !== null` | B2, B3, B4, B5, H2, H4, H5, H6, I3, I4, I5 |
 | the form's `aria-label` renamed | fixture guard refuses, exit 2 |
 
-For `contract-live.sh`, the reject cases were run on 2026-09-09: pointed at the
-waitlist webhook, which answers a real 400 with a real message and no `code`,
-only the code assertion dies (exit 1); with curl's default User-Agent the bot
-guard answers 403 and it exits 2 rather than reporting a contract failure it
-never tested; against an unresolvable host it exits 2.
+For `contract-live.sh`, the reject cases were run on 2026-09-09 against the two
+live webhooks and against a mock serving eleven answer shapes. Live: the
+waitlist webhook answers a real 400 with a real message and no `code`, and only
+the code assertion dies (exit 1); curl's default User-Agent gets a 403 and it
+exits 2 rather than reporting a contract failure it never tested; an
+unresolvable host exits 2. Mock, one line each:
+
+```
+good 0 | array 1 | nested 1 | no code 1 | empty error 1 | not JSON 1
+scalar 1 | 200 1 | 500 2 | 404 2 | empty body 1
+```
+
+The array and nested rows are there because both returned 0 before the parser
+replaced the grep.
 
 The last-but-one row was two rows until 2026-09-09, and both were wrong. They
 claimed different outcomes for what is one mutant: on any answer this suite
@@ -95,6 +122,10 @@ about, under a header saying every row was run.
 and I did not exist when those two rows were written, which is most of what
 they got wrong.
 
+Being fair about how that was caught: the two rows contradicted each other on
+the face of the table, which is visible without running anything. Reading
+raised the suspicion; re-running them is what turned it into a finding.
+
 ## Exit codes
 
 | Code | Meaning |
@@ -104,14 +135,18 @@ they got wrong.
 | 2 | CANNOT CHECK: the build gate or a fixture guard refused. Not a pass |
 | 3 | the build or the server failed, so the suite never ran |
 
-`contract-live.sh` uses the same codes: 0 contract holds, 1 the contract is
-broken, 2 nothing was checked.
+**2 and 3 are both non-passes**, and they differ only in where it stopped:
+2 means the suite got far enough to refuse, 3 means it never started.
+
+`contract-live.sh` uses 0 for holds, 1 for broken, 2 for nothing tested.
 
 ## Known unexercised branch
 
 `run-gifting.sh` shuts its own preview down and, if something is still serving
 the port afterwards, prints a warning naming the port. **That warning has never
-been observed firing.** The kill-and-wait path was proven on 2026-09-09 (cold
-run, 43 pass, no surviving process, port free); the branch that fires when the
-kill does not work has not been. Read it as written, not as tested.
+been observed firing**, by me or by the gate that checked this file. The
+kill-and-wait path was proven on 2026-09-09 (cold run, 43 pass, no surviving
+process, port free), and so was the refusal when vite's entry file is missing;
+the branch that fires when the kill does not work has not been. Read it as
+written, not as tested.
 

@@ -58,24 +58,91 @@ FAILED=0
 fail() { echo "FAIL  $1"; FAILED=$((FAILED+1)); }
 pass() { echo "PASS  $1"; }
 
+# Separate a CHANGED CONTRACT from a SERVICE PROBLEM, because they send the
+# reader after completely different things. A 5xx or a 404 says nothing about
+# whether the code field is still there, so reporting it as a contract failure
+# is a wrong answer, not a cautious one.
 if [ "$CODE" = "403" ]; then
   echo "CANNOT CHECK: 403. That is the ignoreBots guard rejecting the"
   echo "User-Agent, not the validation branch. Nothing about the contract was"
   echo "tested. Fix the UA above and re-run."
   exit 2
 fi
+if [ "$CODE" = "200" ]; then
+  echo "FAIL  the endpoint ACCEPTED a submission with no name and a malformed"
+  echo "      email. That is a validation change, not a contract detail, and it"
+  echo "      may have written a junk row. Check the Gifting Inquiries table."
+  echo ""
+  echo "=== 1 CONTRACT FAILURE(S) ==="
+  exit 1
+fi
+if [ "$CODE" != "400" ]; then
+  echo "CANNOT CHECK: expected 400 for a missing name and got $CODE. That is a"
+  echo "service problem -- the workflow unpublished, the path wrong, or n8n"
+  echo "down -- not evidence about the code field either way. Nothing was"
+  echo "tested. Fix the endpoint and re-run."
+  exit 2
+fi
+pass "the endpoint refuses a missing name with 400"
 
-[ "$CODE" = "400" ] && pass "the endpoint refuses a missing name with 400" \
-  || fail "expected 400 for a missing name, got $CODE"
+# READ THE FIELD THE SITE READS. A substring grep over the body is not that,
+# and the difference is not academic: it passed on two shapes measured
+# 2026-09-09 that the site handles as no code at all.
+#
+#   [{"ok":false,"code":"invalid_input","error":"..."}]
+#       an ARRAY, which is what this n8n node emits the moment somebody
+#       switches it to return incoming items. `data.code` is undefined.
+#   {"code":"rate_limited","detail":{"code":"invalid_input"}}
+#       the string is present and nested. `data.code` is "rate_limited".
+#
+# Both read as CONTRACT HOLDS under a grep and as "no code" to the site, which
+# is the exact false pass this script exists to prevent.
+command -v node >/dev/null 2>&1 || {
+  echo "CANNOT CHECK: no node on PATH, so the body cannot be parsed the way the"
+  echo "site parses it. Refusing rather than falling back to a substring match."
+  exit 2
+}
 
-printf '%s' "$BODY" | grep -q '"code"[[:space:]]*:[[:space:]]*"invalid_input"' \
-  && pass 'the refusal carries code "invalid_input", which is what the site keys on' \
-  || fail 'the refusal does NOT carry code "invalid_input" -- src/pages/Gifting.tsx will stop treating a bad address as the visitor input it is'
+PARSED=$(printf '%s' "$BODY" | node -e '
+let s = "";
+process.stdin.on("data", d => s += d).on("end", () => {
+  let o;
+  try { o = JSON.parse(s); } catch (e) { console.log("PARSE_ERROR"); return; }
+  if (Array.isArray(o)) { console.log("ARRAY"); return; }
+  if (o === null || typeof o !== "object") { console.log("NOT_OBJECT"); return; }
+  // Mirror src/pages/Gifting.tsx exactly: it reads data.code and data.error
+  // off the top level and requires both to be non-empty strings.
+  console.log("OBJECT");
+  console.log(typeof o.code === "string" ? o.code : "");
+  console.log(JSON.stringify(typeof o.error === "string" ? o.error : ""));
+});' 2>/dev/null)
 
-ERR=$(printf '%s' "$BODY" | sed -n 's/.*"error"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
-[ -n "$ERR" ] \
-  && pass "it carries a non-empty error string to show the visitor :: $ERR" \
-  || fail "the error string is missing or empty; the site would show a blank note"
+SHAPE=$(printf '%s' "$PARSED" | sed -n '1p')
+GOT_CODE=$(printf '%s' "$PARSED" | sed -n '2p')
+GOT_ERR=$(printf '%s' "$PARSED" | sed -n '3p')
+
+case "$SHAPE" in
+  OBJECT) : ;;
+  ARRAY)
+    fail 'the body is a JSON ARRAY, so the site sees no code at all. `await res.json()` gives an array, `data.code` is undefined, and a real typo falls through to the copy-it-yourself panel with the malformed address in the mail draft' ;;
+  NOT_OBJECT)
+    fail 'the body parsed but is not an object, so `data.code` is undefined to the site' ;;
+  PARSE_ERROR)
+    fail 'the body is not JSON at all, so `await res.json()` throws in the site and the whole submission reads as a network failure' ;;
+  *)
+    echo "CANNOT CHECK: could not run the body parser. Nothing was tested."
+    exit 2 ;;
+esac
+
+if [ "$SHAPE" = "OBJECT" ]; then
+  [ "$GOT_CODE" = "invalid_input" ] \
+    && pass 'the top-level code field is "invalid_input", which is what the site keys on' \
+    || fail "the top-level code field is [${GOT_CODE:-absent}], not invalid_input -- src/pages/Gifting.tsx will stop treating a bad address as the visitor input it is"
+
+  [ -n "$GOT_ERR" ] && [ "$GOT_ERR" != '""' ] \
+    && pass "it carries a non-empty error string to show the visitor :: $GOT_ERR" \
+    || fail "the top-level error string is missing or empty; the site would show a blank note"
+fi
 
 echo ""
 if [ "$FAILED" -eq 0 ]; then
