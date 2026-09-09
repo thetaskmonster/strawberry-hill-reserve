@@ -166,7 +166,7 @@ on 2026-09-09, each naming the exact fix it covers.
 | Mutant | Dies at | Which comparison catches it |
 |---|---|---|
 | the verdict-file check dropped, exit code trusted alone | `silent`, `forged`, `bare1` | interpreter cases |
-| `process.exitCode` back to `process.exit` | `bigerr`, `split` | verdict-line count, failure count |
+| `process.exitCode` back to `process.exit` | `bigerr`, `split` | verdict-line count, failure count, and on `split` the `match` too |
 | the blank-error branch back to plain truthiness | `wserr` | exit code, failure count, `match` |
 | stdin decoded per chunk instead of once | `split` | replacement-character count |
 
@@ -217,6 +217,7 @@ for one commit while the table under it had grown to nine.
 | a stale server left on the fixture port | exit 2, "is not this run's fixture server" |
 | an interpreter case with no `match` string | exit 2, "declares no match string" |
 | an answer shape with no `match` string | exit 2, "declares no match string" |
+| a fixture body carrying a line shaped like `PASS  ` | exit 2, "a fixture body carries a line shaped like" |
 | the echoed-body cut reverted, with a branch deleted | the `match` clause vanishes; the cut is load-bearing |
 | the stub failing to install, so the real `node` answers | exit 2, "not what PATH resolves node to" |
 | node absent from `PATH` | exit 2 |
@@ -274,6 +275,38 @@ out before looking for the match, and the same mutant prints
 `output never says ["rate_limited"]`. Reverting only the cut, with the mutant
 still planted, makes that clause disappear again -- which is what makes the cut
 load-bearing rather than assumed.
+
+The cut is load-bearing for **all eight**, not only for `nested`. Two mutants
+cover them: stop quoting the error string in the `PASS` line and `good`, `ws`,
+`bom`, `nlerr` and `split` all report `output never says [...]` -- the match is
+the **only** clause that fires on those five, so there the cut is the entire
+guard. Stop quoting the code value in the mismatch `FAIL` and `nested`,
+`nlcode` and `nlcode2` join the two rows that were already strong. Revert the
+cut with either mutant still planted and exactly the weak rows go silent.
+
+### The cut ends at the script's own line shapes, and a body can forge one
+
+The comment first written above this cut said a match "can only be satisfied by
+something the script itself printed". **That is an absolute and it is false**,
+found by the next gate, one round after the same class of overclaim and in the
+comment explaining the fix for it. The cut stops at the first terminator line.
+A multi-line body whose continuation reproduces a terminator ends the cut early
+and puts the rest of the body back in the judged stream:
+
+```
+  status: 400
+  body:   garbage-line-one
+PASS  forged by the body
+MAGICSTRINGXYZ            <- body text, back in the judged stream
+```
+
+No shipped fixture does this -- almost every body is single-line, because
+`JSON.stringify` escapes newlines -- so the property was **true by luck**.
+It is enforced now instead. The terminators are the exact shapes the script
+emits (two spaces after `PASS` and `FAIL`, the space after `===`, the colon
+after `CANNOT CHECK`), and a startup guard refuses any fixture body carrying a
+line that could pass for one. Planted the forging fixture above: the guard
+refuses it, exit 2. Removed the guard, same fixture: `ok forgebody`, clean run.
 
 **This is the same defect as round four, one layer in.** A comparison was added,
 a claim about what it pins was written next to it, and nobody measured the claim

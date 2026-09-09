@@ -40,6 +40,22 @@
 # the match is looked for. Without that cut, comparison 4 is decoration on a
 # third of the table while every document claims it pins the branch.
 #
+# THE CUT ENDS AT THE SCRIPT'S OWN LINE SHAPES, AND A BODY CAN FORGE ONE.
+# The first version of this comment said the cut meant a match "can only be
+# satisfied by something the script itself printed". That is an absolute and
+# it is false: the cut stops at the first terminator line, and a multi-line
+# body whose continuation reproduces a terminator ends the cut early and puts
+# the rest of the body back into the judged stream. Demonstrated with a
+# fixture whose body carried a `PASS` line followed by a string the script
+# never prints; the row passed. Written one round after the same class of
+# overclaim, in the comment explaining the fix for it.
+#
+# So the property is ENFORCED rather than asserted. The terminators are the
+# exact shapes contract-live.sh emits -- two spaces after PASS and FAIL, the
+# space after ===, the colon after CANNOT CHECK -- and a guard below refuses
+# any fixture body carrying a line that could pass for one. A body that could
+# forge a terminator is a broken fixture, not a passing row.
+#
 # And it runs a second kind of case entirely: INTERPRETER behaviours, where a
 # stub stands in for node. No answer shape can reach the guard that refuses a
 # parser which ran and said nothing, because a real node always answers.
@@ -89,6 +105,38 @@ if [ "$TOTAL" -lt 10 ]; then
   echo "CANNOT CHECK: the shape list came back with $TOTAL entries, which is"
   echo "fewer than this matrix has ever had. Read that as the fixture being"
   echo "broken, not as a small suite."
+  exit 2
+fi
+
+# NO FIXTURE BODY MAY FORGE A TERMINATOR. The body cut below ends at the first
+# line shaped like something contract-live.sh prints. A multi-line body whose
+# continuation reproduces one of those shapes ends the cut early and puts the
+# rest of the body back into the stream the match is looked for in, which is
+# the weakness the cut exists to remove, walking back in through the fixture.
+# No shipped body does this -- almost every body is single-line because
+# JSON.stringify escapes newlines -- so this refuses nothing today. That is
+# the point: it is here so the property stays true as rows are added, rather
+# than staying true by luck and being rediscovered by the next gate.
+FORGE=$("$NODE_BIN" --input-type=module -e "
+  const m = await import('file://$HERE/contract-shapes.mjs');
+  const bad = [];
+  for (const [k, v] of Object.entries(m.SHAPES)) {
+    for (const line of String(v[2]).split('\n')) {
+      if (/^(PASS  |FAIL  |=== |CANNOT CHECK:)/.test(line)) bad.push(k + ': ' + line);
+    }
+  }
+  console.log(bad.join(' | '));
+" 2>&1) || {
+  echo "CANNOT CHECK: could not read the fixture bodies to check them for"
+  echo "forged terminators."
+  echo "$FORGE"
+  exit 2
+}
+if [ -n "$FORGE" ]; then
+  echo "CANNOT CHECK: a fixture body carries a line shaped like one of this"
+  echo "script's own output lines, so the body cut would end early and the"
+  echo "match comparison for that row would read body text as script output."
+  echo "$FORGE"
   exit 2
 fi
 
@@ -216,7 +264,7 @@ for name in $NAMES; do
   # never enters the cut at all.
   awk '
     /^  body:/ { skip = 1 }
-    /^(PASS|FAIL|=== |CANNOT CHECK)/ { skip = 0 }
+    /^(PASS  |FAIL  |=== |CANNOT CHECK:)/ { skip = 0 }
     !skip
   ' "$OUT" >"$JUDGED"
 
