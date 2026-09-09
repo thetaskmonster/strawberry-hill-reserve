@@ -39,6 +39,20 @@ export const WAITLIST = {
   failure: "That did not go through. Check the email and try again.",
 };
 
+// Inbound corporate-gifting capture. Same shape as WAITLIST above and for the
+// same reason: form-encoded so the browser sends it as a CORS simple request
+// with no preflight, to the n8n "Berrova Gifting Inquiry Capture" webhook,
+// which validates and writes the Airtable "Gifting Inquiries" row.
+//
+// This exists because the gifting form used to be a mailto: handoff and
+// nothing else. On a device with no mail client the navigation was a silent
+// no-op and the lead was gone with no trace anywhere. Saving here FIRST means
+// the mail draft is a convenience, not the only record.
+export const GIFTING = {
+  endpoint: "https://capturethisvibe.app.n8n.cloud/webhook/berrova-gifting-9f3d",
+  defaultSource: "gifting-form",
+};
+
 // Base-aware asset paths. import.meta.env.BASE_URL is "/" for a root/artifact build
 // (folds back to "/assets/..." so the single-file inliner still matches) and
 // "/<repo>/" for a GitHub Pages project deploy, so runtime asset URLs resolve there.

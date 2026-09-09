@@ -1,34 +1,41 @@
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Reveal from "../components/Reveal";
-import { INQUIRY_EMAIL } from "../content/site";
+import { GIFTING, INQUIRY_EMAIL } from "../content/site";
 
-// Inquiry routes to a human via the visitor's email client. Never auto-sends.
+// Inquiry is SAVED FIRST, then handed to the visitor's email client.
+// Nothing is ever auto-sent on their behalf.
 //
-// WHY THERE IS A FALLBACK BELOW. This form has no backend: it builds a
-// mailto: URL in JS and navigates to it. On a device with no mail client
-// configured, or where the scheme navigation is blocked, that navigation is a
-// silent no-op -- the visitor read "Opening your email app..." and then
-// nothing happened at all, and the lead was lost with no trace anywhere.
+// THE ORDER IS THE WHOLE POINT. This form used to be a mailto: handoff and
+// nothing else: it built a mailto: URL in JS and navigated to it. On a device
+// with no mail client configured, or where the scheme navigation is blocked,
+// that navigation is a silent no-op. The visitor read "Opening your email
+// app..." and nothing happened, and the lead was gone with no trace anywhere.
 // Nobody could even count how often it happened, because a lead that never
 // arrives leaves no record of not arriving.
 //
-// The fix here does NOT make the lead recoverable by us; it makes the failure
-// VISIBLE to the visitor, who can then act. If the tab never loses focus
-// shortly after the navigation, we assume no mail app took over and show the
-// composed inquiry with the address, ready to copy.
+// Now the inquiry goes to the n8n capture webhook BEFORE mail is opened, so
+// the mail step is a convenience rather than the only record.
 //
-// STILL OWED: saving the inquiry server-side BEFORE opening mail, so the lead
-// survives even if the visitor gives up. The Airtable table exists
-// ("Gifting Inquiries") and the capture workflow is written; creating it was
-// blocked pending Kyle's approval on 2026-09-08. When that lands, POST here
-// first and only open mail on a successful save.
+// The copy-it-yourself fallback below is still here, and it is not redundant.
+// It covers the case where the SAVE fails too, which is the only remaining
+// way to lose the lead. See the two branches in onSubmit: when we hold the
+// inquiry the fallback is a nicety shown only if mail did not open; when we
+// do not hold it, the fallback is shown unconditionally, because at that
+// point the visitor's own send is the only route left and we cannot verify
+// whether mail opened.
 const MAIL_OPEN_GRACE_MS = 1500;
 
 type Inquiry = { name: string; company: string; email: string; qty: string; message: string };
 
 export default function Gifting() {
   const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
   const [fallback, setFallback] = useState<{ subject: string; body: string } | null>(null);
+  // Campaign attribution, same convention as the waitlist form: honour ?src=
+  // when it is present, otherwise say plainly where the row came from.
+  const [params] = useSearchParams();
+  const source = params.get("src")?.trim() || GIFTING.defaultSource;
   const timerRef = useRef<number | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
 
@@ -38,12 +45,13 @@ export default function Gifting() {
     cleanupRef.current?.();
   }, []);
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (busy) return;
     const f = e.currentTarget;
     const get = (n: string) => (f.elements.namedItem(n) as HTMLInputElement)?.value?.trim() || "";
-    // Read every field synchronously. The watch below fires on a timer, by
-    // which point e.currentTarget is null.
+    // Read every field synchronously. Both the await below and the timer
+    // further down outlive e.currentTarget, which React nulls out.
     const q: Inquiry = {
       name: get("name"), company: get("company"), email: get("email"),
       qty: get("qty"), message: get("message"),
@@ -57,7 +65,42 @@ export default function Gifting() {
     const body = `Name: ${q.name}\nCompany: ${q.company}\nEmail: ${q.email}\nQuantity: ${q.qty}\n\n${q.message}`;
 
     setFallback(null);
-    setNote("Opening your email app so you can send this to our team. Nothing is auto-sent.");
+    setBusy(true);
+    setNote("Sending your inquiry to our team...");
+
+    // SAVE FIRST. Form-encoded so the browser treats this as a CORS simple
+    // request and sends it with no preflight, same as the waitlist form.
+    //
+    // "saved" is only true on an explicit ok from the webhook. A network
+    // error, a non-2xx, a body that is not JSON, or a JSON body without
+    // ok:true all leave it false, which is the honest reading: we do not
+    // hold the inquiry unless we were told we do.
+    let saved = false;
+    try {
+      const res = await fetch(GIFTING.endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          name: q.name, company: q.company, email: q.email,
+          qty: q.qty, message: q.message, source,
+        }),
+      });
+      const data = (await res.json()) as { ok?: boolean };
+      saved = res.ok && data.ok === true;
+    } catch {
+      saved = false;
+    }
+    setBusy(false);
+
+    if (saved) {
+      setNote("We have your inquiry and we will reply personally. Opening your email app in case you want to add anything. Nothing is auto-sent.");
+    } else {
+      // We do not hold it. Mail is now the only route, and we cannot verify
+      // whether it opens, so show the fallback immediately rather than
+      // betting the lead on a blur that may never come.
+      setNote("We could not record your inquiry just now, so please send it to us directly. Your email app should open. If it does not, the inquiry is below -- copy it and send it, and we will reply personally.");
+      setFallback({ subject, body });
+    }
 
     // Watch for the tab losing focus or visibility. Either means something
     // else took over -- almost always the mail client. If NEITHER happens
@@ -72,15 +115,13 @@ export default function Gifting() {
     // FALSE NEGATIVE, costly: ANY unrelated blur inside the grace window
     // reads as a successful handoff. Alt-tab, a system notification stealing
     // focus, the phone backgrounding the tab -- all suppress the panel even
-    // though no mail app opened, and the lead is lost silently. That is the
-    // exact failure this fix exists to end, so the fix does not close the
-    // hole, it narrows it.
+    // though no mail app opened.
     //
     // Blur is a PROXY for "the mail client took over" and it cannot tell the
     // two apart, because nothing in the browser reports whether a scheme
-    // navigation was handled. The real close is the server-side save named
-    // in the header comment: save first, and the mail step stops being the
-    // only record at all.
+    // navigation was handled. That is exactly why the save above runs first
+    // and why the not-saved branch does not rely on this watch at all: when
+    // the false negative would actually cost a lead, the panel is already up.
     let handedOff = false;
     const markHandedOff = () => { handedOff = true; };
     const cleanup = () => {
@@ -97,7 +138,8 @@ export default function Gifting() {
       cleanup();
       timerRef.current = null;
       if (handedOff || document.hidden) return;
-      setNote("We could not open an email app on this device. Your inquiry is below -- copy it and send it to us, and we will reply personally.");
+      if (!saved) return; // the panel is already up, and the note already says so
+      setNote("We have your inquiry and we will reply personally. We could not open an email app on this device, so there is nothing for you to do. The text is below if you want to send it as well.");
       setFallback({ subject, body });
     }, MAIL_OPEN_GRACE_MS);
 
@@ -159,7 +201,10 @@ export default function Gifting() {
               <label className="grid gap-1 font-sans text-sm text-fg-muted">Approx. quantity<input name="qty" placeholder="e.g. 100 boxes" className="rounded border border-line bg-bg-film px-3 py-2 text-fg" /></label>
             </div>
             <label className="grid gap-1 font-sans text-sm text-fg-muted">What are you after?<textarea name="message" rows={4} className="rounded border border-line bg-bg-film px-3 py-2 text-fg" /></label>
-            <button type="submit" className="justify-self-start rounded bg-accent px-6 py-3 font-sans text-bg-film">Send inquiry</button>
+            <button type="submit" disabled={busy} aria-busy={busy}
+              className="justify-self-start rounded bg-accent px-6 py-3 font-sans text-bg-film disabled:opacity-60">
+              {busy ? "Sending..." : "Send inquiry"}
+            </button>
             <p className="font-sans text-sm text-fg-muted" role="status" aria-live="polite">{note || "Your inquiry opens an email to our team for review. We reply personally, usually within a business day. Never auto-sends."}</p>
           </form>
 
