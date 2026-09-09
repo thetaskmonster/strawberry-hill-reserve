@@ -9,6 +9,11 @@ A cinematic, scroll-driven website for the {{BRAND}} coffee house; **Strawberry 
 - React + Vite + TypeScript + Tailwind. GSAP + ScrollTrigger for motion. **No WebGL, no Three.js** (imagery is the trust signal, same call as the snow plow build).
 - Deploy target: Cloudflare Pages or Vercel.
 - Tokens: `src/styles/tokens.css` (single source of truth). Components use semantic tokens, never raw hex/px/ms.
+- Breakpoints are Tailwind's defaults plus **`nav` (880px)**, the width where the
+  header's desktop row actually fits. The header switches on `nav:`, never `md:` —
+  at 768px the links collided with the wordmark and the bar wrapped to two lines.
+  Measure before adding another custom breakpoint; the full list lives in
+  `tailwind.config.ts` so new ones sort into place instead of after `2xl`.
 
 ## The split (deliberate)
 - **Cinema:** homepage hero + the seed-to-cup story/authenticity page. Full scroll-film treatment.

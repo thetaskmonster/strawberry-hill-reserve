@@ -47,16 +47,16 @@ export default function Nav() {
           <BerrovaMark />
           <span className="font-display text-fg" style={{ letterSpacing: "0.18em", fontSize: "1.1rem" }}>{BRAND}</span>
         </Link>
-        <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-8 nav:flex" aria-label="Primary">
           {NAV.map((n) => (
             <Link key={n.label} to={n.to} className="font-sans text-fg-muted transition-colors hover:text-fg">{n.label}</Link>
           ))}
         </nav>
         <div className="flex items-center gap-3">
-          <Link to="/reserve" className="hidden rounded bg-accent px-4 py-2 font-sans text-sm text-bg-film md:inline-block">Shop the drop</Link>
+          <Link to="/reserve" className="hidden rounded bg-accent px-4 py-2 font-sans text-sm text-bg-film nav:inline-block">Shop the drop</Link>
           <CartButton />
           <button
-            className="md:hidden rounded border border-line p-2 text-fg"
+            className="nav:hidden rounded border border-line p-2 text-fg"
             aria-expanded={open}
             aria-label={open ? "Close menu" : "Open menu"}
             onClick={() => setOpen((v) => !v)}
@@ -66,7 +66,7 @@ export default function Nav() {
         </div>
       </div>
       {open && (
-        <nav className="border-t border-line md:hidden" aria-label="Primary mobile">
+        <nav className="border-t border-line nav:hidden" aria-label="Primary mobile">
           <ul className="container-page flex flex-col py-2">
             {NAV.map((n) => (
               <li key={n.label}><Link to={n.to} className="block py-3 font-sans text-fg" onClick={() => setOpen(false)}>{n.label}</Link></li>

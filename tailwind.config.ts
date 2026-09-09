@@ -18,6 +18,21 @@ const token =
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
+    // Tailwind's defaults plus `nav`, listed in full so the new breakpoint sorts
+    // into place rather than being appended after 2xl (which would make a `nav:`
+    // rule win over an `lg:` one on the same property). `nav` is where the header
+    // can actually fit its desktop row: brand 119px + links 437px + cart cluster
+    // 178px = 733px of content, and the page gutter takes 4vw a side, so it needs
+    // 733 / 0.92 + breathing room. At md (768px) the links collided with the
+    // wordmark and the bar wrapped to two lines.
+    screens: {
+      sm: "640px",
+      md: "768px",
+      nav: "880px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1536px",
+    },
     extend: {
       colors: {
         bg: token("--bg"),
