@@ -30,16 +30,38 @@ address in it. It writes no row: a missing name is refused before the Airtable
 node.
 
 **It PARSES the body and reads the top-level `code`, the way the site does.**
-The first version grepped the response as a string, and a proof gate found two
-shapes where that reported CONTRACT HOLDS while the site saw no code at all:
+It has now failed this way twice, in two different layers, and both are worth
+knowing before you edit it.
+
+The first version grepped the response as a string. Two shapes reported
+CONTRACT HOLDS while the site saw no code at all:
 
 ```
-[{"ok":false,"code":"invalid_input","error":"..."}]      an array
+[{"ok":false,"code":"invalid_input","error":"..."}]       an array
 {"code":"rate_limited","detail":{"code":"invalid_input"}} nested
 ```
 
-The array is the one to care about. It is what this n8n node emits the moment
-somebody switches it to return incoming items, which is an ordinary edit.
+The array is the one to care about. Any time this node is not returning a
+hand-written JSON object, the body comes back as an array and the site sees
+no top-level code.
+
+The parser that replaced the grep then failed the same way one layer down.
+It handed three values back to the shell as three stdout LINES and stringified
+only two of them, so a newline inside `code` split across lines and every
+later line was read as the wrong field:
+
+```
+{"ok":false,"code":"invalid_input\nSOMETHING","error":""}
+```
+
+That printed two PASS lines and CONTRACT HOLDS, while the real site opened a
+mail draft carrying the malformed address. Every value crosses that boundary
+JSON-encoded now.
+
+**And it briefly failed in the other direction.** A body with a leading
+byte-order mark was reported as "not JSON at all", when the browser strips a
+BOM while decoding and the site reads such a body perfectly well. A checker
+disagreeing with the consumer is a finding whichever way it points.
 
 Its three answers are kept apart on purpose. **Contract broken** is exit 1.
 **Nothing was tested** is exit 2, and that covers unreachable, a 403 from the
@@ -102,12 +124,16 @@ exits 2 rather than reporting a contract failure it never tested; an
 unresolvable host exits 2. Mock, one line each:
 
 ```
-good 0 | array 1 | nested 1 | no code 1 | empty error 1 | not JSON 1
-scalar 1 | 200 1 | 500 2 | 404 2 | empty body 1
+good 0 | whitespace-led 0 | BOM 0 | newline in error 0
+array 1 | nested 1 | no code 1 | empty error 1 | error not a string 1
+wrong-cased key 1 | not JSON 1 | bare scalar 1 | null body 1 | empty body 1
+newline in code 1 | newline in code with a real error 1
+200 -> 1 | 500 -> 2 | 404 -> 2
 ```
 
-The array and nested rows are there because both returned 0 before the parser
-replaced the grep.
+Seventeen of those are body shapes; three are status codes. The rows that
+earned their place are the ones that once returned the wrong answer: array,
+nested, both newline-in-code rows, and BOM.
 
 The last-but-one row was two rows until 2026-09-09, and both were wrong. They
 claimed different outcomes for what is one mutant: on any answer this suite
@@ -146,7 +172,14 @@ raised the suspicion; re-running them is what turned it into a finding.
 the port afterwards, prints a warning naming the port. **That warning has never
 been observed firing**, by me or by the gate that checked this file. The
 kill-and-wait path was proven on 2026-09-09 (cold run, 43 pass, no surviving
-process, port free), and so was the refusal when vite's entry file is missing;
-the branch that fires when the kill does not work has not been. Read it as
-written, not as tested.
+process, port free); the branch that fires when the kill does not work has
+not been. Read it as written, not as tested.
+
+**The missing-entry refusal is reachable but awkward to prove, and this
+paragraph claimed it too easily.** Deleting `node_modules/vite/bin/vite.js`
+is the obvious way to trigger it, and it does not work: `node_modules/.bin/vite`
+symlinks to that same file, so the BUILD fails first and the script returns at
+the build branch. **Both exit 3**, so a run that "proved" the refusal that way
+proved its neighbour instead. It was finally observed by supplying a working
+vite on PATH while leaving the entry file absent.
 

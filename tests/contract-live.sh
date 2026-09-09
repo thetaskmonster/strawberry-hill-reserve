@@ -90,8 +90,15 @@ pass "the endpoint refuses a missing name with 400"
 # 2026-09-09 that the site handles as no code at all.
 #
 #   [{"ok":false,"code":"invalid_input","error":"..."}]
-#       an ARRAY, which is what this n8n node emits the moment somebody
-#       switches it to return incoming items. `data.code` is undefined.
+#       an ARRAY. `data.code` is undefined. An array body is what this node
+#       produces whenever it is not returning a hand-written JSON object --
+#       switching it to return incoming items is one way, though that echoes
+#       the webhook items rather than this string, because `responseBody` is
+#       only read at all under `respondWith: "json"`. Either way the site
+#       sees an array and no top-level code.
+#       (This comment named the wrong mechanism until 2026-09-09. The
+#       conclusion was right and the reason was not, which is worse than
+#       useless in a comment somebody will act on.)
 #   {"code":"rate_limited","detail":{"code":"invalid_input"}}
 #       the string is present and nested. `data.code` is "rate_limited".
 #
@@ -106,14 +113,30 @@ command -v node >/dev/null 2>&1 || {
 PARSED=$(printf '%s' "$BODY" | node -e '
 let s = "";
 process.stdin.on("data", d => s += d).on("end", () => {
+  // Strip a leading UTF-8 BOM. The browser does this before parsing, as part
+  // of decoding the response text, so a BOM-prefixed body that the site reads
+  // perfectly well would otherwise be reported here as "not JSON at all".
+  // Measured 2026-09-09 in Chromium: res.json() does NOT throw on it, while
+  // node JSON.parse does. Two parsers disagreeing is a false finding waiting
+  // to happen in whichever direction you forget.
+  if (s.charCodeAt(0) === 0xFEFF) s = s.slice(1);
   let o;
   try { o = JSON.parse(s); } catch (e) { console.log("PARSE_ERROR"); return; }
   if (Array.isArray(o)) { console.log("ARRAY"); return; }
   if (o === null || typeof o !== "object") { console.log("NOT_OBJECT"); return; }
   // Mirror src/pages/Gifting.tsx exactly: it reads data.code and data.error
   // off the top level and requires both to be non-empty strings.
+  //
+  // BOTH values go through JSON.stringify, and that is load-bearing, not
+  // tidiness. These come back to bash as three stdout LINES, so any value
+  // carrying a newline splits across them and every later line is read as
+  // the wrong field. The first version stringified only `error`, and a body
+  // with a newline inside `code` reported CONTRACT HOLDS while the site saw
+  // a code it does not recognise and opened a mail draft with the malformed
+  // address in it. Same class of defect as the grep this parser replaced,
+  // one layer down. stringify always emits a single line.
   console.log("OBJECT");
-  console.log(typeof o.code === "string" ? o.code : "");
+  console.log(JSON.stringify(typeof o.code  === "string" ? o.code  : ""));
   console.log(JSON.stringify(typeof o.error === "string" ? o.error : ""));
 });' 2>/dev/null)
 
@@ -128,16 +151,17 @@ case "$SHAPE" in
   NOT_OBJECT)
     fail 'the body parsed but is not an object, so `data.code` is undefined to the site' ;;
   PARSE_ERROR)
-    fail 'the body is not JSON at all, so `await res.json()` throws in the site and the whole submission reads as a network failure' ;;
+    fail 'the body is not JSON, so `await res.json()` throws in the site and the whole submission reads as a network failure. (A leading byte-order mark is stripped before this check, because the browser strips it too and the site reads such a body correctly.)' ;;
   *)
     echo "CANNOT CHECK: could not run the body parser. Nothing was tested."
     exit 2 ;;
 esac
 
 if [ "$SHAPE" = "OBJECT" ]; then
-  [ "$GOT_CODE" = "invalid_input" ] \
+  # Compare against the JSON-ENCODED form, since that is what the parser emits.
+  [ "$GOT_CODE" = '"invalid_input"' ] \
     && pass 'the top-level code field is "invalid_input", which is what the site keys on' \
-    || fail "the top-level code field is [${GOT_CODE:-absent}], not invalid_input -- src/pages/Gifting.tsx will stop treating a bad address as the visitor input it is"
+    || fail "the top-level code field is ${GOT_CODE:-absent}, not \"invalid_input\" -- src/pages/Gifting.tsx will stop treating a bad address as the visitor input it is"
 
   [ -n "$GOT_ERR" ] && [ "$GOT_ERR" != '""' ] \
     && pass "it carries a non-empty error string to show the visitor :: $GOT_ERR" \
