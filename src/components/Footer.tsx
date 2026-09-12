@@ -11,7 +11,7 @@ export default function Footer() {
         </div>
         <nav aria-label="Shop"><h2 className="eyebrow">Shop</h2>
           <ul className="mt-3 space-y-2 text-fg-muted">
-            <li><Link to="/reserve" className="hover:text-fg">The drop</Link></li>
+            <li><Link to="/reserve" className="hover:text-fg">Reserve drop</Link></li>
             <li><Link to="/#origins" className="hover:text-fg">Origins</Link></li>
           </ul>
         </nav>
@@ -29,7 +29,7 @@ export default function Footer() {
         </nav>
       </div>
       <div className="container-page border-t border-line py-6">
-        <p className="font-sans text-sm text-fg-muted">{BRAND}. Photography is representative; origin and packaged-product shots are labeled placeholders until supplied. Certification and batch data render from source. &copy; 2026.</p>
+        <p className="font-sans text-sm text-fg-muted">{BRAND}. Certification and batch data render from source, never from copy. &copy; 2026.</p>
       </div>
     </footer>
   );

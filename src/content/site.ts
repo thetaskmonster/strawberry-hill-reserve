@@ -1,9 +1,5 @@
 // Central copy. Berrova is the house-brand name (multi-origin luxury
-// coffee); Strawberry Hill is the launch release, not the whole company. The
-// line has more than one tier: Strawberry Hill ships first, and Reserve is a
-// later, dearer tier that is NOT yet available, so nothing here offers it for
-// sale. Listing names match what is printed on the bag ("Strawberry Hill"),
-// which is why "Reserve" was taken out of the SKU names on 2026-09-08.
+// coffee); Strawberry Hill is the featured drop, not the whole company.
 // No invented numbers anywhere: certificate numbers and roast dates live on the
 // physical bag and render from source at launch, so marketing copy states the
 // claim ("JACRA certified") without printing a fabricated value. The drop values
@@ -21,6 +17,14 @@ export const DROP = { units: "200", opens: "Oct 1", opensISO: "2026-10-01" };
 // ship-window clock never starts before inventory is real.
 export const PRESALE_MODE = "waitlist" as "waitlist" | "live";
 
+// Price visibility. While the drop is a waitlist we do not publish the price
+// list: the page teases access, not numbers, and every figure returns on the
+// same flip that opens the store. NOTE the honest limit -- the CATALOG in
+// content/store.ts still ships inside the JS bundle, so this hides prices from
+// the page, not from anyone who opens devtools. It is a launch tease, not a
+// secret. The Worker remains the authority at charge time either way.
+export const SHOW_PRICES = PRESALE_MODE === "live";
+
 // Drop waitlist capture. Posts form-encoded (no CORS preflight) to the n8n
 // "Berrova Waitlist Capture" webhook, which validates and writes the Airtable
 // Waitlist row. Copy honors the honesty line: 200 bags and Oct 1 are real
@@ -33,6 +37,20 @@ export const WAITLIST = {
   placeholder: "you@email.com",
   success: "You are on the list. When the drop opens, you pour first.",
   failure: "That did not go through. Check the email and try again.",
+};
+
+// Inbound corporate-gifting capture. Same shape as WAITLIST above and for the
+// same reason: form-encoded so the browser sends it as a CORS simple request
+// with no preflight, to the n8n "Berrova Gifting Inquiry Capture" webhook,
+// which validates and writes the Airtable "Gifting Inquiries" row.
+//
+// This exists because the gifting form used to be a mailto: handoff and
+// nothing else. On a device with no mail client the navigation was a silent
+// no-op and the lead was gone with no trace anywhere. Saving here FIRST means
+// the mail draft is a convenience, not the only record.
+export const GIFTING = {
+  endpoint: "https://capturethisvibe.app.n8n.cloud/webhook/berrova-gifting-9f3d",
+  defaultSource: "gifting-form",
 };
 
 // Base-aware asset paths. import.meta.env.BASE_URL is "/" for a root/artifact build
@@ -64,21 +82,21 @@ export const NAV = [
 export const PROCESS = [
   { word: "Grown", clip: import.meta.env.BASE_URL + "assets/video/grown-tile.mp4", poster: import.meta.env.BASE_URL + "assets/video/grown-tile.jpg", copy: "High on the slope, picked by hand at ripeness. Small lots, grown slow, never rushed for yield." },
   { word: "Roasted", clip: import.meta.env.BASE_URL + "assets/video/roasted-tile.mp4", poster: import.meta.env.BASE_URL + "assets/video/roasted-tile.jpg", copy: "Roasted to order and date-stamped as it is packed. Freshness you can read on the bag, not just take on faith." },
-  { word: "Sealed", clip: import.meta.env.BASE_URL + "assets/video/sealed-tile.mp4", poster: import.meta.env.BASE_URL + "assets/video/sealed-tile.jpg", copy: "Whole bean or ground to your brew, then sealed the day it ships. Nothing mixed in along the way." },
+  { word: "Sealed", clip: import.meta.env.BASE_URL + "assets/video/sealed-tile.mp4", poster: import.meta.env.BASE_URL + "assets/video/sealed-tile.jpg", copy: "Whole bean or ground to your brew, then sealed the day it ships. The same lot, start to finish." },
   { word: "Poured", clip: import.meta.env.BASE_URL + "assets/video/poured-tile.mp4", poster: import.meta.env.BASE_URL + "assets/video/poured-tile.jpg", copy: "A clean, quiet cup with the balance that only altitude gives. Best taken black, so the coffee is what you taste." },
 ];
 
 // img is generic, representative regional/craft imagery (free-license), never a
 // specific-estate claim; alt text stays generic and the state chips keep it honest.
 export const ORIGINS = [
-  { name: "Strawberry Hill", place: "Jamaica Blue Mountain", state: "live", note: "The launch release. 100%, JACRA-certified, quarterly.", img: import.meta.env.BASE_URL + "assets/img/bm-peak.webp" },
-  { name: "Kenya", place: "Nyeri, high-grown", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: import.meta.env.BASE_URL + "assets/video/forest.jpg" },
-  { name: "Ethiopia", place: "Heirloom, washed", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: import.meta.env.BASE_URL + "assets/video/harvest.jpg" },
-  { name: "The next ridgeline", place: "Under evaluation", state: "dark", note: "Sourced only when it clears the bar. No buyable ghosts.", img: import.meta.env.BASE_URL + "assets/video/steam.jpg" },
+  { name: "Strawberry Hill", slug: "strawberry-hill-reserve", place: "Jamaica Blue Mountain", state: "live", note: "The featured drop. JACRA-certified, quarterly.", img: import.meta.env.BASE_URL + "assets/img/bm-peak.webp" },
+  { name: "Kenya", slug: "kenya", place: "Nyeri, high-grown", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: import.meta.env.BASE_URL + "assets/video/forest.jpg" },
+  { name: "Ethiopia", slug: "ethiopia", place: "Heirloom, washed", state: "waitlist", note: "In the range next. Join the list to be notified first.", img: import.meta.env.BASE_URL + "assets/video/harvest.jpg" },
+  { name: "The next ridgeline", slug: "next-ridgeline", place: "Under evaluation", state: "dark", note: "Sourced only when it clears the bar. No buyable ghosts.", img: import.meta.env.BASE_URL + "assets/video/steam.jpg" },
 ];
 
 export const FAQ = [
-  { q: "What is Berrova?", a: "A small coffee house built on high-grown, honestly sourced origins, roasted to order. We keep the range short and let each origin earn its place. Strawberry Hill, our certified Jamaica Blue Mountain, is the launch release." },
+  { q: "What is Berrova?", a: "A small coffee house built on high-grown, honestly sourced origins, roasted to order. We keep the range short and let each origin earn its place. Strawberry Hill, our JACRA-certified Jamaica Blue Mountain, is the featured drop." },
   { q: "How does the subscription work?", a: "You choose a cadence and control it yourself: skip, pause, swap origin, size, or grind, or cancel, all self-serve. Subscribers pay a lower per-bag price and get first access to drops before the public." },
   { q: "Subscribe or one-time?", a: "Both, on every coffee, never forced. Subscribing is the better deal on price and access; one-time is the same coffee with zero commitment, no account, no auto-renew." },
   { q: "When will my order ship?", a: "Within 8 weeks. Nothing sits in a warehouse waiting for you: your coffee is roasted and packaged in Jamaica after you order, then shipped to us and out to you. That is slower than most coffee you can buy, and it is the honest cost of buying it this way. The window is always shown before you pay, and if we cannot meet it, you can cancel for a full refund." },

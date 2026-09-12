@@ -7,6 +7,7 @@ import CinematicVideo from "../components/CinematicVideo";
 import SteamOverlay from "../components/SteamOverlay";
 import KineticHeadline from "../components/KineticHeadline";
 import Reveal from "../components/Reveal";
+import OriginWaitlistDialog, { type OriginDialogTarget } from "../components/OriginWaitlistDialog";
 
 function daysUntil(iso: string): number {
   const target = new Date(iso + "T00:00:00").getTime();
@@ -16,6 +17,8 @@ function daysUntil(iso: string): number {
 
 export default function Home() {
   const [days, setDays] = useState(() => daysUntil(DROP.opensISO));
+  // Which origin card opened the waitlist dialog, null when closed.
+  const [originTarget, setOriginTarget] = useState<OriginDialogTarget | null>(null);
   useEffect(() => {
     const id = setInterval(() => setDays(daysUntil(DROP.opensISO)), 60_000);
     return () => clearInterval(id);
@@ -34,7 +37,7 @@ export default function Home() {
           <Reveal delay={0.15}>
             <p className="lead mt-6">
               A small coffee house built on altitude, patience, and origins we can stand behind. We keep the range short and
-              let each one earn its place, led right now by <span className="text-fg">{HERO_LINE}</span>, our certified Jamaica Blue Mountain drop.
+              let each one earn its place, led right now by <span className="text-fg">{HERO_LINE}</span>, our JACRA-certified Jamaica Blue Mountain drop.
             </p>
             {PRESALE_MODE === "waitlist" ? (
               <div className="mt-8 max-w-xl">
@@ -57,7 +60,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Marquee items={["High-grown, hand-picked", "Roasted to order", "Certified origins", "Sealed the day it ships"]} />
+      <Marquee items={["High-grown, hand-picked", "Roasted to order", "JACRA-certified Blue Mountain", "Sealed the day it ships"]} />
 
       {/* PROCESS - grown to poured */}
       <section className="relative overflow-hidden py-20" aria-labelledby="process-h">
@@ -92,11 +95,11 @@ export default function Home() {
           <Reveal>
             <p className="eyebrow">The standard</p>
             <h2 id="auth-h" className="display mt-3 text-fg" style={{ fontSize: "var(--step-3)" }}>We only sell what we can vouch for.</h2>
-            <p className="lead mt-5">Great coffee starts long before the roast, in the choice of what to buy. We keep the range short so every origin is one we know the way back to. The launch release, Strawberry Hill, is 100% Jamaica Blue Mountain, JACRA-certified and inspected at every stage of processing, and sold only when it is real coffee in hand.</p>
+            <p className="lead mt-5">Great coffee starts long before the roast, in the choice of what to buy. We keep the range short so every origin is one we know the way back to. The featured drop, Strawberry Hill, is JACRA-certified Jamaica Blue Mountain, grown on farms above 3,000 ft and sold only when it is real coffee in hand.</p>
             <ul className="mt-6 space-y-3 text-fg-muted">
-              <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> Certified Jamaica Blue Mountain, verified on the bag</li>
+              <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> JACRA-certified Jamaica Blue Mountain, verified on the bag</li>
               <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> Roasted to order, then sealed the day it ships</li>
-              <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> Farms above 3,000 ft, inspected end to end, and no blending</li>
+              <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> Farms above 3,000 ft, a JACRA-licensed dealer, and no blending</li>
             </ul>
           </Reveal>
           <Reveal delay={0.1} className="relative">
@@ -142,26 +145,66 @@ export default function Home() {
             <p className="lead mt-4">An origin appears for sale only when its coffee is paid for and landed. Everything else is a waitlist, so you always know what is really pourable.</p>
           </Reveal>
           <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {ORIGINS.map((o, i) => (
-              <li key={o.name}>
-                <Reveal delay={i * 0.05}>
-                  <div className="relative flex min-h-[300px] flex-col justify-end overflow-hidden rounded border border-line bg-bg-film p-5">
-                    <img
-                      src={o.img}
-                      alt={`${o.place}, representative`}
-                      loading="lazy"
-                      className="absolute inset-0 h-full w-full object-cover"
-                      style={{ filter: "grayscale(1) contrast(1.05)", opacity: o.state === "live" ? 0.8 : o.state === "waitlist" ? 0.4 : 0.22 }}
-                    />
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(5,5,5,0.15) 0%, rgba(5,5,5,0.55) 55%, var(--bg-film) 100%)" }} />
-                    <span className="eyebrow relative z-10 self-start rounded-sm border border-line-strong bg-bg-film/70 px-2 py-1 backdrop-blur-sm" style={{ color: o.state === "live" ? "var(--accent-strong)" : undefined }}>{o.state === "live" ? "Live" : o.state === "waitlist" ? "Waitlist" : "Sourcing"}</span>
-                    <h3 className="relative z-10 mt-auto pt-10 font-sans text-fg" style={{ fontSize: "var(--step-1)" }}>{o.name}</h3>
-                    <p className="relative z-10 mt-0.5 font-sans text-xs uppercase tracking-wide text-accent">{o.place}</p>
-                    <p className="relative z-10 mt-1 font-sans text-sm text-fg-muted">{o.note}</p>
-                  </div>
-                </Reveal>
-              </li>
-            ))}
+            {ORIGINS.map((o, i) => {
+              // The whole card is the hit area, so the click lives inside the
+              // photo rather than on a separate link underneath it.
+              // live      -> the product page
+              // waitlist  -> per-origin email capture, no navigation
+              // dark      -> nothing to click; there is no page and no list to
+              //              join for an origin that is still under evaluation,
+              //              so it is deliberately inert and shows no affordance.
+              const interactive = o.state === "live" || o.state === "waitlist";
+              const body = (
+                <>
+                  <img
+                    src={o.img}
+                    alt={`${o.place}, representative`}
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04] motion-reduce:transform-none motion-reduce:transition-none"
+                    style={{ filter: "grayscale(1) contrast(1.05)", opacity: o.state === "live" ? 0.8 : o.state === "waitlist" ? 0.4 : 0.22 }}
+                  />
+                  <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(5,5,5,0.15) 0%, rgba(5,5,5,0.55) 55%, var(--bg-film) 100%)" }} />
+                  <span className="eyebrow relative z-10 self-start rounded-sm border border-line-strong bg-bg-film/70 px-2 py-1 backdrop-blur-sm" style={{ color: o.state === "live" ? "var(--accent-strong)" : undefined }}>{o.state === "live" ? "Live" : o.state === "waitlist" ? "Waitlist" : "Sourcing"}</span>
+                  <h3 className="relative z-10 mt-auto pt-10 font-sans text-fg" style={{ fontSize: "var(--step-1)" }}>{o.name}</h3>
+                  <p className="relative z-10 mt-0.5 font-sans text-xs uppercase tracking-wide text-accent">{o.place}</p>
+                  <p className="relative z-10 mt-1 font-sans text-sm text-fg-muted">{o.note}</p>
+                  {interactive && (
+                    <span className="relative z-10 mt-3 inline-flex items-center gap-1 font-sans text-sm text-accent-strong">
+                      {o.state === "live" ? "See the drop" : "Join the waitlist"}
+                      <span aria-hidden="true">-&gt;</span>
+                    </span>
+                  )}
+                </>
+              );
+              const shell =
+                "group relative flex min-h-[300px] w-full flex-col justify-end overflow-hidden rounded border border-line bg-bg-film p-5 text-left" +
+                (interactive
+                  ? " cursor-pointer transition-colors hover:border-accent focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  : "");
+              return (
+                <li key={o.name}>
+                  <Reveal delay={i * 0.05}>
+                    {o.state === "live" ? (
+                      <Link to="/reserve" className={shell} aria-label={`${o.name}, ${o.place}. See the drop.`}>
+                        {body}
+                      </Link>
+                    ) : o.state === "waitlist" ? (
+                      <button
+                        type="button"
+                        className={shell}
+                        aria-haspopup="dialog"
+                        aria-label={`${o.name}, ${o.place}. Join the waitlist.`}
+                        onClick={() => setOriginTarget({ name: o.name, place: o.place, source: `origin-${o.slug}` })}
+                      >
+                        {body}
+                      </button>
+                    ) : (
+                      <div className={shell}>{body}</div>
+                    )}
+                  </Reveal>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </section>
@@ -172,11 +215,13 @@ export default function Home() {
           <div className="rounded-lg border border-line bg-bg-elev p-10 md:p-14">
             <p className="eyebrow">For teams and clients</p>
             <h2 className="display mt-3 text-fg" style={{ fontSize: "var(--step-3)" }}>Gifting they actually keep.</h2>
-            <p className="lead mt-4">Certified coffee that feels considered, priced for volume, with one person to talk to from quote to delivery.</p>
+            <p className="lead mt-4">JACRA-certified coffee that feels considered, priced for volume, with one person to talk to from quote to delivery.</p>
             <Link to="/gifting" className="mt-6 inline-block rounded border border-line-strong px-6 py-3 font-sans text-fg">Start a gifting inquiry</Link>
           </div>
         </Reveal>
       </section>
+
+      <OriginWaitlistDialog target={originTarget} onClose={() => setOriginTarget(null)} />
     </>
   );
 }

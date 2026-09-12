@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { CLIPS, HERO_LINE, DROP, PRESALE_MODE, WAITLIST } from "../content/site";
+import { CLIPS, HERO_LINE, DROP, PRESALE_MODE, SHOW_PRICES, WAITLIST } from "../content/site";
 import WaitlistForm from "../components/WaitlistForm";
 import { getSku, formatUsd, SHIP_WINDOW } from "../content/store";
 import { useCart } from "../store/cart";
@@ -92,11 +92,11 @@ export default function Product() {
 
       <div>
         <Reveal>
-          <p className="eyebrow">The launch release</p>
+          <p className="eyebrow">The featured drop</p>
           <h1 className="font-signature text-fg" style={{ fontSize: "var(--step-3)", lineHeight: 1 }}>Strawberry Hill</h1>
-          <p className="lead mt-4">Certified Jamaica Blue Mountain, roasted to order and sealed at origin. A genuine limited quarterly drop.</p>
+          <p className="lead mt-4">JACRA-certified Jamaica Blue Mountain, roasted to order and sealed at origin. A genuine limited quarterly drop.</p>
           <p className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 font-sans text-sm text-fg-muted">
-            <span>Certified Jamaica Blue Mountain</span>
+            <span>JACRA-certified Jamaica Blue Mountain</span>
             <span>Roasted to order</span>
             <span>{DROP.units} bags this drop</span>
           </p>
@@ -128,12 +128,19 @@ export default function Product() {
             <div className="mt-5">
               <WaitlistForm source="reserve" compact />
             </div>
+            {/* Pricing is withheld until the drop opens. SHOW_PRICES flips with
+                PRESALE_MODE, so every figure returns on the same switch that
+                turns the store on. */}
             <p className="mt-4 font-sans text-sm text-fg-muted">
-              {sample
-                ? `Sample ${formatUsd(sku.oneTimeCents)} at the drop.`
+              {SHOW_PRICES
+                ? sample
+                  ? `Sample ${formatUsd(sku.oneTimeCents)} at the drop.`
+                  : subCents !== null
+                  ? `${formatUsd(subCents)}/mo subscribed, ${formatUsd(sku.oneTimeCents)} one-time, at the drop.`
+                  : `${formatUsd(sku.oneTimeCents)} at the drop.`
                 : subCents !== null
-                ? `${formatUsd(subCents)}/mo subscribed, ${formatUsd(sku.oneTimeCents)} one-time, at the drop.`
-                : `${formatUsd(sku.oneTimeCents)} at the drop.`}
+                ? "Pricing is announced when the drop opens, with a subscriber rate below the one-time price."
+                : "Pricing is announced when the drop opens."}
               {" "}No card now, no commitment. First access only.
             </p>
           </div>
@@ -202,13 +209,23 @@ export default function Product() {
 
         <div className="mt-10 border-t border-line pt-6">
           <span className="eyebrow">Also in the drop</span>
-          <div className="mt-3 flex flex-col gap-3 rounded border border-line bg-bg-elev p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-3 flex flex-col gap-4 rounded border border-line bg-bg-elev p-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="font-sans text-fg">{giftbox.name}</p>
               <p className="mt-1 font-sans text-sm text-fg-muted">{giftbox.blurb}</p>
+              {giftbox.points && (
+                <ul className="mt-3 grid gap-1.5">
+                  {giftbox.points.map((pt) => (
+                    <li key={pt} className="flex gap-2 font-sans text-sm text-fg-muted">
+                      <span aria-hidden="true" className="text-accent">/</span>
+                      <span>{pt}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <div className="flex items-center gap-4">
-              <span className="font-sans text-fg">{formatUsd(giftbox.oneTimeCents)}</span>
+            <div className="flex shrink-0 items-center gap-4">
+              {SHOW_PRICES && <span className="font-sans text-fg">{formatUsd(giftbox.oneTimeCents)}</span>}
               {PRESALE_MODE === "live" && (
                 <button
                   type="button"
