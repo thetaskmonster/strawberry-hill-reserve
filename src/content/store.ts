@@ -13,6 +13,11 @@ export type Sku = {
   blurb: string;
   oneTimeCents: number;
   subscribeCents: number | null; // null = no subscription offered for this SKU
+  // Optional supporting points rendered under the SKU. Every line here must be
+  // true of the physical product. Nothing aspirational, nothing borrowed from
+  // the corporate gifting lane (custom cards, co-branding) -- that is a
+  // different, quote-based offer and does not describe this box.
+  points?: string[];
 };
 
 export const CURRENCY = "usd";
@@ -41,6 +46,40 @@ export const CATALOG: Sku[] = [
     blurb: "Three sealed 2 oz tins in a boxed set. A one-time gift, no commitment.",
     oneTimeCents: 7900,
     subscribeCents: null,
+    // Kyle's ruling, 2026-09-08: THE PRESENTATION IS THE PRODUCT. The box and
+    // the sealed tins are what the buyer is paying for, so the copy sells
+    // gifting rather than apologising for the per-ounce number. An earlier
+    // draft led with "the same lot as the full bags", which invites exactly
+    // the comparison it was trying to survive -- and the proof gate could not
+    // check lot parity against any source of truth in this repo, so that line
+    // is gone on both counts.
+    //
+    // VERIFIED-ONLY. Each line restates something already on the site or
+    // implied by the SKU definition itself:
+    //   boxed set, 3 x 2 oz sealed tins  -> this SKU's own size and blurb
+    //
+    // POINT 1 WAS CORRECTED ON 2026-09-08. It read "not a bag in a mailer",
+    // which is a claim about how the OTHER SKUs ship, and grep for "mailer"
+    // across src/ returned exactly one hit: that sentence itself. Nothing in
+    // this repo says the full bags ship in a mailer. It was an invented
+    // contrast sitting inside a block headed VERIFIED-ONLY, which is the
+    // worst place for one, and the proof gate caught it. The rewrite keeps
+    // Kyle's ruling (the presentation is the product) and says only what the
+    // SKU itself establishes.
+    //   JACRA-certified, roasted to order, sealed at origin -> pages/Story.tsx
+    //   one-time, no subscription        -> subscribeCents: null, below
+    //
+    // NOT WRITTEN, because nobody has confirmed them and the no-fabrication
+    // rule covers product claims: an included card or note, reusable or
+    // branded tins, ship-direct-to-recipient, gift wrapping, or three
+    // DIFFERENT origins in the box. Any of those would carry the price on its
+    // own. Confirm first, then add.
+    points: [
+      "A boxed set of three, ready to hand over as it is. What arrives is the gift.",
+      "Three individually sealed 2 oz tins. Each one opens fresh, so it keeps giving after the first pour.",
+      "JACRA-certified Jamaica Blue Mountain, roasted to order and sealed at origin. The certification does the explaining for you.",
+      "One-time. No subscription, no auto-renew, nothing for them to cancel later.",
+    ],
   },
   {
     id: "shr-sample",

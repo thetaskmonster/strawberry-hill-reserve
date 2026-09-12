@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { BRAND, NAV, PRESALE_MODE } from "../content/site";
 
 const DROP_CTA = PRESALE_MODE === "waitlist" ? "Join the drop" : "Shop the drop";
@@ -42,6 +42,24 @@ function BerrovaMark() {
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+
+  // Close the mobile menu on ANY route change, not just on the menu's own
+  // links. Those links already call setOpen(false) individually and that part
+  // was never broken -- what was broken is every OTHER way the route changes
+  // while the menu is open: a footer link, an in-page CTA, browser back and
+  // forward. Measured 2026-09-08 at 390px: open the menu on "/", tap Story in
+  // the FOOTER, and the new page renders with aria-expanded still "true" and
+  // the menu markup still mounted on top of it.
+  //
+  // Watching pathname rather than patching each link is the point. Per-link
+  // handlers are a list of the ways you thought the route could change, and
+  // that list is never complete -- browser back is not a link at all. Bound
+  // the failure at the one place every navigation has to pass through.
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-bg/85 backdrop-blur">
       <div className="container-page flex items-center justify-between py-4">
