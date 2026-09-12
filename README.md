@@ -1,6 +1,6 @@
-# Strawberry Hill Reserve — cinematic rebuild
+# Strawberry Hill — cinematic rebuild
 
-Scroll-driven cinematic site for the {{BRAND}} coffee house, hero line Strawberry Hill Reserve.
+Scroll-driven cinematic site for the {{BRAND}} coffee house, hero line Strawberry Hill.
 Technique reference: RÖSTWERK (technique + quality bar only, not content/brand/model).
 
 ## Stack

@@ -1,9 +1,9 @@
-# CLAUDE.md — Strawberry Hill Reserve cinematic site
+# CLAUDE.md — Strawberry Hill cinematic site
 
 Operating contract for this repo. Read before editing.
 
 ## What this is
-A cinematic, scroll-driven website for the {{BRAND}} coffee house; **Strawberry Hill Reserve** is the hero Jamaica Blue Mountain line, not the whole company. Technique reference is RÖSTWERK (technique and quality bar only, never its content, brand, or model).
+A cinematic, scroll-driven website for the {{BRAND}} coffee house; **Strawberry Hill** is the hero Jamaica Blue Mountain line, not the whole company. Technique reference is RÖSTWERK (technique and quality bar only, never its content, brand, or model).
 
 ## Stack
 - React + Vite + TypeScript + Tailwind. GSAP + ScrollTrigger for motion. **No WebGL, no Three.js** (imagery is the trust signal, same call as the snow plow build).

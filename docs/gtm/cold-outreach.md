@@ -26,7 +26,7 @@ customer per the visit kit.
 > [PERSONALIZED OPENER — one sentence proving I know their shop.]
 >
 > I'm Kyle, in Lewisville. I'm launching Berrova on September 1 — a certified
-> Jamaica Blue Mountain line called Strawberry Hill Reserve. The short version:
+> Jamaica Blue Mountain line called Strawberry Hill. The short version:
 > most "Blue Mountain" sold in the US is blended or faked, and ours carries
 > JACRA certification, the Jamaican authority's mark for the real thing.
 >
