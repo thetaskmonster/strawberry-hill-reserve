@@ -13,10 +13,10 @@
 
 const CURRENCY = "usd";
 const PRICE_MAP = {
-  "shr-8oz": { name: "Strawberry Hill Reserve 8 oz", oneTimeCents: 6800, subscribeCents: 5900 },
-  "shr-16oz": { name: "Strawberry Hill Reserve 16 oz", oneTimeCents: 12500, subscribeCents: 10900 },
-  "shr-giftbox": { name: "Reserve Gift Box (3 x 2 oz)", oneTimeCents: 7900, subscribeCents: null },
-  "shr-sample": { name: "Strawberry Hill Reserve 2 oz sample", oneTimeCents: 1400, subscribeCents: null },
+  "shr-8oz": { name: "Strawberry Hill 8 oz", oneTimeCents: 6800, subscribeCents: 5900 },
+  "shr-16oz": { name: "Strawberry Hill 16 oz", oneTimeCents: 12500, subscribeCents: 10900 },
+  "shr-giftbox": { name: "Strawberry Hill Gift Box (3 x 2 oz)", oneTimeCents: 7900, subscribeCents: null },
+  "shr-sample": { name: "Strawberry Hill 2 oz sample", oneTimeCents: 1400, subscribeCents: null },
 };
 
 const SHIP_COUNTRIES = ["US", "CA"];

@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="container-page grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
           <p className="font-display text-fg" style={{ letterSpacing: "0.16em", fontSize: "1.1rem" }}>{BRAND}</p>
-          <p className="lead mt-3" style={{ fontSize: "var(--step-0)" }}>High-grown, honestly sourced. Home of Strawberry Hill Reserve.</p>
+          <p className="lead mt-3" style={{ fontSize: "var(--step-0)" }}>High-grown, honestly sourced. Home of Strawberry Hill.</p>
         </div>
         <nav aria-label="Shop"><h2 className="eyebrow">Shop</h2>
           <ul className="mt-3 space-y-2 text-fg-muted">

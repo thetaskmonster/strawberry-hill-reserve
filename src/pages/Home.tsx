@@ -95,7 +95,7 @@ export default function Home() {
           <Reveal>
             <p className="eyebrow">The standard</p>
             <h2 id="auth-h" className="display mt-3 text-fg" style={{ fontSize: "var(--step-3)" }}>We only sell what we can vouch for.</h2>
-            <p className="lead mt-5">Great coffee starts long before the roast, in the choice of what to buy. We keep the range short so every origin is one we know the way back to. The featured drop, Strawberry Hill Reserve, is JACRA-certified Jamaica Blue Mountain, grown on farms above 3,000 ft and sold only when it is real coffee in hand.</p>
+            <p className="lead mt-5">Great coffee starts long before the roast, in the choice of what to buy. We keep the range short so every origin is one we know the way back to. The featured drop, Strawberry Hill, is JACRA-certified Jamaica Blue Mountain, grown on farms above 3,000 ft and sold only when it is real coffee in hand.</p>
             <ul className="mt-6 space-y-3 text-fg-muted">
               <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> JACRA-certified Jamaica Blue Mountain, verified on the bag</li>
               <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> Roasted to order, then sealed the day it ships</li>

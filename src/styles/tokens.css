@@ -1,4 +1,4 @@
-/* Strawberry Hill Reserve - design tokens (Phase 1)
+/* Strawberry Hill - design tokens (Phase 1)
    Cinematic, monochrome + platinum. Black / white / platinum, no gold (brand rule).
    Consumed by Tailwind theme (Phase 2) and raw CSS. Every value is a token; components
    never hardcode a hex, size, duration, or easing. */

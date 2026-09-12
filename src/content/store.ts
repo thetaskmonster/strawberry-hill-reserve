@@ -25,7 +25,7 @@ export const CURRENCY = "usd";
 export const CATALOG: Sku[] = [
   {
     id: "shr-8oz",
-    name: "Strawberry Hill Reserve 8 oz",
+    name: "Strawberry Hill 8 oz",
     size: "8 oz",
     blurb: "The everyday bag. JACRA-certified Jamaica Blue Mountain, roasted to order.",
     oneTimeCents: 6800,
@@ -33,15 +33,15 @@ export const CATALOG: Sku[] = [
   },
   {
     id: "shr-16oz",
-    name: "Strawberry Hill Reserve 16 oz",
+    name: "Strawberry Hill 16 oz",
     size: "16 oz",
-    blurb: "The full pour. Same lot, more of it, at a better per-ounce price.",
+    blurb: "The full pour. The same coffee, more of it, at a better per-ounce price.",
     oneTimeCents: 12500,
     subscribeCents: 10900,
   },
   {
     id: "shr-giftbox",
-    name: "Reserve Gift Box (3 x 2 oz)",
+    name: "Strawberry Hill Gift Box (3 x 2 oz)",
     size: "3 x 2 oz",
     blurb: "Three sealed 2 oz tins in a boxed set. A one-time gift, no commitment.",
     oneTimeCents: 7900,
@@ -83,7 +83,7 @@ export const CATALOG: Sku[] = [
   },
   {
     id: "shr-sample",
-    name: "Strawberry Hill Reserve 2 oz sample",
+    name: "Strawberry Hill 2 oz sample",
     size: "2 oz",
     blurb: "The low-risk way to taste it first. One-time sample size.",
     oneTimeCents: 1400,

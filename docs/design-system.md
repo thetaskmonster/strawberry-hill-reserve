@@ -1,4 +1,4 @@
-# Design system (Phase 1) — Strawberry Hill Reserve cinematic rebuild
+# Design system (Phase 1) — Strawberry Hill cinematic rebuild
 
 Flag: CORVO-77. Proposal for GATE 1. Monochrome + platinum, cinematic-dark, brutalist-editorial headlines over honest stock craft imagery. Aligned to the established brand (black / white / platinum, no gold) so the rebuild reads as the same brand elevated, not a reboot.
 
