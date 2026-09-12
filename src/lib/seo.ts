@@ -24,9 +24,9 @@ type RouteMeta = {
 const DEFAULT_META: RouteMeta = {
   title: `${BRAND} · ${HERO_LINE}`,
   description:
-    "Certified Jamaica Blue Mountain in genuine limited drops, plus a small multi-origin house range. Provable authenticity, roasted at origin.",
+    "JACRA-certified Jamaica Blue Mountain in genuine limited drops, plus a small multi-origin house range. Roasted at origin, sold only when it is real coffee in hand.",
   ogDescription:
-    "Most Blue Mountain is faked. Ours is proven. Certified Jamaica Blue Mountain in genuine quarterly drops.",
+    "Most Blue Mountain is faked. Ours is bought through a JACRA-licensed dealer. Jamaica Blue Mountain in genuine quarterly drops.",
 };
 
 const ROUTE_META: Record<string, RouteMeta> = {
@@ -34,22 +34,22 @@ const ROUTE_META: Record<string, RouteMeta> = {
   "/story": {
     title: `The Story · ${BRAND}`,
     description:
-      "Most Blue Mountain coffee never saw the Blue Mountains. Ours is JACRA-certified, single-estate, roasted at origin, and traceable to its lot. The story of how we keep it honest.",
+      "Most Blue Mountain coffee never saw the Blue Mountains. Ours is JACRA-certified, grown on farms above 3,000 ft, and roasted at origin. The story of how we keep it honest.",
   },
   "/reserve": {
-    title: `${HERO_LINE} · Certified Jamaica Blue Mountain | ${BRAND}`,
+    title: `${HERO_LINE} · JACRA-certified Jamaica Blue Mountain | ${BRAND}`,
     description:
-      "Certified Jamaica Blue Mountain, roasted to order and date-stamped. 8 oz and 16 oz bags, subscribe or one-time on every coffee, quarterly limited drops.",
+      "JACRA-certified Jamaica Blue Mountain, roasted to order and date-stamped. 8 oz and 16 oz bags, subscribe or one-time on every coffee, quarterly limited drops.",
   },
   "/gifting": {
     title: `Corporate Gifting · ${BRAND}`,
     description:
-      "Certified Jamaica Blue Mountain gift boxes for clients and teams. Provable authenticity, boxed sets, direct inquiry, no platforms in between.",
+      "JACRA-certified Jamaica Blue Mountain gift boxes for clients and teams. Boxed sets, direct inquiry, no platforms in between.",
   },
   "/wholesale": {
     title: `Wholesale · ${BRAND}`,
     description:
-      "Certified Jamaica Blue Mountain for cafes, hotels, and fine dining. Small lots, roasted to order, documentation with every batch.",
+      "JACRA-certified Jamaica Blue Mountain for cafes, hotels, and fine dining. Small lots, roasted to order, documentation with every batch.",
   },
   "/faq": {
     title: `FAQ · ${BRAND}`,

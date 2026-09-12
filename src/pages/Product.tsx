@@ -95,9 +95,9 @@ export default function Product() {
           <p className="eyebrow">The featured drop</p>
           <p className="font-signature text-fg" style={{ fontSize: "var(--step-3)", lineHeight: 1 }}>Strawberry Hill</p>
           <h1 className="display mt-1 text-fg" style={{ fontSize: "var(--step-3)" }}>Reserve</h1>
-          <p className="lead mt-4">Certified Jamaica Blue Mountain, roasted to order and sealed at origin. A genuine limited quarterly drop.</p>
+          <p className="lead mt-4">JACRA-certified Jamaica Blue Mountain, roasted to order and sealed at origin. A genuine limited quarterly drop.</p>
           <p className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 font-sans text-sm text-fg-muted">
-            <span>Certified Jamaica Blue Mountain</span>
+            <span>JACRA-certified Jamaica Blue Mountain</span>
             <span>Roasted to order</span>
             <span>{DROP.units} bags this drop</span>
           </p>
