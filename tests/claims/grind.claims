@@ -1,37 +1,108 @@
-# Claims for: no grind control on the product page, and no grind claim either.
+# Claims for the two things the storefront deliberately does NOT say:
+#   1. nothing about grind (no control, and no claim either way)
+#   2. nothing about what the 2 oz package physically is
 #
-# LIMIT, stated because gate-facts.sh cannot state it for you: file-lacks uses
-# `grep -qF`, which is CASE-SENSITIVE. Every downstream file below is therefore
-# claimed twice, once per spelling, rather than relying on a prose note that the
-# sweep was case-insensitive.
+# Run it:            npm run test:claims
+# Prove it can fail: npm run test:claims:mutants
 #
-# A. The control and the dead wiring are gone from the page.
-file-lacks | src/pages/Product.tsx | data-grind
-file-lacks | src/pages/Product.tsx | setGrind
-file-lacks | src/pages/Product.tsx | >Ground<
-file-lacks | src/pages/Product.tsx | aria-label="Grind"
+# WHY THESE ROWS LOOK THE WAY THEY DO. The first version of this file used
+# `file-lacks`, which is grep -qF and therefore CASE-SENSITIVE and literal. The
+# proof gate broke it twice in one run, and both escapes are closed here:
 #
-# B. No public claim about grind is made. "Whole bean only" was shipped and
-#    withdrawn the same day: it asserted something about the 2 oz sample and the
-#    3 x 2 oz gift box, and the only 2 oz line ICL has priced to us is ground.
-file-lacks | src/pages/Product.tsx | Whole bean only
-file-lacks | src/content/site.ts | size, or grind
+#   escape 1, recasing. `file-lacks | src/content/store.ts | grind` passes
+#   against `export const GRIND_OPTIONS = [...]`, and SCREAMING_SNAKE is this
+#   codebase's own idiom for module constants. Two spellings were not enough,
+#   and three would not have been either.
 #
-# C. Grind reaches nothing downstream. This was TRUE BEFORE the fix as well, so
-#    these rows document an absence and discriminate nothing. Both spellings.
-file-lacks | src/lib/checkout.ts | grind
-file-lacks | src/lib/checkout.ts | Grind
-file-lacks | src/store/cart.tsx | grind
-file-lacks | src/store/cart.tsx | Grind
-file-lacks | worker/src/index.ts | grind
-file-lacks | worker/src/index.ts | Grind
-file-lacks | worker/worker.dashboard.js | grind
-file-lacks | worker/worker.dashboard.js | Grind
-file-lacks | src/content/store.ts | grind
-file-lacks | src/content/store.ts | Grind
+#   escape 2, rewording. Two literal rows pinned two English sentences, not the
+#   property. `Sold as whole beans, never pre-ground.` was planted on the
+#   rendered page and every row stayed green.
 #
-# D. The rendered page, not the source. Prerender writes FLAT files.
-file-lacks | dist/reserve.html | Whole bean only
-file-lacks | dist/reserve.html | >Ground<
-file-lacks | dist/reserve.html | aria-label="Grind"
-file-lacks | dist/faq.html | size, or grind
+# So the rows below are `grep-count ... 0` over case-insensitive regexes for the
+# CONCEPT, not for a sentence: grind, ground, whole bean, tin.
+#
+# LIMITS, stated because gate-facts.sh cannot state them for you:
+#
+#   grep -cE counts MATCHING LINES, not occurrences. That is only safe because
+#   every expectation here is zero. Do not copy this shape for a non-zero count.
+#
+#   `ground` is matched only when a non-letter precedes it, so `background` in
+#   markup does not trip it. `grind` needs no such guard and deliberately has
+#   none, because `setGrind` must be caught and a word boundary would miss it.
+#
+#   A regex must not contain a space-pipe-space. That is gate-facts.sh's field
+#   separator, and a five-field line is a hard error. Alternations here are
+#   written tight for that reason.
+#
+#   THE SOURCE ROWS SKIP COMMENT LINES, and the hole that leaves is narrow and
+#   was measured, not guessed. A line is treated as a comment when its first
+#   non-space character is `*`, or `/` followed by `/` or `*`. So a regex
+#   literal in real code (`/grind/.test(x)`) IS caught, and a `//` or `/*`
+#   comment is not. What still escapes: a line of executable code whose first
+#   non-space character is `*`, and a continuation line inside a `/* */` block
+#   that starts with `*`. An earlier version of this note had this backwards,
+#   claiming block comments escaped and saying nothing about code starting with
+#   a slash. The gate found it by running probe lines through the regex rather
+#   than reading the sentence.
+#
+# ---------------------------------------------------------------------------
+# A. IDENTITY FIRST. An absence proves nothing about a file that is not the page
+#    under test: a 404, a stale build, or an empty file passes every row below.
+#    These rows assert the fixture IS the shipped page before anything counts
+#    what is missing from it. gate-facts.sh separately reports a missing file as
+#    CANNOT CHECK rather than as a pass, so a dist/ that was never built fails
+#    loudly rather than quietly.
+file-contains | dist/reserve.html | Gift Box
+file-contains | dist/reserve.html | JACRA
+file-contains | dist/reserve.html | Three sealed 2 oz packages
+file-contains | dist/faq.html | swap origin or size
+#
+# ---------------------------------------------------------------------------
+# B. THE RENDERED PAGES SAY NOTHING ABOUT GRIND. This is the property that
+#    matters, because it is what a customer reads. All six pages, not just the
+#    product page: a grind control added to the gifting page would be the same
+#    defect. A legitimate future use of the word "grounds" will trip this. That
+#    is intended. Re-deciding is the point.
+grep-count | dist/index.html | (^|[^a-zA-Z])([Gg][Rr][Ii][Nn][Dd]|[Gg][Rr][Oo][Uu][Nn][Dd]|[Ww]hole [Bb]ean) | 0
+grep-count | dist/story.html | (^|[^a-zA-Z])([Gg][Rr][Ii][Nn][Dd]|[Gg][Rr][Oo][Uu][Nn][Dd]|[Ww]hole [Bb]ean) | 0
+grep-count | dist/reserve.html | (^|[^a-zA-Z])([Gg][Rr][Ii][Nn][Dd]|[Gg][Rr][Oo][Uu][Nn][Dd]|[Ww]hole [Bb]ean) | 0
+grep-count | dist/gifting.html | (^|[^a-zA-Z])([Gg][Rr][Ii][Nn][Dd]|[Gg][Rr][Oo][Uu][Nn][Dd]|[Ww]hole [Bb]ean) | 0
+grep-count | dist/wholesale.html | (^|[^a-zA-Z])([Gg][Rr][Ii][Nn][Dd]|[Gg][Rr][Oo][Uu][Nn][Dd]|[Ww]hole [Bb]ean) | 0
+grep-count | dist/faq.html | (^|[^a-zA-Z])([Gg][Rr][Ii][Nn][Dd]|[Gg][Rr][Oo][Uu][Nn][Dd]|[Ww]hole [Bb]ean) | 0
+#
+# ---------------------------------------------------------------------------
+# C. NO GRIND STATE IN THE SOURCE EITHER, and section B cannot cover this. The
+#    checkout button sits inside a PRESALE_MODE === "live" branch and the mode
+#    is "waitlist", so a grind control re-added inside that branch renders on NO
+#    page and section B stays green while the code is back. Measured, not
+#    argued: see M4 in grind-mutants.sh, where that plant renders on 0 of 6
+#    pages and only these rows catch it.
+grep-count | src/pages/Product.tsx | ^[[:space:]]*(/?([Gg][Rr][Ii][Nn][Dd]|[Ww]hole [Bb]ean|[Gg][Rr][Oo][Uu][Nn][Dd])|([^[:space:]/*]|/[^/*]).*([Gg][Rr][Ii][Nn][Dd]|[Ww]hole [Bb]ean|[^a-zA-Z][Gg][Rr][Oo][Uu][Nn][Dd])) | 0
+grep-count | src/content/site.ts | ^[[:space:]]*(/?([Gg][Rr][Ii][Nn][Dd]|[Ww]hole [Bb]ean|[Gg][Rr][Oo][Uu][Nn][Dd])|([^[:space:]/*]|/[^/*]).*([Gg][Rr][Ii][Nn][Dd]|[Ww]hole [Bb]ean|[^a-zA-Z][Gg][Rr][Oo][Uu][Nn][Dd])) | 0
+grep-count | src/content/store.ts | ^[[:space:]]*(/?([Gg][Rr][Ii][Nn][Dd]|[Ww]hole [Bb]ean|[Gg][Rr][Oo][Uu][Nn][Dd])|([^[:space:]/*]|/[^/*]).*([Gg][Rr][Ii][Nn][Dd]|[Ww]hole [Bb]ean|[^a-zA-Z][Gg][Rr][Oo][Uu][Nn][Dd])) | 0
+grep-count | src/lib/checkout.ts | ^[[:space:]]*(/?([Gg][Rr][Ii][Nn][Dd]|[Ww]hole [Bb]ean|[Gg][Rr][Oo][Uu][Nn][Dd])|([^[:space:]/*]|/[^/*]).*([Gg][Rr][Ii][Nn][Dd]|[Ww]hole [Bb]ean|[^a-zA-Z][Gg][Rr][Oo][Uu][Nn][Dd])) | 0
+grep-count | src/store/cart.tsx | ^[[:space:]]*(/?([Gg][Rr][Ii][Nn][Dd]|[Ww]hole [Bb]ean|[Gg][Rr][Oo][Uu][Nn][Dd])|([^[:space:]/*]|/[^/*]).*([Gg][Rr][Ii][Nn][Dd]|[Ww]hole [Bb]ean|[^a-zA-Z][Gg][Rr][Oo][Uu][Nn][Dd])) | 0
+grep-count | worker/src/index.ts | ^[[:space:]]*(/?([Gg][Rr][Ii][Nn][Dd]|[Ww]hole [Bb]ean|[Gg][Rr][Oo][Uu][Nn][Dd])|([^[:space:]/*]|/[^/*]).*([Gg][Rr][Ii][Nn][Dd]|[Ww]hole [Bb]ean|[^a-zA-Z][Gg][Rr][Oo][Uu][Nn][Dd])) | 0
+grep-count | worker/worker.dashboard.js | ^[[:space:]]*(/?([Gg][Rr][Ii][Nn][Dd]|[Ww]hole [Bb]ean|[Gg][Rr][Oo][Uu][Nn][Dd])|([^[:space:]/*]|/[^/*]).*([Gg][Rr][Ii][Nn][Dd]|[Ww]hole [Bb]ean|[^a-zA-Z][Gg][Rr][Oo][Uu][Nn][Dd])) | 0
+#
+# ---------------------------------------------------------------------------
+# D. THE 2 OZ CONTAINER IS NOT NAMED. "tins" shipped on the gift box SKU and was
+#    withdrawn on 2026-09-13. The vault's only record of the 2 oz format cited
+#    this page as its evidence while this page had no source at all, and the one
+#    2 oz line Island Coffees has priced to us names no container. Supplier
+#    question 17b is open. Covered across the same surface as grind rather than
+#    the three pages the first version pinned: a narrower net than the claim it
+#    supports is a coverage gap whether or not anything is in it today.
+grep-count | dist/index.html | (^|[^a-zA-Z])[Tt]ins?([^a-zA-Z]|$) | 0
+grep-count | dist/story.html | (^|[^a-zA-Z])[Tt]ins?([^a-zA-Z]|$) | 0
+grep-count | dist/reserve.html | (^|[^a-zA-Z])[Tt]ins?([^a-zA-Z]|$) | 0
+grep-count | dist/gifting.html | (^|[^a-zA-Z])[Tt]ins?([^a-zA-Z]|$) | 0
+grep-count | dist/wholesale.html | (^|[^a-zA-Z])[Tt]ins?([^a-zA-Z]|$) | 0
+grep-count | dist/faq.html | (^|[^a-zA-Z])[Tt]ins?([^a-zA-Z]|$) | 0
+grep-count | src/pages/Product.tsx | ^[[:space:]]*(/?([Tt]ins?([^a-zA-Z]|$))|([^[:space:]/*]|/[^/*]).*([^a-zA-Z][Tt]ins?([^a-zA-Z]|$))) | 0
+grep-count | src/content/site.ts | ^[[:space:]]*(/?([Tt]ins?([^a-zA-Z]|$))|([^[:space:]/*]|/[^/*]).*([^a-zA-Z][Tt]ins?([^a-zA-Z]|$))) | 0
+grep-count | src/content/store.ts | ^[[:space:]]*(/?([Tt]ins?([^a-zA-Z]|$))|([^[:space:]/*]|/[^/*]).*([^a-zA-Z][Tt]ins?([^a-zA-Z]|$))) | 0
+grep-count | src/lib/checkout.ts | ^[[:space:]]*(/?([Tt]ins?([^a-zA-Z]|$))|([^[:space:]/*]|/[^/*]).*([^a-zA-Z][Tt]ins?([^a-zA-Z]|$))) | 0
+grep-count | src/store/cart.tsx | ^[[:space:]]*(/?([Tt]ins?([^a-zA-Z]|$))|([^[:space:]/*]|/[^/*]).*([^a-zA-Z][Tt]ins?([^a-zA-Z]|$))) | 0
+grep-count | worker/src/index.ts | ^[[:space:]]*(/?([Tt]ins?([^a-zA-Z]|$))|([^[:space:]/*]|/[^/*]).*([^a-zA-Z][Tt]ins?([^a-zA-Z]|$))) | 0
+grep-count | worker/worker.dashboard.js | ^[[:space:]]*(/?([Tt]ins?([^a-zA-Z]|$))|([^[:space:]/*]|/[^/*]).*([^a-zA-Z][Tt]ins?([^a-zA-Z]|$))) | 0

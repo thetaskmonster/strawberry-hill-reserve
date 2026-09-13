@@ -43,11 +43,11 @@ export const CATALOG: Sku[] = [
     id: "shr-giftbox",
     name: "Strawberry Hill Gift Box (3 x 2 oz)",
     size: "3 x 2 oz",
-    blurb: "Three sealed 2 oz tins in a boxed set. A one-time gift, no commitment.",
+    blurb: "Three sealed 2 oz packages in a boxed set. A one-time gift, no commitment.",
     oneTimeCents: 7900,
     subscribeCents: null,
     // Kyle's ruling, 2026-09-08: THE PRESENTATION IS THE PRODUCT. The box and
-    // the sealed tins are what the buyer is paying for, so the copy sells
+    // the sealed packages are what the buyer is paying for, so the copy sells
     // gifting rather than apologising for the per-ounce number. An earlier
     // draft led with "the same lot as the full bags", which invites exactly
     // the comparison it was trying to survive -- and the proof gate could not
@@ -56,7 +56,7 @@ export const CATALOG: Sku[] = [
     //
     // VERIFIED-ONLY. Each line restates something already on the site or
     // implied by the SKU definition itself:
-    //   boxed set, 3 x 2 oz sealed tins  -> this SKU's own size and blurb
+    //   boxed set, 3 x 2 oz              -> this SKU's own size field
     //
     // POINT 1 WAS CORRECTED ON 2026-09-08. It read "not a bag in a mailer",
     // which is a claim about how the OTHER SKUs ship, and grep for "mailer"
@@ -69,14 +69,40 @@ export const CATALOG: Sku[] = [
     //   JACRA-certified, roasted to order, sealed at origin -> pages/Story.tsx
     //   one-time, no subscription        -> subscribeCents: null, below
     //
+    // "TINS" WAS WITHDRAWN ON 2026-09-13, and nothing replaced it, because we
+    // do not know the container. The one place in the vault that records the
+    // 2 oz format had cited THIS PAGE as its evidence:
+    //
+    //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/label-designs-v1.md
+    //
+    // That file USED TO say the 2 oz "may not be a pouch at all", and its stated
+    // reason was that the live site described tins. So the site was the source
+    // for the vault and the vault was the source for the site, and no primary
+    // source existed on either side. BOTH ENDS WERE CORRECTED THE SAME DAY: that
+    // paragraph now records the loop and says the format is unknown, so do not
+    // go looking there for the sentence this comment is describing. It is in the
+    // file's history, not in the file.
+    //
+    // The only 2 oz line Island Coffees has ever priced to us names no
+    // container, and whether a 2 oz whole-bean package exists at all is
+    // supplier question 17b, still unanswered.
+    //
+    // Note what did NOT change: "sealed" stays, because sealing at origin is
+    // established independently of the container. Only the container word went.
+    //
+    // "Packages" is deliberately vague and stays vague until Kenric answers.
+    // Do not restore "tins", and do not substitute "pouches", on the strength
+    // of this page having said it before. Same rule as the grind comment in
+    // src/pages/Product.tsx: stop claiming, do not counter-claim.
+    //
     // NOT WRITTEN, because nobody has confirmed them and the no-fabrication
     // rule covers product claims: an included card or note, reusable or
-    // branded tins, ship-direct-to-recipient, gift wrapping, or three
+    // branded packaging, ship-direct-to-recipient, gift wrapping, or three
     // DIFFERENT origins in the box. Any of those would carry the price on its
     // own. Confirm first, then add.
     points: [
       "A boxed set of three, ready to hand over as it is. What arrives is the gift.",
-      "Three individually sealed 2 oz tins. Each one opens fresh, so it keeps giving after the first pour.",
+      "Three individually sealed 2 oz packages. Each one opens fresh, so it keeps giving after the first pour.",
       "JACRA-certified Jamaica Blue Mountain, roasted to order and sealed at origin. The certification does the explaining for you.",
       "One-time. No subscription, no auto-renew, nothing for them to cancel later.",
     ],
