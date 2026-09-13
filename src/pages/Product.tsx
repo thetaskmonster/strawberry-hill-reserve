@@ -13,13 +13,31 @@ import Reveal from "../components/Reveal";
 
 // The configurator's size chips map onto the locked store SKUs.
 //
-// There is deliberately no grind choice. Island Coffees confirmed in writing on
-// 2026-08-11 that whole bean is Grade 1/2 and ground is Grade 3, and Paula
-// confirmed on 2025-11-04 that we cannot repack Blue Mountain once it leaves
-// Jamaica. Offering ground at the same price would ship a grade nobody bought.
-// The settling question is tracked in the vault as GROUND_GRADE_RESOLUTION:
+// There is deliberately no grind control, and the page deliberately makes no
+// claim about grind either. Both halves matter.
+//
+// No control: Island Coffees stated in writing on 2026-08-11 that whole bean is
+// Grade 1/2 and ground is Grade 3. A free Whole bean / Ground choice at one
+// price ships a grade the customer did not buy. The settling question is open
+// in the vault as GROUND_GRADE_RESOLUTION.
+//
+// No claim either: a "whole bean only" line was written here and taken back out
+// the same day. The page sells a 2 oz sample and a 3 x 2 oz gift box, and the
+// only 2 oz line ICL has ever priced to us is GROUND. So that sentence asserted
+// something about two SKUs nobody has a whole-bean price for. Whether a 2 oz
+// whole-bean package exists is supplier question 17b, unanswered, and what to do
+// about it is recorded in the vault as Kyle's call and not made.
+//
+// Note also that repacking is NOT the reason. ICL's own packaged ground is
+// sealed in Jamaica and priced in the MOU, so the repacking ban does not explain
+// why we do not sell it. Grade does, and grade stays off the public page while
+// question 17 is open.
+//
+// Where this lives:
 //   Strawberry Hill Reserve/00-CONTEXT/ground-truth.md
-// Re-open this only when that token closes, not before.
+//   Strawberry Hill Reserve/02-DEPARTMENTS/sales/closing-gift-campaign-sequence.md
+//
+// Re-open this only when 17 and 17b close, not before.
 const SIZE_TO_ID: Record<number, string> = {
   2: "shr-sample",
   8: "shr-8oz",
@@ -115,11 +133,6 @@ export default function Product() {
             <button className={chip(size === 16)} aria-pressed={size === 16} onClick={() => setSize(16)}>16 oz</button>
           </div>
           {sample && <p className="mt-2 font-sans text-sm text-fg-muted">Sample size, one-time only. The low-risk way to taste it before you commit to a bag.</p>}
-        </div>
-
-        <div className="mt-6">
-          <span className="eyebrow">Grind</span>
-          <p className="mt-2 font-sans text-fg-muted">Whole bean only. Each bag is sealed in Jamaica, and we do not open it once it leaves the island.</p>
         </div>
 
         {PRESALE_MODE === "waitlist" && (
