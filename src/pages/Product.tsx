@@ -11,9 +11,15 @@ import {
 } from "../lib/checkout";
 import Reveal from "../components/Reveal";
 
-// The configurator's size chips map onto the locked store SKUs. Grind is a
-// product option only; it does not change price and the Worker builds the Stripe
-// line item from the SKU id alone, so grind is not yet a priced variant.
+// The configurator's size chips map onto the locked store SKUs.
+//
+// There is deliberately no grind choice. Island Coffees confirmed in writing on
+// 2026-08-11 that whole bean is Grade 1/2 and ground is Grade 3, and Paula
+// confirmed on 2025-11-04 that we cannot repack Blue Mountain once it leaves
+// Jamaica. Offering ground at the same price would ship a grade nobody bought.
+// The settling question is tracked in the vault as GROUND_GRADE_RESOLUTION:
+//   Strawberry Hill Reserve/00-CONTEXT/ground-truth.md
+// Re-open this only when that token closes, not before.
 const SIZE_TO_ID: Record<number, string> = {
   2: "shr-sample",
   8: "shr-8oz",
@@ -32,7 +38,6 @@ const chip = (on: boolean) =>
 
 export default function Product() {
   const [size, setSize] = useState(8);
-  const [grind, setGrind] = useState("whole");
   const [mode, setMode] = useState<"sub" | "once">("sub");
   const [img, setImg] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -114,10 +119,7 @@ export default function Product() {
 
         <div className="mt-6">
           <span className="eyebrow">Grind</span>
-          <div className="mt-2 flex gap-3" role="group" aria-label="Grind">
-            <button className={chip(grind === "whole")} aria-pressed={grind === "whole"} onClick={() => setGrind("whole")}>Whole bean</button>
-            <button className={chip(grind === "ground")} aria-pressed={grind === "ground"} onClick={() => setGrind("ground")}>Ground</button>
-          </div>
+          <p className="mt-2 font-sans text-fg-muted">Whole bean only. Each bag is sealed in Jamaica, and we do not open it once it leaves the island.</p>
         </div>
 
         {PRESALE_MODE === "waitlist" && (
@@ -195,7 +197,6 @@ export default function Product() {
           onClick={onCta}
           disabled={ctaGated || busy}
           aria-disabled={ctaGated || busy}
-          data-grind={grind}
           className="mt-8 w-full rounded bg-accent px-6 py-4 font-sans text-bg-film transition disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? "Opening checkout..." : cta}

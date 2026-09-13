@@ -97,7 +97,7 @@ export const ORIGINS = [
 
 export const FAQ = [
   { q: "What is Berrova?", a: "A small coffee house built on high-grown, honestly sourced origins, roasted to order. We keep the range short and let each origin earn its place. Strawberry Hill, our JACRA-certified Jamaica Blue Mountain, is the featured drop." },
-  { q: "How does the subscription work?", a: "You choose a cadence and control it yourself: skip, pause, swap origin, size, or grind, or cancel, all self-serve. Subscribers pay a lower per-bag price and get first access to drops before the public." },
+  { q: "How does the subscription work?", a: "You choose a cadence and control it yourself: skip, pause, swap origin or size, or cancel, all self-serve. Subscribers pay a lower per-bag price and get first access to drops before the public." },
   { q: "Subscribe or one-time?", a: "Both, on every coffee, never forced. Subscribing is the better deal on price and access; one-time is the same coffee with zero commitment, no account, no auto-renew." },
   { q: "When will my order ship?", a: "Within 8 weeks. Nothing sits in a warehouse waiting for you: your coffee is roasted and packaged in Jamaica after you order, then shipped to us and out to you. That is slower than most coffee you can buy, and it is the honest cost of buying it this way. The window is always shown before you pay, and if we cannot meet it, you can cancel for a full refund." },
   { q: "Why only limited drops?", a: "We buy only what we can secure and sell exactly that, then the drop closes until the next one. It keeps the coffee fresh and the story honest. When a drop sells out, it is genuinely gone." },
