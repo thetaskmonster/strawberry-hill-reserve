@@ -79,9 +79,14 @@ export const CATALOG: Sku[] = [
     // reason was that the live site described tins. So the site was the source
     // for the vault and the vault was the source for the site, and no primary
     // source existed on either side. BOTH ENDS WERE CORRECTED THE SAME DAY: that
-    // paragraph now records the loop and says the format is unknown, so do not
-    // go looking there for the sentence this comment is describing. It is in the
-    // file's history, not in the file.
+    // paragraph no longer ASSERTS the container. It is headed "The 2 oz format
+    // is unknown, and the evidence that said otherwise was circular", and it
+    // quotes its own old wording as withdrawn.
+    //
+    // So the words are still on that page and you WILL find them if you grep -
+    // as a record of what was retracted, not as a claim. Read the heading before
+    // the quote. This comment said the opposite until the proof gate grepped the
+    // file and found the sentence it had just declared absent.
     //
     // The only 2 oz line Island Coffees has ever priced to us names no
     // container, and whether a 2 oz whole-bean package exists at all is
