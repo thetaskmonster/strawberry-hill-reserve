@@ -11,9 +11,33 @@ import {
 } from "../lib/checkout";
 import Reveal from "../components/Reveal";
 
-// The configurator's size chips map onto the locked store SKUs. Grind is a
-// product option only; it does not change price and the Worker builds the Stripe
-// line item from the SKU id alone, so grind is not yet a priced variant.
+// The configurator's size chips map onto the locked store SKUs.
+//
+// There is deliberately no grind control, and the page deliberately makes no
+// claim about grind either. Both halves matter.
+//
+// No control: Island Coffees stated in writing on 2026-08-11 that whole bean is
+// Grade 1/2 and ground is Grade 3. A free Whole bean / Ground choice at one
+// price ships a grade the customer did not buy. The settling question is open
+// in the vault as GROUND_GRADE_RESOLUTION.
+//
+// No claim either: a "whole bean only" line was written here and taken back out
+// the same day. The page sells a 2 oz sample and a 3 x 2 oz gift box, and the
+// only 2 oz line ICL has ever priced to us is GROUND. So that sentence asserted
+// something about two SKUs nobody has a whole-bean price for. Whether a 2 oz
+// whole-bean package exists is supplier question 17b, unanswered, and what to do
+// about it is recorded in the vault as Kyle's call and not made.
+//
+// Note also that repacking is NOT the reason. ICL's own packaged ground is
+// sealed in Jamaica and priced in the MOU, so the repacking ban does not explain
+// why we do not sell it. Grade does, and grade stays off the public page while
+// question 17 is open.
+//
+// Where this lives:
+//   Strawberry Hill Reserve/00-CONTEXT/ground-truth.md
+//   Strawberry Hill Reserve/02-DEPARTMENTS/sales/closing-gift-campaign-sequence.md
+//
+// Re-open this only when 17 and 17b close, not before.
 const SIZE_TO_ID: Record<number, string> = {
   2: "shr-sample",
   8: "shr-8oz",
@@ -32,7 +56,6 @@ const chip = (on: boolean) =>
 
 export default function Product() {
   const [size, setSize] = useState(8);
-  const [grind, setGrind] = useState("whole");
   const [mode, setMode] = useState<"sub" | "once">("sub");
   const [img, setImg] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -112,14 +135,6 @@ export default function Product() {
           {sample && <p className="mt-2 font-sans text-sm text-fg-muted">Sample size, one-time only. The low-risk way to taste it before you commit to a bag.</p>}
         </div>
 
-        <div className="mt-6">
-          <span className="eyebrow">Grind</span>
-          <div className="mt-2 flex gap-3" role="group" aria-label="Grind">
-            <button className={chip(grind === "whole")} aria-pressed={grind === "whole"} onClick={() => setGrind("whole")}>Whole bean</button>
-            <button className={chip(grind === "ground")} aria-pressed={grind === "ground"} onClick={() => setGrind("ground")}>Ground</button>
-          </div>
-        </div>
-
         {PRESALE_MODE === "waitlist" && (
           <div className="mt-8 rounded-lg border border-accent bg-bg-elev p-6">
             <span className="eyebrow">The drop opens {DROP.opens}</span>
@@ -195,7 +210,6 @@ export default function Product() {
           onClick={onCta}
           disabled={ctaGated || busy}
           aria-disabled={ctaGated || busy}
-          data-grind={grind}
           className="mt-8 w-full rounded bg-accent px-6 py-4 font-sans text-bg-film transition disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? "Opening checkout..." : cta}

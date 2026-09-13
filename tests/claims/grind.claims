@@ -1,0 +1,37 @@
+# Claims for: no grind control on the product page, and no grind claim either.
+#
+# LIMIT, stated because gate-facts.sh cannot state it for you: file-lacks uses
+# `grep -qF`, which is CASE-SENSITIVE. Every downstream file below is therefore
+# claimed twice, once per spelling, rather than relying on a prose note that the
+# sweep was case-insensitive.
+#
+# A. The control and the dead wiring are gone from the page.
+file-lacks | src/pages/Product.tsx | data-grind
+file-lacks | src/pages/Product.tsx | setGrind
+file-lacks | src/pages/Product.tsx | >Ground<
+file-lacks | src/pages/Product.tsx | aria-label="Grind"
+#
+# B. No public claim about grind is made. "Whole bean only" was shipped and
+#    withdrawn the same day: it asserted something about the 2 oz sample and the
+#    3 x 2 oz gift box, and the only 2 oz line ICL has priced to us is ground.
+file-lacks | src/pages/Product.tsx | Whole bean only
+file-lacks | src/content/site.ts | size, or grind
+#
+# C. Grind reaches nothing downstream. This was TRUE BEFORE the fix as well, so
+#    these rows document an absence and discriminate nothing. Both spellings.
+file-lacks | src/lib/checkout.ts | grind
+file-lacks | src/lib/checkout.ts | Grind
+file-lacks | src/store/cart.tsx | grind
+file-lacks | src/store/cart.tsx | Grind
+file-lacks | worker/src/index.ts | grind
+file-lacks | worker/src/index.ts | Grind
+file-lacks | worker/worker.dashboard.js | grind
+file-lacks | worker/worker.dashboard.js | Grind
+file-lacks | src/content/store.ts | grind
+file-lacks | src/content/store.ts | Grind
+#
+# D. The rendered page, not the source. Prerender writes FLAT files.
+file-lacks | dist/reserve.html | Whole bean only
+file-lacks | dist/reserve.html | >Ground<
+file-lacks | dist/reserve.html | aria-label="Grind"
+file-lacks | dist/faq.html | size, or grind
