@@ -36,6 +36,14 @@ SNAP="$(mktemp -d)" || { echo "ABORT: no temp dir"; exit 9; }
 OUT="$SNAP/gate.out"
 restore() {
   local f
+  # dist/ is restored WHOLESALE, not file by file. A per-file restore only puts
+  # back what this harness knows it touched, and `vite build` empties the whole
+  # directory - so an aborted rebuild silently took dist/sitemap.xml with it and
+  # nothing said a word, because dist/ is gitignored and git status stayed clean.
+  if [ -d "$SNAP/dist" ]; then
+    rm -rf "$ROOT/dist"
+    cp -a "$SNAP/dist" "$ROOT/dist"
+  fi
   for f in $TOUCHED; do
     [ -f "$SNAP/snap/$f" ] && { mkdir -p "$(dirname "$ROOT/$f")"; cp "$SNAP/snap/$f" "$ROOT/$f"; }
   done
@@ -76,6 +84,12 @@ if ! rebuild; then
   echo "       result from this run would mean anything. This is an environment"
   echo "       failure, not a claims failure."
   echo "       CHROMIUM_EXECUTABLE=${CHROMIUM_EXECUTABLE:-<unset>}"
+  echo
+  echo "       AND dist/ IS NOW INCOMPLETE. The build emptied it before failing,"
+  echo "       and this abort is too early for the dist snapshot below to exist,"
+  echo "       so there is nothing to restore it from. dist/ is gitignored, so"
+  echo "       git status will look clean and say nothing about this."
+  echo "       Rebuild before you deploy anything out of dist/."
   exit 9
 fi
 echo "PREFLIGHT ok"
@@ -89,6 +103,8 @@ for f in $PAGES; do
   [ -s "$f" ] || { echo "ABORT: preflight produced an empty $f"; exit 9; }
   cp "$f" "$SNAP/snap/$f"
 done
+cp -a dist "$SNAP/dist" || { echo "ABORT: could not snapshot dist/"; exit 9; }
+[ -f "$SNAP/dist/sitemap.xml" ] || echo "NOTE: preflight produced no dist/sitemap.xml"
 run_gate() { bash tests/claims/run.sh "$CLAIMS" > "$OUT" 2>&1; echo $?; }
 
 expect() { # name expected_exit required_pattern
@@ -240,15 +256,17 @@ restore; rebuild; check_restored
 echo; echo "=== SWEEP  every count row, planted individually ==="
 echo "    A named case above exercises three files. This exercises all of them:"
 echo "    each row gets a minimal violation and must be the ONLY row that refutes."
-sweep_ran=0; sweep_fail=0
-while IFS= read -r row; do
-  target=$(printf '%s' "$row" | awk -F' \\| ' '{print $2}')
-  pattern=$(printf '%s' "$row" | awk -F' \\| ' '{print $3}')
-  case "$pattern" in *'[Tt]ins'*) kind=tins ;; *) kind=grind ;; esac
-  case "$target" in
-    dist/*) [ "$kind" = tins ] && plant='<p>tins</p>' || plant='<p>Ground, whole bean, grind.</p>' ;;
-    *)      [ "$kind" = tins ] && plant='const boxFormat = "tins";' || plant='const grindMode = "ground";' ;;
-  esac
+echo "    Each SOURCE row is planted TWICE, and both plants are required."
+echo "    A plant starting with a letter only ever exercises the regex's SECOND"
+echo "    alternative. The round-3 fix lives in the FIRST one, the leading-slash"
+echo "    guard, and it was pinned on one file out of seven: reverting it on any"
+echo "    of the other six left this whole suite green. A regex-literal plant is"
+echo "    what closes that, and it is checked per row rather than once."
+sweep_ran=0; sweep_fail=0; sweep_expected=0
+
+sweep_plant() { # row target kind plant label
+  local row="$1" target="$2" plant="$4" label="$5" rc nref
+  sweep_expected=$((sweep_expected+1))
   printf '%s\n' "$plant" >> "$target"
   rc=$(run_gate)
   # Count from the SUMMARY line, not by grepping REFUTED: gate-facts.sh prints
@@ -259,17 +277,44 @@ while IFS= read -r row; do
   if [ "$rc" = "1" ] && [ "${nref:-x}" = "1" ] && grep -qF "$row" <(grep '^REFUTED' "$OUT"); then
     sweep_ran=$((sweep_ran+1))
   else
-    echo "  FAIL  row not pinned: $target ($kind)  exit=$rc refuted=$nref"
+    echo "  FAIL  row not pinned by the $label plant: $target  exit=$rc refuted=$nref"
     sweep_fail=$((sweep_fail+1))
   fi
   cp "$SNAP/snap/$target" "$target"
+}
+
+while IFS= read -r row; do
+  target=$(printf '%s' "$row" | awk -F' \\| ' '{print $2}')
+  pattern=$(printf '%s' "$row" | awk -F' \\| ' '{print $3}')
+  case "$pattern" in *'[Tt]ins'*) kind=tins ;; *) kind=grind ;; esac
+  case "$target" in
+    dist/*)
+      [ "$kind" = tins ] && plant='<p>tins</p>' || plant='<p>Ground, whole bean, grind.</p>'
+      sweep_plant "$row" "$target" "$kind" "$plant" "rendered"
+      ;;
+    *)
+      # 1. starts with a letter: the regex's second alternative
+      [ "$kind" = tins ] && plant='const boxFormat = "tins";' || plant='const grindMode = "ground";'
+      sweep_plant "$row" "$target" "$kind" "$plant" "identifier"
+      # 2. starts with a slash: the FIRST alternative, which is the round-3 fix.
+      #    Revert the leading-slash guard on any source row and this plant stops
+      #    refuting while the identifier plant above carries on passing.
+      [ "$kind" = tins ] && plant='/tin/.test(x);' || plant='/grind/.test(x);'
+      sweep_plant "$row" "$target" "$kind" "$plant" "regex-literal"
+      ;;
+  esac
 done < <(grep '^grep-count' "$CLAIMS")
 check_restored
-total_rows=$(grep -c '^grep-count' "$CLAIMS")
-if [ "$sweep_fail" = 0 ] && [ "$sweep_ran" = "$total_rows" ]; then
-  note_pass "SWEEP all $total_rows count rows observed refusing, one row each"
+
+# Reconcile what the loop consumed against what it was given. A row list that
+# silently shrinks to nothing would otherwise report success.
+dist_rows=$(grep '^grep-count' "$CLAIMS" | awk -F' \\| ' '{print $2}' | grep -c '^dist/')
+src_rows=$(grep '^grep-count' "$CLAIMS" | awk -F' \\| ' '{print $2}' | grep -vc '^dist/')
+want=$((dist_rows + 2 * src_rows))
+if [ "$sweep_fail" = 0 ] && [ "$sweep_ran" = "$want" ] && [ "$sweep_expected" = "$want" ]; then
+  note_pass "SWEEP $dist_rows rendered rows + $src_rows source rows x2 plants = $want, all observed refusing"
 else
-  note_fail "SWEEP $sweep_ran of $total_rows pinned, $sweep_fail not pinned"
+  note_fail "SWEEP $sweep_ran pinned of $sweep_expected run, expected $want, $sweep_fail not pinned"
 fi
 
 echo; echo "=== FINAL: green again on the restored tree ==="
