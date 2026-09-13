@@ -86,8 +86,12 @@ if ! rebuild; then
   echo "       CHROMIUM_EXECUTABLE=${CHROMIUM_EXECUTABLE:-<unset>}"
   echo
   echo "       AND dist/ IS NOW INCOMPLETE. The build emptied it before failing,"
-  echo "       and this abort is too early for the dist snapshot below to exist,"
-  echo "       so there is nothing to restore it from. dist/ is gitignored, so"
+  echo "       and this abort is too early for the WHOLESALE dist snapshot below"
+  echo "       to exist. Measured, rather than reasoned about: vite writes public/"
+  echo "       back itself, and the six rendered pages are restored from the"
+  echo "       per-file snapshot taken before the preflight. What is lost is what"
+  echo "       the PRERENDER alone produces and this harness does not snapshot,"
+  echo "       which today is exactly dist/sitemap.xml. dist/ is gitignored, so"
   echo "       git status will look clean and say nothing about this."
   echo "       Rebuild before you deploy anything out of dist/."
   exit 9
@@ -257,11 +261,12 @@ echo; echo "=== SWEEP  every count row, planted individually ==="
 echo "    A named case above exercises three files. This exercises all of them:"
 echo "    each row gets a minimal violation and must be the ONLY row that refutes."
 echo "    Each SOURCE row is planted TWICE, and both plants are required."
-echo "    A plant starting with a letter only ever exercises the regex's SECOND"
-echo "    alternative. The round-3 fix lives in the FIRST one, the leading-slash"
-echo "    guard, and it was pinned on one file out of seven: reverting it on any"
-echo "    of the other six left this whole suite green. A regex-literal plant is"
-echo "    what closes that, and it is checked per row rather than once."
+echo "    A SOURCE plant starting with a letter only ever exercises the regex's"
+echo "    SECOND alternative. The round-3 fix lives in the FIRST one, the"
+echo "    leading-slash guard, and M3b pins it on ONE source row out of 14 - the"
+echo "    grind row of src/pages/Product.tsx. Reverting it on any of the other"
+echo "    13, that file's own TINS row included, left this whole suite green."
+echo "    A regex-literal plant is what closes that, checked per row not once."
 sweep_ran=0; sweep_fail=0; sweep_expected=0
 
 sweep_plant() { # row target kind plant label
