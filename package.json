@@ -8,6 +8,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host",
     "prerender": "node scripts/prerender.mjs",
+    "test:claims": "bash tests/claims/run.sh",
+    "test:claims:mutants": "bash tests/claims/grind-mutants.sh",
     "test:gifting": "bash tests/run-gifting.sh",
     "test:gifting:contract": "bash tests/contract-live.sh",
     "test:gifting:matrix": "bash tests/contract-matrix.sh"
