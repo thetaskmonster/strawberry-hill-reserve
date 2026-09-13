@@ -264,8 +264,11 @@ echo "    Each SOURCE row is planted TWICE, and both plants are required."
 echo "    A SOURCE plant starting with a letter only ever exercises the regex's"
 echo "    SECOND alternative. The round-3 fix lives in the FIRST one, the"
 echo "    leading-slash guard, and M3b pins it on ONE source row out of 14 - the"
-echo "    grind row of src/pages/Product.tsx. Reverting it on any of the other"
-echo "    13, that file's own TINS row included, left this whole suite green."
+echo "    grind row of src/pages/Product.tsx. Measured on one of the other 13,"
+echo "    that same file's TINS row: reverting the guard there left the MERGED"
+echo "    harness at 20 cases, 0 failures, exit 0. The remaining 12 rows are"
+echo "    structurally identical and no committed case pins them, which is why"
+echo "    this says measured-on-one rather than true-of-all."
 echo "    A regex-literal plant is what closes that, checked per row not once."
 sweep_ran=0; sweep_fail=0; sweep_expected=0
 
