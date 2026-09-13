@@ -71,13 +71,18 @@ export const CATALOG: Sku[] = [
     //
     // "TINS" WAS WITHDRAWN ON 2026-09-13, and nothing replaced it, because we
     // do not know the container. The one place in the vault that records the
-    // 2 oz format cites THIS PAGE as its evidence:
+    // 2 oz format had cited THIS PAGE as its evidence:
     //
     //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/label-designs-v1.md
     //
-    // That file says the 2 oz "may not be a pouch at all" because the live site
-    // describes tins. So the site was the source for the vault and the vault
-    // was the source for the site, and no primary source exists on either side.
+    // That file USED TO say the 2 oz "may not be a pouch at all", and its stated
+    // reason was that the live site described tins. So the site was the source
+    // for the vault and the vault was the source for the site, and no primary
+    // source existed on either side. BOTH ENDS WERE CORRECTED THE SAME DAY: that
+    // paragraph now records the loop and says the format is unknown, so do not
+    // go looking there for the sentence this comment is describing. It is in the
+    // file's history, not in the file.
+    //
     // The only 2 oz line Island Coffees has ever priced to us names no
     // container, and whether a 2 oz whole-bean package exists at all is
     // supplier question 17b, still unanswered.

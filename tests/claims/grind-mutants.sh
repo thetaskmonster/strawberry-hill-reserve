@@ -3,8 +3,10 @@
 #
 # A claims file full of "count is zero" rows is green on an empty repo, on a
 # 404, and on a stale build. Green means nothing until each row has been watched
-# refusing a defect of the exact shape it names. This harness plants ten of them,
-# one at a time, and requires a specific verdict for each.
+# refusing a defect of the exact shape it names. This harness does that in two
+# passes: named cases for the shapes worth explaining, then a sweep that plants
+# a minimal violation for EVERY count row and requires that row, and only that
+# row, to refute.
 #
 # IT MUTATES THE WORKING TREE, deliberately and on purpose, which is the one
 # thing a diagnostic must never do by accident. So: it snapshots every file it
@@ -15,7 +17,7 @@
 #
 # Run it on a tree you have committed or can afford to lose anyway.
 #
-#   bash tests/claims/grind-mutants.sh
+#   npm run test:claims:mutants
 #
 # Needs the vault's gate-facts.sh (see tests/claims/run.sh) and a working
 # Chromium for the prerender, via CHROMIUM_EXECUTABLE.
@@ -24,8 +26,11 @@ cd "$(dirname "$0")/../.." || exit 9
 ROOT="$PWD"
 
 CLAIMS=tests/claims/grind.claims
-TOUCHED="src/content/store.ts src/pages/Product.tsx dist/reserve.html"
-EXPECT_TOTAL=21         # claims in the file; a drift here is a real finding
+PAGES="dist/index.html dist/story.html dist/reserve.html dist/gifting.html dist/wholesale.html dist/faq.html"
+DIALOG=src/components/OriginWaitlistDialog.tsx
+SOURCES="src/pages/Product.tsx src/content/site.ts src/content/store.ts src/lib/checkout.ts src/store/cart.tsx worker/src/index.ts worker/worker.dashboard.js"
+TOUCHED="$PAGES $SOURCES $DIALOG"
+EXPECT_TOTAL=30          # claim rows in the file; drift here is a real finding
 
 SNAP="$(mktemp -d)" || { echo "ABORT: no temp dir"; exit 9; }
 OUT="$SNAP/gate.out"
@@ -44,7 +49,46 @@ for f in $TOUCHED; do
 done
 
 fails=0; ran=0
-rebuild() { npm run build >/dev/null 2>&1 && npm run prerender >/dev/null 2>&1; }
+
+# The rebuild keeps its output. A build that fails silently gets blamed on
+# whichever mutant happened to be planted at the time, which is an excuse with
+# no evidence behind it - and this harness lost a run to exactly that, reporting
+# "M4 rebuild failed" when what was actually missing was a Chromium for the
+# prerender. On failure, say what the build said.
+rebuild() {
+  if npm run build >"$SNAP/build.log" 2>&1 && npm run prerender >>"$SNAP/build.log" 2>&1; then
+    return 0
+  fi
+  echo "--- last 20 lines of the failed build ---"
+  tail -20 "$SNAP/build.log"
+  echo "-----------------------------------------"
+  return 1
+}
+
+# PREFLIGHT: rebuild the UNMUTATED tree before any case runs. If the build or
+# the prerender cannot run here at all, that is an environment finding and it
+# belongs at the top, named, rather than surfacing four cases in wearing a
+# mutant's name. The prerender needs a Chromium; point CHROMIUM_EXECUTABLE at
+# one if it is not on the default path.
+echo "=== PREFLIGHT: the unmutated tree must build and prerender ==="
+if ! rebuild; then
+  echo "ABORT: the build or prerender failed on the UNMUTATED tree, so no mutant"
+  echo "       result from this run would mean anything. This is an environment"
+  echo "       failure, not a claims failure."
+  echo "       CHROMIUM_EXECUTABLE=${CHROMIUM_EXECUTABLE:-<unset>}"
+  exit 9
+fi
+echo "PREFLIGHT ok"
+
+# The preflight just rewrote dist/, so re-snapshot the rendered pages against
+# what the harness will actually restore to. Without this the restore check
+# compares a freshly built page to one built before the harness started, and a
+# build that is not byte-reproducible fails the restore for no reason.
+for f in $PAGES; do
+  [ -f "$f" ] || { echo "ABORT: preflight produced no $f"; exit 9; }
+  [ -s "$f" ] || { echo "ABORT: preflight produced an empty $f"; exit 9; }
+  cp "$f" "$SNAP/snap/$f"
+done
 run_gate() { bash tests/claims/run.sh "$CLAIMS" > "$OUT" 2>&1; echo $?; }
 
 expect() { # name expected_exit required_pattern
@@ -59,6 +103,8 @@ expect() { # name expected_exit required_pattern
     fails=$((fails+1))
   fi
 }
+note_pass() { echo "PASS  $1"; ran=$((ran+1)); }
+note_fail() { echo "FAIL  $1"; ran=$((ran+1)); fails=$((fails+1)); }
 
 check_restored() {
   local f bad=0
@@ -71,7 +117,6 @@ expect "baseline" 0 "VERDICT: all $EXPECT_TOTAL mechanical claims verified"
 [ "$fails" = 0 ] || { echo "ABORT: baseline is not green, so no mutant below would mean anything."; exit 9; }
 
 echo; echo "=== M1  recasing in source: GRIND_OPTIONS in src/content/store.ts ==="
-echo '// mutant' >> src/content/store.ts
 printf 'export const GRIND_OPTIONS = ["whole", "ground"];\n' >> src/content/store.ts
 grep -q 'GRIND_OPTIONS' src/content/store.ts || { echo "ABORT: M1 fixture did not plant"; exit 9; }
 expect "M1 recased constant is refuted" 1 'REFUTED.*src/content/store\.ts'
@@ -87,8 +132,14 @@ printf 'const [g, setGrind] = useState("whole");\n' >> src/pages/Product.tsx
 expect "M3 setGrind is refuted" 1 'REFUTED.*src/pages/Product\.tsx'
 restore; check_restored
 
+echo; echo "=== M3b regex literal in real code: /grind/.test(x) starts with a slash ==="
+echo "    (an earlier version of the comment skip treated any leading / as a comment)"
+printf '/grind/.test(navigator.userAgent);\n' >> src/pages/Product.tsx
+expect "M3b leading-slash code is refuted" 1 'REFUTED.*src/pages/Product\.tsx'
+restore; check_restored
+
 echo; echo "=== M4  control re-added INSIDE the PRESALE_MODE live branch ==="
-echo "    (renders on no page, so only the SOURCE rows can see it)"
+echo "    (renders on no page, so only the source rows and the bundle see it)"
 python3 - <<'PY'
 p='src/pages/Product.tsx'
 s=open(p,encoding='utf-8').read()
@@ -99,18 +150,22 @@ PY
 grep -q 'aria-label="Grind"' src/pages/Product.tsx || { echo "ABORT: M4 fixture did not plant"; exit 9; }
 rebuild || { echo "ABORT: M4 rebuild failed, so the dist half of this case proves nothing"; exit 9; }
 rendered=0
-for f in dist/*.html; do
+for f in $PAGES; do
   n=$(grep -cE '(^|[^a-zA-Z])([Gg][Rr][Ii][Nn][Dd]|[Gg][Rr][Oo][Uu][Nn][Dd]|[Ww]hole [Bb]ean)' "$f" || true)
   rendered=$((rendered + n))
 done
 echo "    rendered pages mentioning grind after the rebuild: $rendered"
 expect "M4 live-branch control is refuted by a SOURCE row" 1 'REFUTED.*src/pages/Product\.tsx'
 if [ "$rendered" = "0" ] && ! grep -qE 'REFUTED.*dist/' "$OUT"; then
-  echo "PASS  M4b the rendered rows could NOT see it - this is why the source rows exist"
+  note_pass "M4b the rendered rows could NOT see it - this is why the source rows exist"
 else
-  echo "FAIL  M4b expected the rendered rows to be blind here (rendered=$rendered)"; fails=$((fails+1))
+  note_fail "M4b expected the rendered rows to be blind here (rendered=$rendered)"
 fi
-ran=$((ran+1))
+# NOT asserted here: that this plant reaches the JavaScript bundle. It does not.
+# Vite folds PRESALE_MODE === "live" to false and tree-shakes the whole branch,
+# measured by content hash - the bundle filename was byte-identical with and
+# without this plant, and "Add to cart" counted 0 in it either way. The bundle
+# is a real uncovered surface, but this is not the mutant that shows it. M9 is.
 restore; rebuild; check_restored
 
 echo; echo "=== M5  restore 'tins' to the gift box blurb ==="
@@ -126,18 +181,100 @@ printf '// A later note about grind, whole bean and ground coffee.\n' >> src/pag
 expect "M6 a comment does not cry wolf" 0 "VERDICT: all $EXPECT_TOTAL mechanical claims verified"
 restore; check_restored
 
-echo; echo "=== M7a EMPTY fixture: a truncated page must not pass on absence ==="
+echo; echo "=== M7  fixture integrity: empty, then missing ==="
 : > dist/reserve.html
-expect "M7a empty page is refuted by the identity rows" 1 'REFUTED.*file-contains \| dist/reserve\.html'
-restore; check_restored
-
-echo; echo "=== M7b MISSING fixture: a removed page is CANNOT CHECK, not a pass ==="
+expect "M7a empty reserve page is refuted by the identity rows" 1 'REFUTED.*file-contains \| dist/reserve\.html'
+restore
+: > dist/faq.html
+expect "M7b empty faq page is refuted by its identity row" 1 'REFUTED.*file-contains \| dist/faq\.html'
+restore
 mv dist/reserve.html "$SNAP/gone.html"
-expect "M7b missing page is CANNOT CHECK" 2 'COULD NOT BE CHECKED'
+expect "M7c missing page is CANNOT CHECK, not a pass" 2 'COULD NOT BE CHECKED'
 mv "$SNAP/gone.html" dist/reserve.html; check_restored
+
+echo; echo "=== M8  bundle-check refuses rather than passing when it cannot run ==="
+mkdir -p "$SNAP/emptyclaims" && : > "$SNAP/emptyclaims/none.claims"
+if bash tests/claims/bundle-check.sh "$SNAP/emptyclaims/none.claims" >/dev/null 2>&1; then
+  note_fail "M8a bundle-check passed with no patterns to check"
+else
+  note_pass "M8a bundle-check is CANNOT CHECK with no extractable patterns"
+fi
+if bash tests/claims/bundle-check.sh "$SNAP/does-not-exist.claims" >/dev/null 2>&1; then
+  note_fail "M8b bundle-check passed with no claims file"
+else
+  note_pass "M8b bundle-check is CANNOT CHECK with no claims file"
+fi
+
+echo; echo "=== M9  copy that ships in the BUNDLE but renders on no page ==="
+echo "    A grind claim behind an interaction: it is in the JavaScript every"
+echo "    visitor downloads, and in none of the six prerendered pages."
+sed -i 's|<p className="eyebrow">Waitlist</p>|<p className="eyebrow">Waitlist. Whole bean only, never ground.</p>|' "$DIALOG"
+grep -q 'Whole bean only, never ground' "$DIALOG" || { echo "ABORT: M9 fixture did not plant"; exit 9; }
+rebuild || { echo "ABORT: M9 rebuild failed"; exit 9; }
+inbundle=$(grep -coF 'Whole bean only, never ground' dist/assets/index-*.js 2>/dev/null || echo 0)
+onpages=$(grep -lF 'Whole bean' $PAGES 2>/dev/null | wc -l | tr -d ' ')
+echo "    phrase in the bundle: $inbundle    pages carrying it: $onpages"
+# M9a asserts TWO things at once, and it has to, because run.sh now runs both
+# checks and returns the worse of the two exits. So the combined exit is 1 here
+# (the bundle refuted) while the CLAIMS half saw nothing at all. Asserting only
+# the exit would hide which half fired, and asserting only the verdict line
+# would not pin that the bundle caught what the claims file missed. Both, or
+# this case stops meaning what its name says.
+ran=$((ran+1)); rc=$(run_gate)
+if [ "$rc" = "1" ] \
+   && grep -qE "VERDICT: all $EXPECT_TOTAL mechanical claims verified" "$OUT" \
+   && grep -qE '^OVERALL: REFUTED \(claims 0, bundle 1\)' "$OUT"; then
+  echo "PASS  M9a the claims file is BLIND to it; only the bundle check fires  (exit $rc)"
+else
+  echo "FAIL  M9a expected claims-clean + bundle-refuted  (exit $rc)"
+  sed -n 's/^\(claims:\|VERDICT:\|OVERALL:\)/  &/p' "$OUT"
+  fails=$((fails+1))
+fi
+if [ "$inbundle" = "1" ] && [ "$onpages" = "0" ] && ! bash tests/claims/bundle-check.sh >/dev/null 2>&1; then
+  note_pass "M9b bundle-check REFUTED it - the surface no other check reaches"
+else
+  note_fail "M9b expected bundle-only exposure (inbundle=$inbundle onpages=$onpages)"
+fi
+restore; rebuild; check_restored
+
+echo; echo "=== SWEEP  every count row, planted individually ==="
+echo "    A named case above exercises three files. This exercises all of them:"
+echo "    each row gets a minimal violation and must be the ONLY row that refutes."
+sweep_ran=0; sweep_fail=0
+while IFS= read -r row; do
+  target=$(printf '%s' "$row" | awk -F' \\| ' '{print $2}')
+  pattern=$(printf '%s' "$row" | awk -F' \\| ' '{print $3}')
+  case "$pattern" in *'[Tt]ins'*) kind=tins ;; *) kind=grind ;; esac
+  case "$target" in
+    dist/*) [ "$kind" = tins ] && plant='<p>tins</p>' || plant='<p>Ground, whole bean, grind.</p>' ;;
+    *)      [ "$kind" = tins ] && plant='const boxFormat = "tins";' || plant='const grindMode = "ground";' ;;
+  esac
+  printf '%s\n' "$plant" >> "$target"
+  rc=$(run_gate)
+  # Count from the SUMMARY line, not by grepping REFUTED: gate-facts.sh prints
+  # every refuted row twice, once inline and once under FINDINGS, so a grep
+  # count reads 2 for a single refutation. The sweep reported 0 of 26 pinned on
+  # that reading, which was a defect in this assertion and not in the rows.
+  nref=$(sed -n 's/^claims:.*REFUTED \([0-9][0-9]*\).*/\1/p' "$OUT")
+  if [ "$rc" = "1" ] && [ "${nref:-x}" = "1" ] && grep -qF "$row" <(grep '^REFUTED' "$OUT"); then
+    sweep_ran=$((sweep_ran+1))
+  else
+    echo "  FAIL  row not pinned: $target ($kind)  exit=$rc refuted=$nref"
+    sweep_fail=$((sweep_fail+1))
+  fi
+  cp "$SNAP/snap/$target" "$target"
+done < <(grep '^grep-count' "$CLAIMS")
+check_restored
+total_rows=$(grep -c '^grep-count' "$CLAIMS")
+if [ "$sweep_fail" = 0 ] && [ "$sweep_ran" = "$total_rows" ]; then
+  note_pass "SWEEP all $total_rows count rows observed refusing, one row each"
+else
+  note_fail "SWEEP $sweep_ran of $total_rows pinned, $sweep_fail not pinned"
+fi
 
 echo; echo "=== FINAL: green again on the restored tree ==="
 expect "restored baseline" 0 "VERDICT: all $EXPECT_TOTAL mechanical claims verified"
+bash tests/claims/bundle-check.sh >/dev/null 2>&1 && note_pass "bundle-check green on the restored tree" || note_fail "bundle-check not green on the restored tree"
 
 echo
 echo "cases run: $ran   failures: $fails"

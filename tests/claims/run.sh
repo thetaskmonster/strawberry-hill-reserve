@@ -44,3 +44,29 @@ fi
 [ -d dist ] || echo "note: dist/ is absent. Run 'npm run build && npm run prerender' first."
 
 bash "$GATE" "$CLAIMS"
+rc_claims=$?
+
+# The bundle runs here too, and deliberately not as a separate command. The
+# claims file cannot name dist/assets/index-<contenthash>.js, so a green run
+# over the six HTML pages leaves the JavaScript every visitor downloads
+# unchecked - and a copy change behind an interaction lands there and on no
+# page at all (M9 in grind-mutants.sh). Splitting this into a second npm script
+# nobody remembers to run would make a green here mean less than it says.
+echo
+bash "$(dirname "$0")/bundle-check.sh" "$CLAIMS"
+rc_bundle=$?
+
+# Worst exit wins, and CANNOT CHECK (2) outranks REFUTED (1): "nothing was
+# checked" is a worse answer than "something is wrong", because only one of
+# them gets looked at.
+echo
+if [ "$rc_claims" = 2 ] || [ "$rc_bundle" = 2 ]; then
+  echo "OVERALL: CANNOT CHECK (claims $rc_claims, bundle $rc_bundle). This is not a pass."
+  exit 2
+fi
+if [ "$rc_claims" != 0 ] || [ "$rc_bundle" != 0 ]; then
+  echo "OVERALL: REFUTED (claims $rc_claims, bundle $rc_bundle)."
+  exit 1
+fi
+echo "OVERALL: claims and bundle both clean."
+exit 0
