@@ -128,11 +128,23 @@ grep-count | worker/worker.dashboard.js | ^[[:space:]]*(/?([Tt]ins?([^a-zA-Z]|$)
 #    shipped and shipping are all caught.
 #
 #    IT IS ALSO DELIBERATELY GAP-FREE, no .* between the words. The prerendered
-#    pages are a handful of very long lines, and grep -cE counts MATCHING LINES.
-#    A loose pattern like "sealed.*ship" would match the whole body text of a
-#    page that says "sealed at origin" in one paragraph and "ships" in another,
-#    and would REFUTE on correct copy. Every widening of this row has to keep
-#    the words adjacent for that reason.
+#    pages are a handful of very long lines - 23 lines each, the longest of them
+#    19,927 characters on dist/index.html - and grep -cE counts MATCHING LINES,
+#    so one line is effectively the whole body. A loose pattern like
+#    "sealed.*ship" therefore COULD match a page that says "sealed at origin" in
+#    one paragraph and "ships" in another, with nothing wrong on the page at
+#    all. Every widening of this row has to keep the words adjacent for that
+#    reason.
+#
+#    STATED EXACTLY, because the earlier version of this note overstated it. It
+#    claimed the loose pattern "would REFUTE on correct copy". It does not, on
+#    today's build: measured across the six pages, grep -ciE 'sealed.*ship'
+#    returns 0 on all six, because no page currently carries both words. Only
+#    dist/index.html has "sealed" (1 line) and only dist/faq.html has "ship"
+#    (4 lines), and they are different files. The gap-free rule is kept for the
+#    exposure, not for a false alarm anyone has seen - one paragraph added to
+#    the homepage about shipping is all it would take, and this row must not be
+#    the thing that then goes red.
 #
 #    Covered on all six pages, not just the homepage, on section B's reasoning:
 #    the same sentence on the wholesale page is the same defect.

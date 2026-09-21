@@ -30,7 +30,32 @@ PAGES="dist/index.html dist/story.html dist/reserve.html dist/gifting.html dist/
 DIALOG=src/components/OriginWaitlistDialog.tsx
 SOURCES="src/pages/Product.tsx src/content/site.ts src/content/store.ts src/lib/checkout.ts src/store/cart.tsx worker/src/index.ts worker/worker.dashboard.js"
 TOUCHED="$PAGES $SOURCES $DIALOG"
-EXPECT_TOTAL=30          # claim rows in the file; drift here is a real finding
+# EXPECT_TOTAL is how many claim rows the baseline must see VERIFIED. It used to
+# be the literal 30, with a comment saying drift here is a real finding - and
+# then it drifted. Section E took the claims file to 38 rows, the constant did
+# not move, and this harness aborted at its own baseline without planting a
+# single mutant. A hand-maintained number that silently voids the whole run is
+# the weaker answer, so it is DERIVED.
+#
+# DERIVING IT IS NOT CIRCULAR, and the reason is that the two sides are counted
+# by different readers. The line below counts rows in the claims FILE with awk,
+# applying the skip rule gate-facts.sh documents for itself: a blank or
+# whitespace-only line, or a line whose FIRST character is '#'. The number it is
+# then compared against is gate-facts.sh's own tally of the rows it actually
+# EVALUATED, printed in its VERDICT line. So this check still fails in both
+# directions that matter: add a row and forget to build for it, and the sweep's
+# own reconciliation catches it; have gate-facts.sh silently drop rows mid-loop,
+# and its tally falls while this one does not, so the baseline goes red.
+#
+# What WOULD be circular, and is deliberately not done: reading the expected
+# number back out of the same gate output the assertion then greps. That would
+# agree with itself no matter how few rows ran.
+EXPECT_TOTAL=$(awk '/^#/{next} /^[[:space:]]*$/{next} {n++} END{print n+0}' "$CLAIMS")
+case "$EXPECT_TOTAL" in
+  ''|*[!0-9]*) echo "ABORT: could not count claim rows in $CLAIMS"; exit 9 ;;
+esac
+[ "$EXPECT_TOTAL" -ge 2 ] || { echo "ABORT: only $EXPECT_TOTAL claim row(s) in $CLAIMS; nothing to prove"; exit 9; }
+echo "claim rows counted in $CLAIMS: $EXPECT_TOTAL"
 
 SNAP="$(mktemp -d)" || { echo "ABORT: no temp dir"; exit 9; }
 OUT="$SNAP/gate.out"
@@ -291,26 +316,95 @@ sweep_plant() { # row target kind plant label
   cp "$SNAP/snap/$target" "$target"
 }
 
+# WHICH KIND OF ROW IS THIS. Every kind is matched POSITIVELY and anything
+# unrecognised is a loud failure, not a default.
+#
+# This replaces a two-kind `case` whose default arm was `grind`. It read:
+#
+#     case "$pattern" in *'[Tt]ins'*) kind=tins ;; *) kind=grind ;; esac
+#
+# Section E then added seven rows that are neither, so all seven fell into the
+# grind arm: the sweep planted a grind sentence at a SEALING row and required
+# that row to refute. It never could, and the sweep reported "row not pinned"
+# for the six sealing rows plus the negative control. A default arm is what let
+# new rows look covered while nothing had ever been planted at them, so there
+# is no default arm any more.
+#
+# ORDER IS LOAD-BEARING in the first two arms. The negative control's pattern
+# also contains [Ss][Ee][Aa][Ll][Ee][Dd], so it has to be recognised before the
+# sealing arm or it would be planted with the wrong sentence and never refute -
+# the same shape of bug one layer down.
+kind_of() { # <pattern>
+  case "$1" in
+    *'[Ll][Ee][Ww][Ii][Ss][Vv][Ii][Ll][Ll][Ee]'*) printf 'sealed-elsewhere' ;;
+    *'[Ss][Ee][Aa][Ll][Ee][Dd]'*)                 printf 'sealing' ;;
+    *'[Tt]ins'*)                                  printf 'tins' ;;
+    *'[Gg][Rr][Ii][Nn][Dd]'*)                     printf 'grind' ;;
+    *)                                            printf 'UNKNOWN' ;;
+  esac
+}
+
+# THE PLANT THAT MAKES EACH ROW REFUTE, keyed on kind AND arm. An empty result
+# means no plant is defined for that combination, which the loop reports as a
+# sweep FAILURE rather than skipping - an unplanted row is an absence assertion
+# nobody has watched refuse, which is the whole thing this harness exists to
+# stop.
+#
+# Each plant is checked against the OTHER rows for the same file, because the
+# sweep requires exactly one refutation. Measured, not assumed:
+#   sealing/rendered          "Sealed the day it ships." carries no tin, no
+#                             grind/ground/whole bean, and is not "sealed in
+#                             Lewisville", so it trips the section E row alone.
+#   sealed-elsewhere/rendered "Sealed in Lewisville." does not contain
+#                             "sealed <connector> it ship", so it trips the
+#                             negative control alone. The negative control gets
+#                             its own plant rather than an exclusion: it is a
+#                             real row with a real regex, and a row excused from
+#                             the sweep is a row nobody proved can fail.
+#
+# NO sealing/identifier OR sealing/regex-literal ENTRY EXISTS, and that is not
+# an oversight being papered over. Section E asserts over the built artifact
+# only, so there is no sealing row with a src/ or worker/ target for those arms
+# to plant into and the loop never asks for one. If a sealing SOURCE row is ever
+# added, the loop fails loudly naming the missing combination, which is the
+# correct outcome - a new row must not inherit coverage it never had.
+plant_for() { # <kind> <arm>
+  case "$1/$2" in
+    grind/rendered)            printf '%s' '<p>Ground, whole bean, grind.</p>' ;;
+    tins/rendered)             printf '%s' '<p>tins</p>' ;;
+    sealing/rendered)          printf '%s' '<p>Sealed the day it ships.</p>' ;;
+    sealed-elsewhere/rendered) printf '%s' '<p>Sealed in Lewisville.</p>' ;;
+    # A SOURCE row is planted twice and both plants are required.
+    # 1. starts with a letter: the regex's second alternative.
+    grind/identifier)          printf '%s' 'const grindMode = "ground";' ;;
+    tins/identifier)           printf '%s' 'const boxFormat = "tins";' ;;
+    # 2. starts with a slash: the FIRST alternative, which is the round-3 fix.
+    #    Revert the leading-slash guard on any source row and this plant stops
+    #    refuting while the identifier plant above carries on passing.
+    grind/regex-literal)       printf '%s' '/grind/.test(x);' ;;
+    tins/regex-literal)        printf '%s' '/tin/.test(x);' ;;
+  esac
+}
+
 while IFS= read -r row; do
   target=$(printf '%s' "$row" | awk -F' \\| ' '{print $2}')
   pattern=$(printf '%s' "$row" | awk -F' \\| ' '{print $3}')
-  case "$pattern" in *'[Tt]ins'*) kind=tins ;; *) kind=grind ;; esac
+  kind=$(kind_of "$pattern")
   case "$target" in
-    dist/*)
-      [ "$kind" = tins ] && plant='<p>tins</p>' || plant='<p>Ground, whole bean, grind.</p>'
-      sweep_plant "$row" "$target" "$kind" "$plant" "rendered"
-      ;;
-    *)
-      # 1. starts with a letter: the regex's second alternative
-      [ "$kind" = tins ] && plant='const boxFormat = "tins";' || plant='const grindMode = "ground";'
-      sweep_plant "$row" "$target" "$kind" "$plant" "identifier"
-      # 2. starts with a slash: the FIRST alternative, which is the round-3 fix.
-      #    Revert the leading-slash guard on any source row and this plant stops
-      #    refuting while the identifier plant above carries on passing.
-      [ "$kind" = tins ] && plant='/tin/.test(x);' || plant='/grind/.test(x);'
-      sweep_plant "$row" "$target" "$kind" "$plant" "regex-literal"
-      ;;
+    dist/*) arms="rendered" ;;
+    *)      arms="identifier regex-literal" ;;
   esac
+  for arm in $arms; do
+    plant=$(plant_for "$kind" "$arm")
+    if [ -z "$plant" ]; then
+      sweep_expected=$((sweep_expected+1)); sweep_fail=$((sweep_fail+1))
+      echo "  FAIL  no $arm plant for a '$kind' row: $target"
+      echo "        Add one to plant_for. Until then this row is asserted and"
+      echo "        has never been watched refusing anything."
+      continue
+    fi
+    sweep_plant "$row" "$target" "$kind" "$plant" "$arm"
+  done
 done < <(grep '^grep-count' "$CLAIMS")
 check_restored
 
