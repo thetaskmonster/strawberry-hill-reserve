@@ -408,8 +408,48 @@ while IFS= read -r row; do
 done < <(grep '^grep-count' "$CLAIMS")
 check_restored
 
-# Reconcile what the loop consumed against what it was given. A row list that
-# silently shrinks to nothing would otherwise report success.
+# Reconcile what the sweep loop CONSUMED against what the row list HOLDS.
+#
+# WHAT THIS COVERS: a row that was read and then never planted, a plant that
+# ran and never pinned, and a kind/arm combination with no plant defined. That
+# is a mismatch INSIDE one run, and it is the whole of it.
+#
+# WHAT IT DOES NOT COVER, and the earlier version of this comment said the
+# opposite. It read: "A row list that silently shrinks to nothing would
+# otherwise report success. This is that reconciliation." It is not. Both sides
+# of the comparison below - sweep_expected and `want` - are recomputed from
+# $CLAIMS on every run, and so is EXPECT_TOTAL. A file that SHRINKS therefore
+# takes every expectation down with it and nothing notices. THIS RECONCILIATION
+# DOES NOT PROTECT THE FILE. Delete rows from grind.claims and this harness
+# reports success.
+#
+# MEASURED, not reasoned about. Two ablations, each an untracked copy of the
+# claims file and of this harness, run to completion:
+#
+#   drop the SIX section E sealing rows - the entire guard PR 15 exists to add:
+#     claim rows counted: 32
+#     PASS SWEEP 13 rendered rows + 14 source rows x2 plants = 41, all refusing
+#     cases run: 20   failures: 0   exit 0
+#
+#   drop ALL EIGHT of section E, positive and negative controls included:
+#     claim rows counted: 30
+#     PASS SWEEP 12 rendered rows + 14 source rows x2 plants = 40, all refusing
+#     cases run: 20   failures: 0   exit 0
+#
+# Fully green both times. No named case above plants a sealing mutant, so once
+# the rows are gone there is nothing left to notice their absence.
+#
+# THE HOLE IS NOT SOMETHING THE DERIVED EXPECT_TOTAL INTRODUCED. 30 in the
+# second ablation is the same 30 the old hand-typed EXPECT_TOTAL asserted, so
+# deleting section E under the old constant went green by the same route. The
+# derivation changed which number is typed, not whether a vanished section is
+# visible. Neither version sees one.
+#
+# CLOSING IT NEEDS A ROW COUNT PINNED PER SECTION, independently of anything
+# read out of $CLAIMS - a second awk over the same file would shrink with it
+# and buy nothing. That is not in this commit, which is wording only. Until it
+# lands, read a green run as "every row THIS FILE STILL HOLDS was observed
+# refusing", never as "the rows that should be here are here".
 dist_rows=$(grep '^grep-count' "$CLAIMS" | awk -F' \\| ' '{print $2}' | grep -c '^dist/')
 src_rows=$(grep '^grep-count' "$CLAIMS" | awk -F' \\| ' '{print $2}' | grep -vc '^dist/')
 want=$((dist_rows + 2 * src_rows))
