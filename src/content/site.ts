@@ -7,7 +7,10 @@
 
 export const BRAND = "Berrova"; // house brand (locked 2026-07-24)
 export const HERO_LINE = "Strawberry Hill";
-export const INQUIRY_EMAIL = "wecare@gsccapitalgroup.com";
+// Berrova's own mailbox. The domain sends, receives and authenticates as of
+// 2026-09-20 (DKIM, SPF and DMARC all pass on a delivered message). Until then
+// this line carried wecare@gsccapitalgroup.com, which is a different company.
+export const INQUIRY_EMAIL = "thepour@berrova.com";
 
 export const DROP = { units: "200", opens: "Oct 1", opensISO: "2026-10-01" };
 
@@ -99,7 +102,7 @@ export const FAQ = [
   { q: "What is Berrova?", a: "A small coffee house built on high-grown, honestly sourced origins, roasted to order. We keep the range short and let each origin earn its place. Strawberry Hill, our JACRA-certified Jamaica Blue Mountain, is the featured drop." },
   { q: "How does the subscription work?", a: "You choose a cadence and control it yourself: skip, pause, swap origin or size, or cancel, all self-serve. Subscribers pay a lower per-bag price and get first access to drops before the public." },
   { q: "Subscribe or one-time?", a: "Both, on every coffee, never forced. Subscribing is the better deal on price and access; one-time is the same coffee with zero commitment, no account, no auto-renew." },
-  { q: "When will my order ship?", a: "Within 8 weeks. Nothing sits in a warehouse waiting for you: your coffee is roasted and packaged in Jamaica after you order, then shipped to us and out to you. That is slower than most coffee you can buy, and it is the honest cost of buying it this way. The window is always shown before you pay, and if we cannot meet it, you can cancel for a full refund." },
+  { q: "When will my order ship?", a: "Within 8 weeks. Nothing sits in a warehouse waiting for you, because there is no warehouse: your coffee is roasted and packaged in Jamaica after you order, and it ships to you direct from the island. Fresh from the source, and we never hold stock. That is slower than most coffee you can buy, and it is the honest cost of buying it this way. The window is always shown before you pay, and if we cannot meet it, you can cancel for a full refund." },
   { q: "Why only limited drops?", a: "We buy only what we can secure and sell exactly that, then the drop closes until the next one. It keeps the coffee fresh and the story honest. When a drop sells out, it is genuinely gone." },
-  { q: "What if I don't love it?", a: "Message us within 30 days of your first order. We will provide a return label, and once the bag is back with us, we will refund you. This covers your first order, once per customer. It is separate from the ship-window promise above, that one covers us being late, this one covers you not liking the coffee." },
+  { q: "What if I don't love it?", a: "Message us within 30 days of delivery. We will provide a return label, and once the bag is back with us, we will refund you. This covers your first order, once per customer. The clock starts when the coffee reaches you, not when you order, because we ship within 8 weeks and a window that started at checkout would be gone before the bag arrived. It is separate from the ship-window promise above, that one covers us being late, this one covers you not liking the coffee." },
 ];

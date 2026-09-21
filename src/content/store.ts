@@ -144,7 +144,8 @@ export function formatUsd(cents: number): string {
 // weeks: the supplier's lead time is 4 to 6 weeks, payment is wired before the
 // batch is produced, and packing and outbound shipping sit on top of that. The
 // honest chain runs 5 to 7 weeks from charge to dispatch, so 8 is the number we
-// can actually stand behind. Do not shorten this without a supplier lead time in
-// writing, or without inventory already landed in Lewisville.
+// can actually stand behind. Kyle ruled 2026-09-21 that every order ships DIRECT
+// FROM JAMAICA and no US inventory is held, so there is no landed-stock route to
+// shorten this. Do not shorten it without a supplier lead time in writing.
 export const SHIP_WINDOW =
-  "Roasted and packaged to order at origin. Because each batch is produced in Jamaica after you order, we ship within 8 weeks. The window is shown before you pay, and if we cannot meet it you can cancel for a full refund.";
+  "Roasted and packaged to order at origin, then shipped to you direct from Jamaica. We hold no stock. Because each batch is produced after you order, we ship within 8 weeks. The window is shown before you pay, and if we cannot meet it you can cancel for a full refund.";
