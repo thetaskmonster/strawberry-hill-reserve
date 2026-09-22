@@ -70,6 +70,29 @@ export const CLIPS = {
   beansBroll: { src: import.meta.env.BASE_URL + "assets/video/beans-broll.mp4", poster: import.meta.env.BASE_URL + "assets/video/beans-broll.jpg" },
   pourBroll: { src: import.meta.env.BASE_URL + "assets/video/pour-broll.mp4", poster: import.meta.env.BASE_URL + "assets/video/pour-broll.jpg" },
   beansPhoto: import.meta.env.BASE_URL + "assets/img/beans-dark.webp",
+  // The bag image is a COMPOSITE, not a photograph of a bag that exists.
+  //
+  // The photograph it is built on showed the old front panel, which read
+  // `8 OZ  NET WT. 277G`. The true weight is 227 g, so the store was
+  // publishing a net weight wrong by 50 grams. A net weight in advertising is
+  // the same statement 21 CFR 101.7 governs on the bag itself, and the
+  // nutrition exemption the product relies on is void if a nutrition claim
+  // appears in advertising.
+  //
+  // So the corrected front panel is warped onto the photographed bag by
+  // deterministic image arithmetic. Nothing is AI-generated: a rendered label
+  // is a rendered claim.
+  //
+  // WHAT THAT LEAVES OPEN. Under the direct-ship ruling the customer receives
+  // the roaster's own JACRA-approved bag, which nobody here has seen and
+  // which may still read 277G. This image is our specification, not a
+  // photograph of the shipped product, and no copy on this site may describe
+  // it as one until Paula sends the real artwork.
+  //
+  // Where this lives:
+  //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/bag-composite.gen.py
+  //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/bag-front-composited.provenance.json
+  //   Strawberry Hill Reserve/00-CONTEXT/ground-truth.md
   bag: import.meta.env.BASE_URL + "assets/img/bag-front.webp",
   certMark: import.meta.env.BASE_URL + "assets/img/jbm-cert-mark.webp",
 };
