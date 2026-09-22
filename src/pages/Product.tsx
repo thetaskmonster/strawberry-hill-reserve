@@ -10,6 +10,7 @@ import {
   CHECKOUT_PENDING_NOTE,
 } from "../lib/checkout";
 import Reveal from "../components/Reveal";
+import ImageZoom, { type ZoomTarget } from "../components/ImageZoom";
 
 // The configurator's size chips map onto the locked store SKUs.
 //
@@ -44,9 +45,38 @@ const SIZE_TO_ID: Record<number, string> = {
   16: "shr-16oz",
 };
 
+// Gallery views. `zoomSrc` is what the inspector loads, which is a bigger file
+// only where a bigger file honestly exists.
+//
+// The Label view is the one a buyer can actually check, and it is here because
+// the bag view cannot do that job. The bag shot is a render: the vault measured
+// that rendering silently rewrites the small print on the label, wrong weights
+// and a misspelled certifier across roughly half of thirty frames, so it is
+// shown at the resolution its text was verified at and no further. The label
+// panel is a design file built from vector type at 600 dpi, so it is sharp at
+// any zoom and says exactly what the artwork says.
+//
+// `fit` drives the object-fit class. Do not go back to indexing on `img === 0`:
+// that was correct for two views and silently wrong for three.
 const VIEWS = [
-  { label: "Bag", src: CLIPS.bag },
-  { label: "Bean", src: CLIPS.beansPhoto },
+  {
+    label: "Bag",
+    src: CLIPS.bag,
+    zoomSrc: CLIPS.bag,
+    fit: "contain" as const,
+    note: "Product render. For the label as printed, open the Label view.",
+  },
+  { label: "Bean", src: CLIPS.beansPhoto, zoomSrc: CLIPS.beansPhoto, fit: "cover" as const },
+  {
+    label: "Label",
+    src: CLIPS.labelPanel,
+    zoomSrc: CLIPS.labelPanelLarge,
+    fit: "contain" as const,
+    // Said out loud rather than hoped past. The certification roundel is the
+    // only part of this artwork that is not vector, and the highest resolution
+    // copy anyone holds is 240 px, so it goes soft before the type around it.
+    note: "The 8 oz label as printed. The certification mark is the only raster element here, so it softens before the type does.",
+  },
 ];
 
 const chip = (on: boolean) =>
@@ -58,6 +88,7 @@ export default function Product() {
   const [size, setSize] = useState(8);
   const [mode, setMode] = useState<"sub" | "once">("sub");
   const [img, setImg] = useState(0);
+  const [zoom, setZoom] = useState<ZoomTarget | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -96,18 +127,35 @@ export default function Product() {
 
   const giftbox = getSku("shr-giftbox")!;
 
+  const zoomFor = (i: number): ZoomTarget => ({
+    src: VIEWS[i].zoomSrc,
+    alt: `${HERO_LINE}, ${VIEWS[i].label.toLowerCase()}`,
+    note: VIEWS[i].note,
+  });
+
   return (
     <section className="container-page grid gap-12 py-16 lg:grid-cols-2">
       <div>
-        <div className="flex items-center justify-center overflow-hidden rounded border border-line bg-bg-warm" style={{ aspectRatio: "1 / 1" }}>
-          {/* This is the LCP element on /reserve, so it loads eagerly at high
-              priority rather than competing with below-fold media. */}
-          <img src={VIEWS[img].src} alt={`${HERO_LINE}, ${VIEWS[img].label.toLowerCase()}`} fetchPriority="high" decoding="async" className={img === 0 ? "h-full w-auto max-w-[80%] object-contain drop-shadow-2xl" : "h-full w-full object-cover"} />
-        </div>
+        {/* The frame is a button so the image can be inspected. A $68 bag whose
+            certification marks are unreadable at gallery size gives a buyer
+            nothing to check, which is the whole basis of the price. */}
+        <button
+          type="button"
+          onClick={() => setZoom(zoomFor(img))}
+          aria-label={`Enlarge ${VIEWS[img].label.toLowerCase()} image`}
+          className="block w-full cursor-zoom-in overflow-hidden rounded border border-line bg-bg-warm"
+          style={{ aspectRatio: "1 / 1" }}
+        >
+          <div className="flex h-full w-full items-center justify-center">
+            {/* This is the LCP element on /reserve, so it loads eagerly at high
+                priority rather than competing with below-fold media. */}
+            <img src={VIEWS[img].src} alt={`${HERO_LINE}, ${VIEWS[img].label.toLowerCase()}`} fetchPriority="high" decoding="async" className={VIEWS[img].fit === "contain" ? "h-full w-auto max-w-[80%] object-contain drop-shadow-2xl" : "h-full w-full object-cover"} />
+          </div>
+        </button>
         <div className="mt-3 flex gap-3">
           {VIEWS.map((v, i) => (
             <button key={v.label} onClick={() => setImg(i)} aria-pressed={img === i} aria-label={v.label} className={`w-20 overflow-hidden rounded border bg-bg-warm ${img === i ? "border-accent" : "border-line"}`} style={{ aspectRatio: "1 / 1" }}>
-              <img src={v.src} alt="" className={i === 0 ? "h-full w-full object-contain p-1" : "h-full w-full object-cover"} />
+              <img src={v.src} alt="" className={v.fit === "contain" ? "h-full w-full object-contain p-1" : "h-full w-full object-cover"} />
             </button>
           ))}
         </div>
@@ -255,6 +303,10 @@ export default function Product() {
 
         <p className="mt-4 font-sans text-sm text-fg-muted">Prefer a different size? <Link to="/reserve" className="text-accent underline">Back to sizes</Link></p>
       </div>
+
+      {/* Renders nothing until opened, so the large sources are never on the
+          page's critical path. */}
+      <ImageZoom target={zoom} onClose={() => setZoom(null)} />
     </section>
   );
 }

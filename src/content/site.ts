@@ -69,6 +69,17 @@ export const CLIPS = {
   beansPhoto: import.meta.env.BASE_URL + "assets/img/beans-dark.webp",
   bag: import.meta.env.BASE_URL + "assets/img/bag-front.webp",
   certMark: import.meta.env.BASE_URL + "assets/img/jbm-cert-mark.webp",
+  // The flat 8 oz label panel, in two sizes. This is the one product asset a
+  // buyer can zoom into and read, and the only one that is a DESIGN FILE rather
+  // than a photograph or a render: vector type, the brand's own vector mark, and
+  // the real certification stamp placed as-is. Built at 600 dpi by the vault's
+  // label generator, so the type stays sharp at any zoom the overlay allows.
+  //
+  // Two files on purpose. The small one is the gallery view and its thumbnail,
+  // because a w-20 thumbnail pulling a 2000px source is bytes nobody ever sees.
+  // The large one is fetched ONLY when the zoom overlay opens.
+  labelPanel: import.meta.env.BASE_URL + "assets/img/label-standard-8oz.webp",
+  labelPanelLarge: import.meta.env.BASE_URL + "assets/img/label-standard-8oz-large.webp",
 };
 
 export const NAV = [
