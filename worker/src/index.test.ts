@@ -184,6 +184,28 @@ describe("buildForm", () => {
     expect(form.get("line_items[0][price_data][unit_amount]")).toBe("5900");
     expect(form.get("line_items[0][price_data][recurring][interval]")).toBe("month");
   });
+
+  // The shipping country list is a business rule, not a detail: accepting an
+  // address we cannot fulfil or price duty on ends in a refund. Canada was
+  // removed on 2026-09-22 because every order ships direct from Jamaica and
+  // is its own customs entry. These two assertions are deliberately a pair.
+  // The first pins what IS allowed; the second is the reject case, and it
+  // scans the WHOLE form rather than one index, so re-adding "CA" at any
+  // position fails instead of sliding in behind an index-specific check.
+  it("collects a shipping address for the US only", () => {
+    const form = buildForm([{ id: "shr-8oz", qty: 1, mode: "payment" }], "payment", SITE_ORIGIN);
+    expect(form.get("shipping_address_collection[allowed_countries][0]")).toBe("US");
+    expect(form.get("shipping_address_collection[allowed_countries][1]")).toBeNull();
+  });
+
+  it("offers no country we cannot yet quote duty for, at any index", () => {
+    const form = buildForm([{ id: "shr-8oz", qty: 1, mode: "payment" }], "payment", SITE_ORIGIN);
+    const countries = [...form.entries()]
+      .filter(([k]) => k.startsWith("shipping_address_collection[allowed_countries]"))
+      .map(([, v]) => v);
+    expect(countries).toEqual(["US"]);
+    expect(countries).not.toContain("CA");
+  });
 });
 
 describe("worker fetch handler", () => {
@@ -217,6 +239,30 @@ describe("worker fetch handler", () => {
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     const [calledUrl] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
     expect(String(calledUrl)).toBe("https://api.stripe.com/v1/checkout/sessions");
+  });
+
+  // Wire-level check on the shipping rule. The buildForm tests above prove the
+  // helper, but Stripe is what actually refuses a Canadian address, and it can
+  // only refuse what the request tells it to. So read the country list back out
+  // of the body that was really POSTed to api.stripe.com, not out of the helper
+  // return value. If a future change builds the form somewhere else, or drops
+  // shipping_address_collection entirely, this fails and the helper tests would
+  // not: an absent restriction means Stripe collects EVERY country it supports.
+  it("posts a US-only shipping restriction to Stripe, and posts one at all", async () => {
+    const res = await worker.fetch(makeRequest({ body: VALID_CART }), makeEnv());
+    expect(res.status).toBe(200);
+
+    const [, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      unknown,
+      RequestInit,
+    ];
+    const sent = new URLSearchParams(String(init.body));
+    const countries = [...sent.entries()]
+      .filter(([k]) => k.startsWith("shipping_address_collection[allowed_countries]"))
+      .map(([, v]) => v);
+
+    expect(countries).toEqual(["US"]);
+    expect(countries.length).toBeGreaterThan(0);
   });
 
   it("reject A: missing Origin header -> 403", async () => {
