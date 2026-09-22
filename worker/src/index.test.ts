@@ -261,8 +261,12 @@ describe("worker fetch handler", () => {
       .filter(([k]) => k.startsWith("shipping_address_collection[allowed_countries]"))
       .map(([, v]) => v);
 
+    // toEqual(["US"]) carries both halves of the promise: it fails on a country
+    // we cannot price AND on an empty list, which is the worse case because an
+    // absent restriction means Stripe collects every country it supports. An
+    // extra length assertion here would be subsumed by this line and could
+    // never fail on its own, so it is not written.
     expect(countries).toEqual(["US"]);
-    expect(countries.length).toBeGreaterThan(0);
   });
 
   it("reject A: missing Origin header -> 403", async () => {

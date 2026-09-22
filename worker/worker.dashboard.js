@@ -21,8 +21,10 @@ const PRICE_MAP = {
 
 // Countries Stripe Checkout will collect a shipping address for. US only.
 //
-// MIRROR of src/index.ts. This file is standalone on purpose (it gets pasted
-// into the Cloudflare dashboard as one file), so it cannot import the constant.
+// DUPLICATED from src/index.ts. This file is standalone on purpose (it gets
+// pasted into the Cloudflare dashboard as one file), so it cannot import it.
+// This file is NOT a mirror of src/index.ts: it has no guard-token gate, and
+// only the country list and PRICE_MAP are fenced. See mirror-drift.test.ts.
 // If you change this list, change it in BOTH files.
 //
 // Canada was removed on 2026-09-22 (Kyle's ruling): orders ship direct from

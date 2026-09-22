@@ -31,8 +31,13 @@ type Product = {
   subscribeCents: number | null;
 };
 
-// MIRROR of src/content/store.ts. Kept in sync by hand; this copy is the
-// authority. If you change a price, change it in BOTH files.
+// Duplicated by hand from src/content/store.ts; THIS copy is the authority at
+// charge time. It is also duplicated in worker.dashboard.js, and that pair IS
+// fenced: mirror-drift.test.ts compares SKU ids, names and both price fields
+// across the two worker copies, so a price changed here and not there fails.
+// Nothing fences this copy against src/content/store.ts, which is a separate
+// and still-open gap: the client only sends { id, qty, mode }, so a drift there
+// shows the customer a price we do not charge rather than charging it.
 const CURRENCY = "usd";
 const PRICE_MAP: Record<string, Product> = {
   "shr-8oz": { name: "Strawberry Hill 8 oz", oneTimeCents: 6800, subscribeCents: 5900 },
@@ -43,8 +48,10 @@ const PRICE_MAP: Record<string, Product> = {
 
 // Countries Stripe Checkout will collect a shipping address for. US only.
 //
-// MIRROR of worker.dashboard.js. That copy is a standalone single file meant to
+// DUPLICATED in worker.dashboard.js, which is a standalone single file meant to
 // be pasted into the Cloudflare dashboard, so it cannot import this constant.
+// Do not read that as "the two files are mirrors" -- they are not. The
+// dashboard copy has NO guard-token gate. See mirror-drift.test.ts.
 // If you change this list, change it in BOTH files. index.test.ts asserts the
 // two agree, so a drift fails the test rather than reaching a customer.
 //
