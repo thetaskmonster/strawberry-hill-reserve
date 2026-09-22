@@ -83,16 +83,27 @@ export const CLIPS = {
   // deterministic image arithmetic. Nothing is AI-generated: a rendered label
   // is a rendered claim.
   //
-  // WHAT THAT LEAVES OPEN. Under the direct-ship ruling the customer receives
-  // the roaster's own JACRA-approved bag, which nobody here has seen and
-  // which may still read 277G. This image is our specification, not a
-  // photograph of the shipped product, and no copy on this site may describe
-  // it as one until Paula sends the real artwork.
+  // WHAT THAT LEAVES OPEN.
+  //
+  // CORRECTED 2026-09-22, the same day this comment was written. It used to
+  // say the customer receives the roaster's own JACRA-approved bag, which
+  // nobody here has seen. Kyle ruled hours later that WE PRINT OUR OWN POUCH
+  // and Island Coffees fills it in Jamaica. That premise is retired.
+  //
+  // The limit is unchanged; its reason changed. This image is our
+  // specification, not a photograph of the shipped product, and no copy on
+  // this site may describe it as one, because THE POUCH IT SHOWS HAS NOT BEEN
+  // PRINTED. Two gaps now, not one: the artwork is ours and correct, and the
+  // bag shape under it is still the roaster's. Kyle ruled a stand-up pouch
+  // with a bottom gusset; this photograph is a squared, side-gusseted bag
+  // with a flat zip top. It closes when our own pouch is printed and
+  // photographed, not when Paula sends anything.
   //
   // Where this lives:
   //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/bag-composite.gen.py
   //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/bag-front-composited.provenance.json
   //   Strawberry Hill Reserve/00-CONTEXT/ground-truth.md
+  //   Strawberry Hill Reserve/01-COMPANY/decisions-log.md   (2026-09-22 row)
   bag: import.meta.env.BASE_URL + "assets/img/bag-front.webp",
   certMark: import.meta.env.BASE_URL + "assets/img/jbm-cert-mark.webp",
 };
