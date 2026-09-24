@@ -70,6 +70,40 @@ export const CLIPS = {
   beansBroll: { src: import.meta.env.BASE_URL + "assets/video/beans-broll.mp4", poster: import.meta.env.BASE_URL + "assets/video/beans-broll.jpg" },
   pourBroll: { src: import.meta.env.BASE_URL + "assets/video/pour-broll.mp4", poster: import.meta.env.BASE_URL + "assets/video/pour-broll.jpg" },
   beansPhoto: import.meta.env.BASE_URL + "assets/img/beans-dark.webp",
+  // The bag image is a COMPOSITE, not a photograph of a bag that exists.
+  //
+  // The photograph it is built on showed the old front panel, which read
+  // `8 OZ  NET WT. 277G`. The true weight is 227 g, so the store was
+  // publishing a net weight wrong by 50 grams. A net weight in advertising is
+  // the same statement 21 CFR 101.7 governs on the bag itself, and the
+  // nutrition exemption the product relies on is void if a nutrition claim
+  // appears in advertising.
+  //
+  // So the corrected front panel is warped onto the photographed bag by
+  // deterministic image arithmetic. Nothing is AI-generated: a rendered label
+  // is a rendered claim.
+  //
+  // WHAT THAT LEAVES OPEN.
+  //
+  // CORRECTED 2026-09-22, the same day this comment was written. It used to
+  // say the customer receives the roaster's own JACRA-approved bag, which
+  // nobody here has seen. Kyle ruled hours later that WE PRINT OUR OWN POUCH
+  // and Island Coffees fills it in Jamaica. That premise is retired.
+  //
+  // The limit is unchanged; its reason changed. This image is our
+  // specification, not a photograph of the shipped product, and no copy on
+  // this site may describe it as one, because THE POUCH IT SHOWS HAS NOT BEEN
+  // PRINTED. Two gaps now, not one: the artwork is ours and correct, and the
+  // bag shape under it is still the roaster's. Kyle ruled a stand-up pouch
+  // with a bottom gusset; this photograph is a squared, side-gusseted bag
+  // with a flat zip top. It closes when our own pouch is printed and
+  // photographed, not when Paula sends anything.
+  //
+  // Where this lives:
+  //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/bag-composite.gen.py
+  //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/bag-front-composited.provenance.json
+  //   Strawberry Hill Reserve/00-CONTEXT/ground-truth.md
+  //   Strawberry Hill Reserve/01-COMPANY/decisions-log.md   (2026-09-22 row)
   bag: import.meta.env.BASE_URL + "assets/img/bag-front.webp",
   certMark: import.meta.env.BASE_URL + "assets/img/jbm-cert-mark.webp",
 };
