@@ -106,3 +106,85 @@ grep-count | src/lib/checkout.ts | ^[[:space:]]*(/?([Tt]ins?([^a-zA-Z]|$))|([^[:
 grep-count | src/store/cart.tsx | ^[[:space:]]*(/?([Tt]ins?([^a-zA-Z]|$))|([^[:space:]/*]|/[^/*]).*([^a-zA-Z][Tt]ins?([^a-zA-Z]|$))) | 0
 grep-count | worker/src/index.ts | ^[[:space:]]*(/?([Tt]ins?([^a-zA-Z]|$))|([^[:space:]/*]|/[^/*]).*([^a-zA-Z][Tt]ins?([^a-zA-Z]|$))) | 0
 grep-count | worker/worker.dashboard.js | ^[[:space:]]*(/?([Tt]ins?([^a-zA-Z]|$))|([^[:space:]/*]|/[^/*]).*([^a-zA-Z][Tt]ins?([^a-zA-Z]|$))) | 0
+#
+# ---------------------------------------------------------------------------
+# E. THE COFFEE IS NOT SEALED AT SHIPPING TIME. This row exists because the
+#    claim shipped. The prerendered homepage carried "Sealed the day it ships"
+#    while the same page also said "Sealed at origin", and this suite counted
+#    the contradiction zero times, because nothing here was looking for it.
+#
+#    It is not a wording preference. Island Coffees Ltd confirmed in writing on
+#    2025-11-04 that Blue Mountain cannot be repackaged by us outside Jamaica,
+#    because it is a protected product. We hold no JACRA Special Dealer's
+#    Licence, and under the 2026-08-04 Path A ruling we resell ICL's own
+#    already-packaged retail units. Sealing happens in Jamaica. Shipping happens
+#    in Lewisville, Texas. A page that says the coffee is sealed on the day it
+#    leaves Texas describes something that would be unlawful.
+#
+#    THE REGEX IS NOT THE SENTENCE THAT SHIPPED. Pinning one English sentence is
+#    escape 2 at the top of this file, already defeated once on this suite by
+#    rewording. The alternation covers the connectors a rewrite would reach for
+#    (the day / on the day / when / before / as) and stops at "ship" so ships,
+#    shipped and shipping are all caught.
+#
+#    IT IS ALSO DELIBERATELY GAP-FREE, no .* between the words. The prerendered
+#    pages are a handful of very long lines - 23 lines each, the longest of them
+#    19,927 characters on dist/index.html - and grep -cE counts MATCHING LINES,
+#    so one line is effectively the whole body. A loose pattern like
+#    "sealed.*ship" therefore COULD match a page that says "sealed at origin" in
+#    one paragraph and "ships" in another, with nothing wrong on the page at
+#    all. Every widening of this row has to keep the words adjacent for that
+#    reason.
+#
+#    STATED EXACTLY, because this note has now been wrong about it twice. The
+#    first version claimed the loose pattern "would REFUTE on correct copy". It
+#    does not. The second version fixed that and then got the premise underneath
+#    it wrong, which is the worse of the two failures: the conclusion happened to
+#    survive while the measurement it rested on was false on one side.
+#
+#    Measured on today's build, grep -cE matching lines, grep -o occurrences:
+#
+#      sealed   index 1 line (7 occurrences), story 1 (5), reserve 1 (4),
+#               gifting 0, wholesale 0, faq 0
+#      ship     faq 4 lines (8 occurrences), the other five pages 0
+#
+#    So THREE pages carry "sealed", not one: index, story and reserve, one
+#    matching line each. story.html says "roasted to order and sealed at
+#    origin"; reserve.html says that and also "Three sealed 2 oz packages",
+#    which is one of section A's own identity rows above, so the word was
+#    already sitting in a file this paragraph was citing. Only faq.html carries
+#    "ship", on 4 lines. No page carries both words, and grep -ciE
+#    'sealed.*ship' therefore returns 0 on all six.
+#
+#    That last zero is the number the gap-free rule is actually measured
+#    against, and it is a property of the PAGES. It is not a property of two
+#    named files being different files, which is what the earlier wording
+#    argued from and which was false.
+#
+#    The gap-free rule is kept for the exposure, not for a false alarm anyone
+#    has seen - one paragraph about shipping added to index, story or reserve
+#    is all it would take, and this row must not be the thing that then goes
+#    red.
+#
+#    Covered on all six pages, not just the homepage, on section B's reasoning:
+#    the same sentence on the wholesale page is the same defect.
+grep-count | dist/index.html | [Ss][Ee][Aa][Ll][Ee][Dd] (([Oo][Nn] )?[Tt][Hh][Ee] [Dd][Aa][Yy]|[Ww][Hh][Ee][Nn]|[Bb][Ee][Ff][Oo][Rr][Ee]|[Aa][Ss]) [Ii][Tt] [Ss][Hh][Ii][Pp] | 0
+grep-count | dist/story.html | [Ss][Ee][Aa][Ll][Ee][Dd] (([Oo][Nn] )?[Tt][Hh][Ee] [Dd][Aa][Yy]|[Ww][Hh][Ee][Nn]|[Bb][Ee][Ff][Oo][Rr][Ee]|[Aa][Ss]) [Ii][Tt] [Ss][Hh][Ii][Pp] | 0
+grep-count | dist/reserve.html | [Ss][Ee][Aa][Ll][Ee][Dd] (([Oo][Nn] )?[Tt][Hh][Ee] [Dd][Aa][Yy]|[Ww][Hh][Ee][Nn]|[Bb][Ee][Ff][Oo][Rr][Ee]|[Aa][Ss]) [Ii][Tt] [Ss][Hh][Ii][Pp] | 0
+grep-count | dist/gifting.html | [Ss][Ee][Aa][Ll][Ee][Dd] (([Oo][Nn] )?[Tt][Hh][Ee] [Dd][Aa][Yy]|[Ww][Hh][Ee][Nn]|[Bb][Ee][Ff][Oo][Rr][Ee]|[Aa][Ss]) [Ii][Tt] [Ss][Hh][Ii][Pp] | 0
+grep-count | dist/wholesale.html | [Ss][Ee][Aa][Ll][Ee][Dd] (([Oo][Nn] )?[Tt][Hh][Ee] [Dd][Aa][Yy]|[Ww][Hh][Ee][Nn]|[Bb][Ee][Ff][Oo][Rr][Ee]|[Aa][Ss]) [Ii][Tt] [Ss][Hh][Ii][Pp] | 0
+grep-count | dist/faq.html | [Ss][Ee][Aa][Ll][Ee][Dd] (([Oo][Nn] )?[Tt][Hh][Ee] [Dd][Aa][Yy]|[Ww][Hh][Ee][Nn]|[Bb][Ee][Ff][Oo][Rr][Ee]|[Aa][Ss]) [Ii][Tt] [Ss][Hh][Ii][Pp] | 0
+#
+#    POSITIVE CONTROL, and it is not decoration. Every row above is an absence,
+#    and an empty, truncated or 404 dist/index.html satisfies all six while
+#    proving nothing. This row asserts the correct claim IS on the homepage, so
+#    the six zeros above mean "the page says it right" rather than "there is no
+#    page". file-contains is a presence test, which is how this file expresses
+#    "more than zero" without pinning a count that moves whenever the copy does.
+file-contains | dist/index.html | sealed at origin
+#
+#    NEGATIVE CONTROL. A string that is absent and is meant to stay absent, so
+#    a reader can see the method returns zero when a thing is genuinely not
+#    there, rather than assuming the six zeros above prove themselves. It is
+#    also the claim the false line implied, named outright.
+grep-count | dist/index.html | [Ss][Ee][Aa][Ll][Ee][Dd] [Ii][Nn] [Ll][Ee][Ww][Ii][Ss][Vv][Ii][Ll][Ll][Ee] | 0

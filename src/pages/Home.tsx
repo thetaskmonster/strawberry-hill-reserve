@@ -60,7 +60,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Marquee items={["High-grown, hand-picked", "Roasted to order", "JACRA-certified Blue Mountain", "Sealed the day it ships"]} />
+      <Marquee items={["High-grown, hand-picked", "Roasted to order", "JACRA-certified Blue Mountain", "Sealed at origin"]} />
 
       {/* PROCESS - grown to poured */}
       <section className="relative overflow-hidden py-20" aria-labelledby="process-h">
@@ -98,7 +98,7 @@ export default function Home() {
             <p className="lead mt-5">Great coffee starts long before the roast, in the choice of what to buy. We keep the range short so every origin is one we know the way back to. The featured drop, Strawberry Hill, is JACRA-certified Jamaica Blue Mountain, grown on farms above 3,000 ft and sold only when it is real coffee in hand.</p>
             <ul className="mt-6 space-y-3 text-fg-muted">
               <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> JACRA-certified Jamaica Blue Mountain, verified on the bag</li>
-              <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> Roasted to order, then sealed the day it ships</li>
+              <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> Roasted to order, then sealed at origin</li>
               <li className="flex flex-wrap items-center gap-2"><span className="text-accent">&#9650;</span> Farms above 3,000 ft, a JACRA-licensed dealer, and no blending</li>
             </ul>
           </Reveal>
