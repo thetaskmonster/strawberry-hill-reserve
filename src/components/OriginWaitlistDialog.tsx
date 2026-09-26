@@ -18,6 +18,7 @@
 import { useEffect, useRef } from "react";
 import WaitlistForm from "./WaitlistForm";
 import { prefersReduced } from "../lib/motion";
+import { lockScroll } from "../lib/scroll-lock";
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])';
@@ -50,20 +51,12 @@ export default function OriginWaitlistDialog({
     if (open) restoreRef.current = document.activeElement as HTMLElement | null;
   }, [open]);
 
-  // Lock body scroll while open, compensating for scrollbar width so the page
-  // underneath does not shift.
+  // Lock page scroll while open. Shared with CartDrawer; the note in
+  // lib/scroll-lock.ts explains why the lock is on <html>, not <body>, and
+  // what the body version did to the sticky header.
   useEffect(() => {
     if (!open) return;
-    const { style } = document.body;
-    const prevOverflow = style.overflow;
-    const prevPad = style.paddingRight;
-    const sbw = window.innerWidth - document.documentElement.clientWidth;
-    style.overflow = "hidden";
-    if (sbw > 0) style.paddingRight = `${sbw}px`;
-    return () => {
-      style.overflow = prevOverflow;
-      style.paddingRight = prevPad;
-    };
+    return lockScroll();
   }, [open]);
 
   // Focus the email field on open, trap Tab, close on Esc, restore focus after.
