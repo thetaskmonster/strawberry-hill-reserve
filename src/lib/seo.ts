@@ -39,7 +39,7 @@ const ROUTE_META: Record<string, RouteMeta> = {
   "/reserve": {
     title: `${HERO_LINE} · JACRA-certified Jamaica Blue Mountain | ${BRAND}`,
     description:
-      "JACRA-certified Jamaica Blue Mountain, roasted to order and date-stamped. 8 oz and 16 oz bags, subscribe or one-time on every coffee, quarterly limited drops.",
+      "JACRA-certified Jamaica Blue Mountain, roasted to order and date-stamped. 16 oz and 8 oz bags, subscribe or one-time on every coffee, quarterly limited drops.",
   },
   "/gifting": {
     title: `Corporate Gifting · ${BRAND}`,
