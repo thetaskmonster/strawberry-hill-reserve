@@ -24,20 +24,20 @@ export const CURRENCY = "usd";
 
 export const CATALOG: Sku[] = [
   {
-    id: "shr-8oz",
-    name: "Strawberry Hill 8 oz",
-    size: "8 oz",
-    blurb: "The everyday bag. JACRA-certified Jamaica Blue Mountain, roasted to order.",
-    oneTimeCents: 6800,
-    subscribeCents: 5900,
-  },
-  {
     id: "shr-16oz",
     name: "Strawberry Hill 16 oz",
     size: "16 oz",
-    blurb: "The full pour. The same coffee, more of it, at a better per-ounce price.",
+    blurb: "The lead bag. JACRA-certified Jamaica Blue Mountain, roasted to order, at a better per-ounce price than the 8 oz.",
     oneTimeCents: 12500,
     subscribeCents: 10900,
+  },
+  {
+    id: "shr-8oz",
+    name: "Strawberry Hill 8 oz",
+    size: "8 oz",
+    blurb: "The smaller bag. The same coffee as the 16 oz, in half the quantity.",
+    oneTimeCents: 6800,
+    subscribeCents: 5900,
   },
   {
     id: "shr-giftbox",

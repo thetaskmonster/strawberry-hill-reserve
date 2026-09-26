@@ -55,7 +55,7 @@ const chip = (on: boolean) =>
   }`;
 
 export default function Product() {
-  const [size, setSize] = useState(8);
+  const [size, setSize] = useState(16);
   const [mode, setMode] = useState<"sub" | "once">("sub");
   const [img, setImg] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -128,9 +128,9 @@ export default function Product() {
         <div className="mt-8">
           <span className="eyebrow">Size</span>
           <div className="mt-2 flex flex-wrap gap-3" role="group" aria-label="Size">
-            <button className={chip(size === 2)} aria-pressed={size === 2} onClick={() => setSize(2)}>2 oz <span className="text-accent">sample</span></button>
-            <button className={chip(size === 8)} aria-pressed={size === 8} onClick={() => setSize(8)}>8 oz</button>
             <button className={chip(size === 16)} aria-pressed={size === 16} onClick={() => setSize(16)}>16 oz</button>
+            <button className={chip(size === 8)} aria-pressed={size === 8} onClick={() => setSize(8)}>8 oz</button>
+            <button className={chip(size === 2)} aria-pressed={size === 2} onClick={() => setSize(2)}>2 oz <span className="text-accent">sample</span></button>
           </div>
           {sample && <p className="mt-2 font-sans text-sm text-fg-muted">Sample size, one-time only. The low-risk way to taste it before you commit to a bag.</p>}
         </div>
