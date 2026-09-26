@@ -61,6 +61,12 @@ export default function Nav() {
   }, [pathname]);
 
   return (
+    // z-50 is the floor for anything modal: CartDrawer and OriginWaitlistDialog
+    // sit at z-[60] so they clear this header, and ImageZoom follows the same
+    // rule where it exists. These stay literals rather than one shared constant
+    // because Tailwind only emits a class it can read whole from the source;
+    // a `z-[${Z}]` template would scan as nothing and the class would silently
+    // not exist. Change the number here and the two z-[60]s together.
     <header className="sticky top-0 z-50 border-b border-line bg-bg/85 backdrop-blur">
       <div className="container-page flex items-center justify-between py-4">
         <Link to="/" className="flex items-center gap-3 text-accent" aria-label={`${BRAND} home`}>
