@@ -18,6 +18,7 @@ import {
   type CheckoutItem,
 } from "../lib/checkout";
 import { prefersReduced } from "../lib/motion";
+import { lockScroll } from "../lib/scroll-lock";
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])';
@@ -52,20 +53,11 @@ export default function CartDrawer() {
     return () => window.clearTimeout(t);
   }, [isOpen]);
 
-  // Lock body scroll while mounted, compensating for the scrollbar width so the
-  // page underneath does not shift.
+  // Lock page scroll while mounted. Shared with OriginWaitlistDialog; the note
+  // in lib/scroll-lock.ts explains why the lock is on <html>, not <body>.
   useEffect(() => {
     if (!mounted) return;
-    const { style } = document.body;
-    const prevOverflow = style.overflow;
-    const prevPad = style.paddingRight;
-    const sbw = window.innerWidth - document.documentElement.clientWidth;
-    style.overflow = "hidden";
-    if (sbw > 0) style.paddingRight = `${sbw}px`;
-    return () => {
-      style.overflow = prevOverflow;
-      style.paddingRight = prevPad;
-    };
+    return lockScroll();
   }, [mounted]);
 
   // Focus the panel on open, trap Tab, close on Esc.
