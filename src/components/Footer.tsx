@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
-import { BRAND } from "../content/site";
+import { BRAND, INQUIRY_EMAIL } from "../content/site";
+import { LEGAL_LINKS } from "../content/legal";
 
 export default function Footer() {
   return (
     <footer className="border-t border-line bg-bg-film">
-      <div className="container-page grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+      <div className="container-page grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
         <div>
           <p className="font-display text-fg" style={{ letterSpacing: "0.16em", fontSize: "1.1rem" }}>{BRAND}</p>
           <p className="lead mt-3" style={{ fontSize: "var(--step-0)" }}>High-grown, honestly sourced. Home of Strawberry Hill.</p>
@@ -25,6 +26,15 @@ export default function Footer() {
         <nav aria-label="Help"><h2 className="eyebrow">Help</h2>
           <ul className="mt-3 space-y-2 text-fg-muted">
             <li><Link to="/faq" className="hover:text-fg">FAQ</Link></li>
+            <li><Link to="/contact" className="hover:text-fg">Contact</Link></li>
+            <li><a href={`mailto:${INQUIRY_EMAIL}`} className="hover:text-fg">{INQUIRY_EMAIL}</a></li>
+          </ul>
+        </nav>
+        <nav aria-label="Legal"><h2 className="eyebrow">Legal</h2>
+          <ul className="mt-3 space-y-2 text-fg-muted">
+            {LEGAL_LINKS.filter((l) => l.to !== "/contact").map((l) => (
+              <li key={l.to}><Link to={l.to} className="hover:text-fg">{l.label}</Link></li>
+            ))}
           </ul>
         </nav>
       </div>

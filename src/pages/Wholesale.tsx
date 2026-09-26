@@ -8,7 +8,7 @@ export default function Wholesale() {
       <p className="lead mt-4">JACRA-certified Blue Mountain and a short high-grown range for the top of your menu. Volume pricing, a real person on the other end, no auto-quotes.</p>
       <div className="mt-10 grid gap-4 sm:grid-cols-3">
         {[
-          ["Certified, checkable", "A JACRA-licensed dealer whose licences are on the public registry, so what you pour is what you say it is."],
+          ["JACRA-licensed, checkable", "A JACRA-licensed dealer whose licences are on the public registry, so what you pour is what you say it is."],
           ["Supply that holds", "Quarterly Strawberry Hill plus a steady house range, so the menu never goes dark."],
           ["One contact", "A direct line from first sample to standing order."],
         ].map(([h, p]) => (

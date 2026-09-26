@@ -212,7 +212,7 @@ export default function Gifting() {
 
       <section className="container-page grid gap-4 pb-16 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          ["01", "Certified, not commodity", "JACRA-certified Blue Mountain and a short, high-grown range. A gift that reads as considered, not bulk-bought."],
+          ["01", "JACRA-certified, not commodity", "JACRA-certified Blue Mountain and a short, high-grown range. A gift that reads as considered, not bulk-bought."],
           ["02", "Your branding", "Custom cards, notes, presentation. Co-branded boxes for larger runs."],
           ["03", "Volume pricing", "Real quotes at 100+ units. 50% deposit on order, balance at delivery."],
           ["04", "One human contact", "No portal runaround. You talk to a person from quote to delivery."],
