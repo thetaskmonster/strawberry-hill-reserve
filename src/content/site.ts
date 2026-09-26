@@ -104,6 +104,15 @@ export const CLIPS = {
   //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/bag-front-composited.provenance.json
   //   Strawberry Hill Reserve/00-CONTEXT/ground-truth.md
   //   Strawberry Hill Reserve/01-COMPANY/decisions-log.md   (2026-09-22 row)
+  //
+  // REBUILT 2026-09-24 on the real pouch dimensions. The 8 oz panel underneath
+  // this composite had been rendered at an ASSUMED 5.0 x 8.0 in; the pouch spec
+  // gives 125 x 200 mm, so the panel is now 4.92 x 7.87 in and the composite was
+  // rebuilt on it. The change is invisible: mean absolute difference 0.81 of 255
+  // across the frame, 1.1 per cent of pixels moving at all. It is a PROVENANCE
+  // fix, not a visual one, and it is worth making only because serving an image
+  // built from retired dimensions is the stale-as-current defect the vault tags
+  // as Poisoning. The declaration it carries is unchanged: NET WT 8 OZ (227 g).
   bag: import.meta.env.BASE_URL + "assets/img/bag-front.webp",
   certMark: import.meta.env.BASE_URL + "assets/img/jbm-cert-mark.webp",
 };
