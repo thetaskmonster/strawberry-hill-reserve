@@ -41,7 +41,20 @@ const PRICE_MAP: Record<string, Product> = {
   "shr-sample": { name: "Strawberry Hill 2 oz sample", oneTimeCents: 1400, subscribeCents: null },
 };
 
-const SHIP_COUNTRIES = ["US", "CA"];
+// Countries Stripe Checkout will collect a shipping address for. US only.
+//
+// MIRROR of worker.dashboard.js. That copy is a standalone single file meant to
+// be pasted into the Cloudflare dashboard, so it cannot import this constant.
+// If you change this list, change it in BOTH files. index.test.ts asserts the
+// two agree, so a drift fails the test rather than reaching a customer.
+//
+// Canada was removed on 2026-09-22 (Kyle's ruling). Every order ships direct
+// from Jamaica and no inventory is held, which makes each order its own
+// customs entry. We cannot quote Canadian duty at checkout yet, and the draft
+// shipping policy already said we do not ship there, so accepting a Canadian
+// address here was a contradiction that ends in a refund. Canada reopens the
+// day a landed-cost tool can price it.
+const SHIP_COUNTRIES = ["US"];
 const MAX_ITEMS = 50;
 const MAX_QTY = 99;
 

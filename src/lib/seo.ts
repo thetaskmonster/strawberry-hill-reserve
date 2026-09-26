@@ -56,6 +56,26 @@ const ROUTE_META: Record<string, RouteMeta> = {
     description:
       "Subscriptions, ship windows, limited drops, and how we prove the coffee is what it says it is.",
   },
+  "/terms": {
+    title: `Terms of Sale · ${BRAND}`,
+    description: "Who you are dealing with, how ordering works, the 8-week roast-to-order window, when you can cancel, and how subscriptions run.",
+  },
+  "/privacy": {
+    title: `Privacy Policy · ${BRAND}`,
+    description: "What we collect and why, written from what the site actually does: no analytics, no advertising pixels, no cookies, and nothing sold or shared.",
+  },
+  "/shipping": {
+    title: `Shipping Policy · ${BRAND}`,
+    description: "We ship within 8 weeks, to the United States, direct from Jamaica. What happens if we are late, and what to do if a parcel arrives damaged.",
+  },
+  "/refunds": {
+    title: `Refunds and Returns · ${BRAND}`,
+    description: "Cancel for a full refund before roasting. After delivery, a 30-day first-bag guarantee with a prepaid return label.",
+  },
+  "/contact": {
+    title: `Contact · ${BRAND}`,
+    description: "One address reaches a person: orders, cancellations, returns, subscriptions, or anything about the coffee.",
+  },
   "/order/success": { ...DEFAULT_META, noindex: true },
   "/order/cancelled": { ...DEFAULT_META, noindex: true },
 };

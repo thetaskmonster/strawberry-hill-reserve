@@ -24,9 +24,13 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
 const SITE_ORIGIN = "https://berrova.com";
 
-// The public, indexable routes. /order/* and the 404 page are deliberately
-// absent: they stay on the SPA fallback and carry noindex from seo.ts.
-const ROUTES = ["/", "/story", "/reserve", "/gifting", "/wholesale", "/faq"];
+// The public, indexable routes. These go in the sitemap.
+const ROUTES = ["/", "/story", "/reserve", "/gifting", "/wholesale", "/faq", "/terms", "/privacy", "/shipping", "/refunds", "/contact"];
+// Rendered too, so they answer 200 instead of the Pages 404 fallback: Stripe
+// sends a paying customer to /order/success, and a 404 there is what analytics
+// and crawlers recorded. They carry noindex from seo.ts and stay OUT of the
+// sitemap. The 404 page itself stays on the fallback.
+const NOINDEX_ROUTES = ["/order/success", "/order/cancelled"];
 
 const MIME = {
   ".html": "text/html",
@@ -76,7 +80,7 @@ async function main() {
   const context = await browser.newContext({ reducedMotion: "reduce" });
 
   let failures = 0;
-  for (const route of ROUTES) {
+  for (const route of [...ROUTES, ...NOINDEX_ROUTES]) {
     const page = await context.newPage();
     try {
       await page.goto(origin + route, { waitUntil: "networkidle", timeout: 60_000 });

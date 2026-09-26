@@ -1,0 +1,67 @@
+# Claims for the phrases the site must NOT say, and the pages that must exist.
+#
+# Run it:            npm run test:claims:barred
+# Prove it can fail: npm run test:claims:barred:mutants
+#
+# The four barred claims come from the claims table in the vault
+# (Strawberry Hill Reserve/02-DEPARTMENTS/sales/wholesale-gifting-outreach-plan.md,
+# rows 33 to 35) and Kyle's ruling of 2026-09-07: "JACRA-certified", attributed,
+# is sayable; a bare "certified" is not; "single estate", "a named estate" and
+# "traceable to the lot" are contradicted by the supplier in writing.
+#
+# Two patterns, kept separate on purpose. bundle-check.sh reads every
+# grep-count row that targets dist/reserve.html and refuses with fewer than
+# two, so one combined regex would leave the bundle unchecked.
+#
+#   estate/lot:  [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to
+#   bare word:   (^|[^-A-Za-z])[Cc]ertified
+#                "JACRA-certified" is preceded by a hyphen and passes; a
+#                "certified" after a space, quote or punctuation is bare and
+#                refutes. The hyphenated spelling is the only permitted one.
+#
+# Section A: identity. An absence proves nothing about an empty file.
+file-contains | dist/index.html | Strawberry Hill
+file-contains | dist/terms.html | Terms of sale and site use
+file-contains | dist/privacy.html | Privacy policy
+file-contains | dist/shipping.html | Shipping policy
+file-contains | dist/refunds.html | Refunds and returns
+file-contains | dist/contact.html | thepour@berrova.com
+file-contains | dist/order/success.html | Order confirmed
+file-contains | dist/terms.html | Berrova LLC, a Texas limited liability company in formation
+file-contains | dist/refunds.html | 72 hours
+file-contains | dist/shipping.html | United States only
+# Section B: the estate and lot claims, every rendered page.
+grep-count | dist/index.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+grep-count | dist/story.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+grep-count | dist/reserve.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+grep-count | dist/gifting.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+grep-count | dist/wholesale.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+grep-count | dist/faq.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+grep-count | dist/terms.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+grep-count | dist/privacy.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+grep-count | dist/shipping.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+grep-count | dist/refunds.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+grep-count | dist/contact.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+grep-count | dist/order/success.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+grep-count | dist/order/cancelled.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+# Section C: a bare "certified", every rendered page.
+grep-count | dist/index.html | (^|[^-A-Za-z])[Cc]ertified | 0
+grep-count | dist/story.html | (^|[^-A-Za-z])[Cc]ertified | 0
+grep-count | dist/reserve.html | (^|[^-A-Za-z])[Cc]ertified | 0
+grep-count | dist/gifting.html | (^|[^-A-Za-z])[Cc]ertified | 0
+grep-count | dist/wholesale.html | (^|[^-A-Za-z])[Cc]ertified | 0
+grep-count | dist/faq.html | (^|[^-A-Za-z])[Cc]ertified | 0
+grep-count | dist/terms.html | (^|[^-A-Za-z])[Cc]ertified | 0
+grep-count | dist/privacy.html | (^|[^-A-Za-z])[Cc]ertified | 0
+grep-count | dist/shipping.html | (^|[^-A-Za-z])[Cc]ertified | 0
+grep-count | dist/refunds.html | (^|[^-A-Za-z])[Cc]ertified | 0
+grep-count | dist/contact.html | (^|[^-A-Za-z])[Cc]ertified | 0
+grep-count | dist/order/success.html | (^|[^-A-Za-z])[Cc]ertified | 0
+grep-count | dist/order/cancelled.html | (^|[^-A-Za-z])[Cc]ertified | 0
+# Section D: the retired footer build note must not come back.
+grep-count | dist/index.html | [Pp]hotography is representative|labeled placeholders | 0
+# Section E: every prerendered page links all four policies from the footer.
+grep-count | dist/index.html | href="/terms" | 1
+grep-count | dist/story.html | href="/privacy" | 1
+grep-count | dist/reserve.html | href="/shipping" | 1
+grep-count | dist/faq.html | href="/refunds" | 1
