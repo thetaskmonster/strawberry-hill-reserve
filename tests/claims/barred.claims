@@ -42,6 +42,8 @@ grep-count | dist/privacy.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[T
 grep-count | dist/shipping.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
 grep-count | dist/refunds.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
 grep-count | dist/contact.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+grep-count | dist/order/success.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
+grep-count | dist/order/cancelled.html | [Ss]ingle[- ][Ee]state|[Nn]amed[- ][Ee]state|[Tt]raceable to | 0
 # Section C: a bare "certified", every rendered page.
 grep-count | dist/index.html | (^|[^-A-Za-z])[Cc]ertified | 0
 grep-count | dist/story.html | (^|[^-A-Za-z])[Cc]ertified | 0
@@ -54,6 +56,8 @@ grep-count | dist/privacy.html | (^|[^-A-Za-z])[Cc]ertified | 0
 grep-count | dist/shipping.html | (^|[^-A-Za-z])[Cc]ertified | 0
 grep-count | dist/refunds.html | (^|[^-A-Za-z])[Cc]ertified | 0
 grep-count | dist/contact.html | (^|[^-A-Za-z])[Cc]ertified | 0
+grep-count | dist/order/success.html | (^|[^-A-Za-z])[Cc]ertified | 0
+grep-count | dist/order/cancelled.html | (^|[^-A-Za-z])[Cc]ertified | 0
 # Section D: the retired footer build note must not come back.
 grep-count | dist/index.html | [Pp]hotography is representative|labeled placeholders | 0
 # Section E: every prerendered page links all four policies from the footer.
