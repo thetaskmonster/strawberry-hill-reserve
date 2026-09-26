@@ -149,7 +149,18 @@ export default function OriginWaitlistDialog({
   if (!target) return null;
 
   return (
-    <div className="fixed inset-0 z-50" role="presentation">
+    // z-[60], matching CartDrawer: anything modal must clear the sticky header,
+    // which Nav pins at z-50 (the note on that <header> is the one place the
+    // three numbers are explained). Measured 2026-09-26 on Chromium BEFORE this
+    // change, with the header inside the viewport and the dialog open at equal
+    // z-50: the scrim already painted above the header by tree order, every
+    // header link hit-tested to the scrim, and a real click on "Origins"
+    // closed the dialog instead of navigating. So this is not repairing a
+    // paint-order fault on main; it removes the dependence on DOM order, which
+    // would have inverted silently the first time this dialog rendered before
+    // <Nav>. The header's links remain LEGIBLE through the 0.72 scrim, and so
+    // does the hero copy behind them. That is the scrim's design, not stacking.
+    <div className="fixed inset-0 z-[60]" role="presentation">
       {/* Scrim. A real <button> dismissed on CLICK, not a div on mousedown:
           mousedown unmounts the dialog mid-dispatch, so the focus restore runs
           and is then overwritten by the browser's own post-mousedown adjustment

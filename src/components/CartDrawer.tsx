@@ -159,6 +159,8 @@ export default function CartDrawer() {
   const empty = lines.length === 0;
 
   return (
+    // z-[60] clears the sticky header at z-50. The note on Nav's <header> is
+    // the one place the three numbers are explained; keep them in step.
     <div className="fixed inset-0 z-[60]" role="presentation">
       {/* Scrim */}
       <button

@@ -31,7 +31,12 @@ const ok = (n, c, d='') => { total++; console.log(`${c ? 'PASS' : 'FAIL'}  ${n}$
 const ENDPOINT_RE = /berrova-gifting-9f3d/;
 const GRACE = 1500;
 
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+// Same override scripts/prerender.mjs honours, so the suite can run on a
+// machine without the Linux Playwright cache. The fallback is unchanged: on
+// the box this was written for, the pinned path is the browser that was
+// measured, and a suite that silently picked a different one would be
+// reporting on a browser nobody chose.
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
 
 // One page per case, fully isolated. `save` is 'ok' | 'fail' | 'abort'.
 async function runCase({ name, save, query = '', fill = {}, blurAfterSubmit = false, waitMs, status = 500, errorBody = 'nope', code = undefined }) {
