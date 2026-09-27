@@ -79,40 +79,52 @@ export const CLIPS = {
   // nutrition exemption the product relies on is void if a nutrition claim
   // appears in advertising.
   //
-  // So the corrected front panel is warped onto the photographed bag by
-  // deterministic image arithmetic. Nothing is AI-generated: a rendered label
-  // is a rendered claim.
+  // WHAT THIS IMAGE IS, as of 2026-09-26, and what it replaced.
   //
-  // WHAT THAT LEAVES OPEN.
+  // It is the stand-up pouch RENDER Kyle picked on 2026-09-24 for the first
+  // Instagram post, fitted to the 1500 px square this slot has always held.
+  // It replaces a composite that was RIGHT ABOUT THE PRINTING AND WRONG ABOUT
+  // THE BAG: our gated 8 oz panel, warped by image arithmetic onto a
+  // photograph of a squared, side-gusseted block bag with a flat crimped top.
+  // Kyle ruled a stand-up pouch with a bottom gusset on 2026-09-22 (the
+  // decisions log, that row) and the block-bag shape was known and recorded
+  // in this comment the same day, to be closed "when our own pouch is printed
+  // and photographed". On 2026-09-26, five days before the drop, he looked at
+  // the live store and ruled the wrong shape comes off the site NOW rather
+  // than then: "its not the right bag". Stopgap first, proper fix behind it.
   //
-  // CORRECTED 2026-09-22, the same day this comment was written. It used to
-  // say the customer receives the roaster's own JACRA-approved bag, which
-  // nobody here has seen. Kyle ruled hours later that WE PRINT OUR OWN POUCH
-  // and Island Coffees fills it in Jamaica. That premise is retired.
+  // THIS CROSSES A LINE THE PREVIOUS COMMENT DREW, AND SAYS SO. It used to
+  // read "Nothing is AI-generated: a rendered label is a rendered claim." This
+  // image IS a generated render, text and all. It is here because the shape
+  // it shows is the product and the shape it replaced was not, and Kyle chose
+  // that trade with the cost stated. Two consequences, both real:
   //
-  // The limit is unchanged; its reason changed. This image is our
-  // specification, not a photograph of the shipped product, and no copy on
-  // this site may describe it as one, because THE POUCH IT SHOWS HAS NOT BEEN
-  // PRINTED. Two gaps now, not one: the artwork is ours and correct, and the
-  // bag shape under it is still the roaster's. Kyle ruled a stand-up pouch
-  // with a bottom gusset; this photograph is a squared, side-gusseted bag
-  // with a flat zip top. It closes when our own pouch is printed and
-  // photographed, not when Paula sends anything.
+  //   1. The text on this pouch is NOT our print-ready artwork. Its net
+  //      quantity line reads "NET WT. 227 g (8 oz)", metric first; the gated
+  //      panels we will actually print read "NET WT 8 OZ (227 g)". The weight
+  //      itself is correct, 227 g, which is the one figure the previous
+  //      fix existed to get right. Its type size is unmeasured and ungated.
+  //      Nothing on this site may quote this image as the label.
+  //   2. It is INTERIM. The proper fix is a blank stand-up pouch base at
+  //      full resolution with the gated panel composited onto it through the
+  //      vault's existing pipeline, warp proof re-run, provenance recorded.
+  //      When that lands this comment is rewritten again, not appended to.
+  //
+  // What did not change: this is still our specification of the product, not
+  // a photograph of a shipped unit, and no copy on this site may describe it
+  // as one, because THE POUCH IT SHOWS HAS NOT BEEN PRINTED.
   //
   // Where this lives:
-  //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/bag-composite.gen.py
-  //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/bag-front-composited.provenance.json
-  //   Strawberry Hill Reserve/00-CONTEXT/ground-truth.md
-  //   Strawberry Hill Reserve/01-COMPANY/decisions-log.md   (2026-09-22 row)
+  //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/std-scene-40-catalogue-hero-roundel-fixed.png
+  //     (the source render, 928 x 1152, sha256 a5e59004...)
+  //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/pouch-specification.md   (construction, section 1)
+  //   Strawberry Hill Reserve/01-COMPANY/decisions-log.md   (2026-09-22 row: own pouch, stand-up, bottom gusset)
   //
-  // REBUILT 2026-09-24 on the real pouch dimensions. The 8 oz panel underneath
-  // this composite had been rendered at an ASSUMED 5.0 x 8.0 in; the pouch spec
-  // gives 125 x 200 mm, so the panel is now 4.92 x 7.87 in and the composite was
-  // rebuilt on it. The change is invisible: mean absolute difference 0.81 of 255
-  // across the frame, 1.1 per cent of pixels moving at all. It is a PROVENANCE
-  // fix, not a visual one, and it is worth making only because serving an image
-  // built from retired dimensions is the stale-as-current defect the vault tags
-  // as Poisoning. The declaration it carries is unchanged: NET WT 8 OZ (227 g).
+  // How the square was made, so it can be redone: the render was scaled to
+  // 1500 px tall with Lanczos, centred, and the 146 px either side filled by
+  // stretching that row's own outermost columns rather than a flat colour,
+  // then softened, so the vignette carries across. Measured step at the join:
+  // under 2 levels of 255 on every sampled row.
   bag: import.meta.env.BASE_URL + "assets/img/bag-front.webp",
   certMark: import.meta.env.BASE_URL + "assets/img/jbm-cert-mark.webp",
 };
