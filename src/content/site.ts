@@ -72,59 +72,59 @@ export const CLIPS = {
   beansPhoto: import.meta.env.BASE_URL + "assets/img/beans-dark.webp",
   // The bag image is a COMPOSITE, not a photograph of a bag that exists.
   //
-  // The photograph it is built on showed the old front panel, which read
-  // `8 OZ  NET WT. 277G`. The true weight is 227 g, so the store was
-  // publishing a net weight wrong by 50 grams. A net weight in advertising is
-  // the same statement 21 CFR 101.7 governs on the bag itself, and the
-  // nutrition exemption the product relies on is void if a nutrition claim
-  // appears in advertising.
-  //
   // WHAT THIS IMAGE IS, as of 2026-09-26, and what it replaced.
   //
-  // It is the stand-up pouch RENDER Kyle picked on 2026-09-24 for the first
-  // Instagram post, fitted to the 1500 px square this slot has always held.
-  // It replaces a composite that was RIGHT ABOUT THE PRINTING AND WRONG ABOUT
-  // THE BAG: our gated 8 oz panel, warped by image arithmetic onto a
-  // photograph of a squared, side-gusseted block bag with a flat crimped top.
-  // Kyle ruled a stand-up pouch with a bottom gusset on 2026-09-22 (the
-  // decisions log, that row) and the block-bag shape was known and recorded
-  // in this comment the same day, to be closed "when our own pouch is printed
-  // and photographed". On 2026-09-26, five days before the drop, he looked at
-  // the live store and ruled the wrong shape comes off the site NOW rather
-  // than then: "its not the right bag". Stopgap first, proper fix behind it.
+  // It is the vault's 8 oz front panel, composited by image arithmetic
+  // onto the stand-up pouch render Kyle picked on 2026-09-24 ("Photo b",
+  // std-scene-40-catalogue-hero). The render's own fake print was stripped
+  // first, then the panel was warped onto the cleaned face. The warp proof
+  // ran: known points land where the arithmetic says, 0 pixels of the
+  // render's text survive, and every check in that proof has a planted case
+  // that makes it fail. Nothing in the pipeline calls a model; the
+  // provenance sidecar records 0 credits.
   //
-  // THIS CROSSES A LINE THE PREVIOUS COMMENT DREW, AND SAYS SO. It used to
-  // read "Nothing is AI-generated: a rendered label is a rendered claim." This
-  // image IS a generated render, text and all. It is here because the shape
-  // it shows is the product and the shape it replaced was not, and Kyle chose
-  // that trade with the cost stated. Two consequences, both real:
+  // WHAT THE PROOF GATE HAS AND HAS NOT CONFIRMED, exactly. On 2026-09-26
+  // the gate CONFIRMED the composite built on the previous panel, at vault
+  // commit bf83f67d. This file is the rebuild of that composite on the
+  // re-rendered panel (vault 31d16356, the label foot moved: identity line
+  // shrunk, declaration unchanged). The same claims file re-ran 49 of 49
+  // with its planted rejects still refusing, in the proof gate on
+  // 2026-09-27, and the rebuild reproduced this file byte-identical. The
+  // foot re-render itself has no CONFIRMED verdict yet, and its layout
+  // (stacked, as here, or a narrower bold face for the weight line) is
+  // Kyle's open ruling. If he picks the narrower face this image changes.
   //
-  //   1. The text on this pouch is NOT our print-ready artwork. Its net
-  //      quantity line reads "NET WT. 227 g (8 oz)", metric first; the gated
-  //      panels we will actually print read "NET WT 8 OZ (227 g)". The weight
-  //      itself is correct, 227 g, which is the one figure the previous
-  //      fix existed to get right. Its type size is unmeasured and ungated.
-  //      Nothing on this site may quote this image as the label.
-  //   2. It is INTERIM. The proper fix is a blank stand-up pouch base at
-  //      full resolution with the gated panel composited onto it through the
-  //      vault's existing pipeline, warp proof re-run, provenance recorded.
-  //      When that lands this comment is rewritten again, not appended to.
+  // It replaces the interim image of the same morning, which was the raw
+  // render, its generated text included. That text read "NET WT. 227 g
+  // (8 oz)" at an ungated type size. The line on this image reads
+  // "NET WT 8 OZ (227 g)", the computed declaration the vault's label gate
+  // confirmed, at the type size that gate confirmed (the declaration box did
+  // not move in the re-render; the label-compliance claims re-ran 110 of
+  // 110 on 2026-09-27, which is a re-run of the pin, not a fresh gate).
   //
-  // What did not change: this is still our specification of the product, not
-  // a photograph of a shipped unit, and no copy on this site may describe it
-  // as one, because THE POUCH IT SHOWS HAS NOT BEEN PRINTED.
+  // WHAT IT STILL IS NOT. It is a rendered pouch, not a photograph of our
+  // printed bag. Kyle recorded on 2026-09-26 that he is "okay with this
+  // 'generation compositing'" as the base for our real artwork. It stays
+  // until real pouch photography exists, and no copy on this site may
+  // describe it as a photograph of a shipped unit, because THE POUCH IT
+  // SHOWS HAS NOT BEEN PRINTED.
   //
-  // Where this lives:
-  //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/std-scene-40-catalogue-hero-roundel-fixed.png
-  //     (the source render, 928 x 1152, sha256 a5e59004...)
-  //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/pouch-specification.md   (construction, section 1)
-  //   Strawberry Hill Reserve/01-COMPANY/decisions-log.md   (2026-09-22 row: own pouch, stand-up, bottom gusset)
+  // The 16 oz is the lead product and this picture shows the 8 oz panel.
+  // Kyle has that on record; the 16 oz lead row in the vault decisions log
+  // reads: "A 16 oz lead with an 8 oz picture stays until real pouch
+  // photography exists, or Kyle rules otherwise."
   //
-  // How the square was made, so it can be redone: the render was scaled to
-  // 1500 px tall with Lanczos, centred, and the 146 px either side filled by
-  // stretching that row's own outermost columns rather than a flat colour,
-  // then softened, so the vignette carries across. Measured step at the join:
-  // under 2 levels of 255 on every sampled row.
+  // Where this lives, in the vault:
+  //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/pouch-front-composited-1500.webp
+  //     (1500 x 1500, 50,554 bytes, sha256 dbea10b6f9a35a70...)
+  //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/pouch-front-composited.provenance.json
+  //     (inputs by sha256, face box, print bands, warp coefficients, outputs)
+  //   Strawberry Hill Reserve/08-PRODUCTS-OFFERS/brand-assets/pouch-composite.gen.py
+  //     (the compositor; pouch-composite-warp-proof.py beside it is the proof)
+  //   .claude/gates/2026-09-26-pouch-composite.claims   (the claims file, 49 rows)
+  //   Strawberry Hill Reserve/01-COMPANY/decisions-log.md   (2026-09-26 rows: compositing base, 16 oz lead)
+  //   vault PR 330, branch claude/new-session-7i6xo3, at 5ddc1260. The files above exist
+  //   on that branch; until PR 330 merges they are NOT on vault main.
   bag: import.meta.env.BASE_URL + "assets/img/bag-front.webp",
   certMark: import.meta.env.BASE_URL + "assets/img/jbm-cert-mark.webp",
 };
