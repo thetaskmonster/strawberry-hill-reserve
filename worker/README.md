@@ -210,6 +210,67 @@ The website sends a list of items, each with a `mode`:
 Stripe does not allow mixing a one-time payment and a subscription in the same
 checkout, which is why subscribe is always a single item and skips the cart.
 
+## Which copy is live: the dashboard copy
+
+There are two copies of this Worker. `src/index.ts` deploys with
+`wrangler deploy`; `worker.dashboard.js` is one standalone file pasted into the
+Cloudflare dashboard editor. **The live `berrova-checkout` Worker is the
+dashboard copy**, read 2026-10-20 (UTC):
+
+- The live preflight on both `checkout.berrova.com` and the `workers.dev` route
+  answers `Access-Control-Allow-Headers: Content-Type`, the dashboard copy's
+  shape; `src/index.ts` answers `Content-Type, X-Berrova-Guard`.
+- `wrangler deployments list` shows the code was uploaded 2026-07-25 at 03:43
+  and 03:44 UTC, ten minutes after `worker.dashboard.js` was first committed,
+  and only secret or variable edits since (last: 2026-07-31). The live version
+  holds one secret, `STRIPE_SECRET_KEY`, and no `CHECKOUT_GUARD_TOKEN`. Its
+  compatibility date is 2026-07-25, not the 2024-11-01 in `wrangler.toml`.
+
+So the live code predates the guard token (2026-08-02), the product rename
+(2026-09-08) and the Canada removal (2026-09-22).
+
+**It also cannot take a browser checkout.** The website always sends the
+`X-Berrova-Guard` header, and the live preflight does not allow it, so the
+browser refuses the POST before it leaves ("Failed to fetch"). Reproduced
+locally in real Chrome against the 2026-07-25 copy; the same fetch without the
+header goes through. Harmless while `PRESALE_MODE` is `"waitlist"`, fatal the
+day it flips to `"live"`.
+
+### Updating the dashboard copy
+
+What ships the token: the site only carries `VITE_CHECKOUT_GUARD_TOKEN` in a
+build made with `PRESALE_MODE` set to `"live"` (`src/content/site.ts`). A
+waitlist build strips all checkout code, so the token and the
+`X-Berrova-Guard` header are not in its bundle at all: a waitlist build with
+the token set and one with it empty come out byte-identical. Merging this
+change, or any deploy of `main` while the site is in waitlist mode, therefore
+changes nothing a visitor can reach, and it never touches the Worker (the only
+workflow deploys the website).
+
+1. Cloudflare: Workers & Pages, `berrova-checkout`, Settings, Variables and
+   Secrets: add `CHECKOUT_GUARD_TOKEN`, type Secret, a long random value.
+2. GitHub, this repo, Settings, Secrets and variables, Actions: add
+   `VITE_CHECKOUT_GUARD_TOKEN` with the identical value. It must exist before
+   the go-live build (step 5), which is the first build that ships it.
+3. Merge the pull request that carries this change. Safe at any time, before
+   or after steps 1 and 2.
+4. Cloudflare: Workers & Pages, `berrova-checkout`, Edit code: replace the
+   whole file with `worker.dashboard.js`, then Deploy. Do this only after
+   step 1: without the secret the new code refuses every POST. Then check: the
+   preflight `curl` in the cutover checklist must show `X-Berrova-Guard` in
+   `access-control-allow-headers`, and a POST with no token must return 403.
+5. Go-live day: after the deploy that switches `PRESALE_MODE` from
+   `"waitlist"` to `"live"` finishes (allow the 600s cache window noted in the
+   cutover checklist), start one Stripe TEST-mode checkout from a real browser
+   on `https://berrova.com` and confirm it reaches the Stripe checkout page.
+   This is the only check that proves the site's token and the Worker's token
+   pair; curl in step 4 sends no site token and cannot prove it. Reaching the
+   Stripe page is the proof; no payment is needed.
+
+Once the new code is live (step 4), any POST without the matching token gets a
+403. That is the guard failing closed, not a bug. While the site is in
+waitlist mode it sends no checkout request at all, so nobody sees it.
+
 ## Tests
 
 ```
@@ -223,6 +284,12 @@ with actual `Request` objects (Node 22 provides global `Request`/`Response`/
 `fetch`), so the tests exercise the same code path that runs in production.
 Only the outbound call to `https://api.stripe.com` is mocked (via a stubbed
 `global.fetch`); no network call and no real Stripe key are used.
+
+`dashboard-guard.test.ts` does the same for `worker.dashboard.js`: the guard
+refuses a missing, empty or wrong token and an unset secret, accepts the right
+one, refuses before Stripe is called, and allows the header the website sends.
+It also runs one request matrix through both copies and requires identical
+answers, so the two cannot drift apart again.
 
 ## Security notes
 

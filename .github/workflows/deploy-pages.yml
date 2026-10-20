@@ -36,6 +36,13 @@ jobs:
           # customer's AV fails silently and looks like a broken store.
           # Requires the Worker's Custom Domain to be configured first.
           VITE_CHECKOUT_ENDPOINT: https://checkout.berrova.com/create-checkout-session
+          # Sent as the X-Berrova-Guard header; must equal the Worker's
+          # CHECKOUT_GUARD_TOKEN secret, or every checkout POST gets a 403.
+          # Set as a repo Actions secret named VITE_CHECKOUT_GUARD_TOKEN. Not
+          # truly secret once built (it ships in the public JS bundle); a repo
+          # secret only keeps it out of git. Unset means empty, which is what
+          # every build before this line shipped.
+          VITE_CHECKOUT_GUARD_TOKEN: ${{ secrets.VITE_CHECKOUT_GUARD_TOKEN }}
         run: npm run build
       # 404.html must be the clean SPA shell, copied BEFORE prerender
       # overwrites dist/index.html with the rendered homepage.
