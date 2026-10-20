@@ -238,19 +238,38 @@ day it flips to `"live"`.
 
 ### Updating the dashboard copy
 
-1. Workers & Pages, `berrova-checkout`, Settings, Variables and Secrets: add
-   `CHECKOUT_GUARD_TOKEN`, type Secret, a long random value.
-2. GitHub, this repo, Settings, Secrets and variables, Actions: add
-   `VITE_CHECKOUT_GUARD_TOKEN` with the identical value. The Pages workflow
-   reads it, so the next deploy of `main` bakes it into the site.
-3. Workers & Pages, `berrova-checkout`, Edit code: replace the whole file with
-   `worker.dashboard.js`, then Deploy.
-4. Check: the preflight `curl` in the cutover checklist must now show
-   `X-Berrova-Guard` in `access-control-allow-headers`, and a POST with no
-   token must return 403.
+What ships the token: the site only carries `VITE_CHECKOUT_GUARD_TOKEN` in a
+build made with `PRESALE_MODE` set to `"live"` (`src/content/site.ts`). A
+waitlist build strips all checkout code, so the token and the
+`X-Berrova-Guard` header are not in its bundle at all: a waitlist build with
+the token set and one with it empty come out byte-identical. Merging this
+change, or any deploy of `main` while the site is in waitlist mode, therefore
+changes nothing a visitor can reach, and it never touches the Worker (the only
+workflow deploys the website).
 
-Until both 1 and 2 are in place, every checkout POST gets a 403. That is the
-guard failing closed, not a bug.
+1. Cloudflare: Workers & Pages, `berrova-checkout`, Settings, Variables and
+   Secrets: add `CHECKOUT_GUARD_TOKEN`, type Secret, a long random value.
+2. GitHub, this repo, Settings, Secrets and variables, Actions: add
+   `VITE_CHECKOUT_GUARD_TOKEN` with the identical value. It must exist before
+   the go-live build (step 5), which is the first build that ships it.
+3. Merge the pull request that carries this change. Safe at any time, before
+   or after steps 1 and 2.
+4. Cloudflare: Workers & Pages, `berrova-checkout`, Edit code: replace the
+   whole file with `worker.dashboard.js`, then Deploy. Do this only after
+   step 1: without the secret the new code refuses every POST. Then check: the
+   preflight `curl` in the cutover checklist must show `X-Berrova-Guard` in
+   `access-control-allow-headers`, and a POST with no token must return 403.
+5. Go-live day: after the deploy that switches `PRESALE_MODE` from
+   `"waitlist"` to `"live"` finishes (allow the 600s cache window noted in the
+   cutover checklist), start one Stripe TEST-mode checkout from a real browser
+   on `https://berrova.com` and confirm it reaches the Stripe checkout page.
+   This is the only check that proves the site's token and the Worker's token
+   pair; curl in step 4 sends no site token and cannot prove it. Reaching the
+   Stripe page is the proof; no payment is needed.
+
+Once the new code is live (step 4), any POST without the matching token gets a
+403. That is the guard failing closed, not a bug. While the site is in
+waitlist mode it sends no checkout request at all, so nobody sees it.
 
 ## Tests
 
