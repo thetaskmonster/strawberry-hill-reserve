@@ -26,18 +26,18 @@ export default function Home() {
 
   return (
     <>
-      {/* HERO - high-grown origins, steam-composited */}
+      {/* HERO - the curated house, steam-composited */}
       <section className="relative flex min-h-[92vh] items-end overflow-hidden bg-bg-film">
         <CinematicVideo src={CLIPS.hero.src} poster={CLIPS.hero.poster} label="High mountains above the coffee belt (licensed stock, generic)" fill />
         <SteamOverlay src={CLIPS.steam.src} opacity={0.16} />
         <div className="hero-scrim" />
         <div className="container-page relative z-10 pb-16 pt-28">
-          <Reveal><p className="eyebrow">High-grown &middot; roasted to order &middot; a short honest range</p></Reveal>
+          <Reveal><p className="eyebrow">Curated &middot; roasted to order &middot; a new featured coffee every quarter</p></Reveal>
           <KineticHeadline lines={["Coffee worth", "slowing down for."]} className="mt-4" />
           <Reveal delay={0.15}>
             <p className="lead mt-6">
-              A small coffee house built on altitude, patience, and origins we can stand behind. We keep the range short and
-              let each one earn its place, led right now by <span className="text-fg">{HERO_LINE}</span>, our JACRA-certified Jamaica Blue Mountain drop.
+              A curated coffee house: the world&rsquo;s great coffees, chosen one at a time. Every quarter one coffee takes
+              the lead. Right now that is <span className="text-fg">{HERO_LINE}</span>, our JACRA-certified Jamaica Blue Mountain drop.
             </p>
             {PRESALE_MODE === "waitlist" ? (
               <div className="mt-8 max-w-xl">
@@ -60,7 +60,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Marquee items={["High-grown, hand-picked", "Roasted to order", "JACRA-certified Blue Mountain", "Sealed at origin"]} />
+      <Marquee items={["Chosen one at a time", "Roasted to order", "JACRA-certified Blue Mountain", "Sealed at origin"]} />
 
       {/* PROCESS - grown to poured */}
       <section className="relative overflow-hidden py-20" aria-labelledby="process-h">

@@ -22,11 +22,11 @@ type RouteMeta = {
 };
 
 const DEFAULT_META: RouteMeta = {
-  title: `${BRAND} · ${HERO_LINE}`,
+  title: `${BRAND} · The curated coffee house`,
   description:
-    "JACRA-certified Jamaica Blue Mountain in genuine limited drops, plus a small multi-origin house range. Roasted at origin, sold only when it is real coffee in hand.",
+    "Berrova is a curated coffee house: the world's great coffees, chosen one at a time, with a new featured coffee every quarter. Now featuring Strawberry Hill, JACRA-certified Jamaica Blue Mountain.",
   ogDescription:
-    "Most Blue Mountain is faked. Ours is bought through a JACRA-licensed dealer. Jamaica Blue Mountain in genuine quarterly drops.",
+    "The world's great coffees, chosen one at a time. A new featured coffee every quarter. Now featuring: Jamaica.",
 };
 
 const ROUTE_META: Record<string, RouteMeta> = {
