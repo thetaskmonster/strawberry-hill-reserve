@@ -210,6 +210,48 @@ The website sends a list of items, each with a `mode`:
 Stripe does not allow mixing a one-time payment and a subscription in the same
 checkout, which is why subscribe is always a single item and skips the cart.
 
+## Which copy is live: the dashboard copy
+
+There are two copies of this Worker. `src/index.ts` deploys with
+`wrangler deploy`; `worker.dashboard.js` is one standalone file pasted into the
+Cloudflare dashboard editor. **The live `berrova-checkout` Worker is the
+dashboard copy**, read 2026-10-20 (UTC):
+
+- The live preflight on both `checkout.berrova.com` and the `workers.dev` route
+  answers `Access-Control-Allow-Headers: Content-Type`, the dashboard copy's
+  shape; `src/index.ts` answers `Content-Type, X-Berrova-Guard`.
+- `wrangler deployments list` shows the code was uploaded 2026-07-25 at 03:43
+  and 03:44 UTC, ten minutes after `worker.dashboard.js` was first committed,
+  and only secret or variable edits since (last: 2026-07-31). The live version
+  holds one secret, `STRIPE_SECRET_KEY`, and no `CHECKOUT_GUARD_TOKEN`. Its
+  compatibility date is 2026-07-25, not the 2024-11-01 in `wrangler.toml`.
+
+So the live code predates the guard token (2026-08-02), the product rename
+(2026-09-08) and the Canada removal (2026-09-22).
+
+**It also cannot take a browser checkout.** The website always sends the
+`X-Berrova-Guard` header, and the live preflight does not allow it, so the
+browser refuses the POST before it leaves ("Failed to fetch"). Reproduced
+locally in real Chrome against the 2026-07-25 copy; the same fetch without the
+header goes through. Harmless while `PRESALE_MODE` is `"waitlist"`, fatal the
+day it flips to `"live"`.
+
+### Updating the dashboard copy
+
+1. Workers & Pages, `berrova-checkout`, Settings, Variables and Secrets: add
+   `CHECKOUT_GUARD_TOKEN`, type Secret, a long random value.
+2. GitHub, this repo, Settings, Secrets and variables, Actions: add
+   `VITE_CHECKOUT_GUARD_TOKEN` with the identical value. The Pages workflow
+   reads it, so the next deploy of `main` bakes it into the site.
+3. Workers & Pages, `berrova-checkout`, Edit code: replace the whole file with
+   `worker.dashboard.js`, then Deploy.
+4. Check: the preflight `curl` in the cutover checklist must now show
+   `X-Berrova-Guard` in `access-control-allow-headers`, and a POST with no
+   token must return 403.
+
+Until both 1 and 2 are in place, every checkout POST gets a 403. That is the
+guard failing closed, not a bug.
+
 ## Tests
 
 ```
@@ -223,6 +265,12 @@ with actual `Request` objects (Node 22 provides global `Request`/`Response`/
 `fetch`), so the tests exercise the same code path that runs in production.
 Only the outbound call to `https://api.stripe.com` is mocked (via a stubbed
 `global.fetch`); no network call and no real Stripe key are used.
+
+`dashboard-guard.test.ts` does the same for `worker.dashboard.js`: the guard
+refuses a missing, empty or wrong token and an unset secret, accepts the right
+one, refuses before Stripe is called, and allows the header the website sends.
+It also runs one request matrix through both copies and requires identical
+answers, so the two cannot drift apart again.
 
 ## Security notes
 
