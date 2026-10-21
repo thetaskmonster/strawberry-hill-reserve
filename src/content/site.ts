@@ -3,7 +3,9 @@
 // No invented numbers anywhere: certificate numbers and roast dates live on the
 // physical bag and render from source at launch, so marketing copy states the
 // claim ("JACRA certified") without printing a fabricated value. The drop values
-// below (200 bags, Oct 1) are the founder's real launch parameters.
+// below (200 bags, Nov 1) are the founder's launch parameters. Nov 1 is a
+// PLACEHOLDER Kyle set on 2026-10-21 after Oct 1 passed ("I don't think that's
+// going to hold"); change it here when he sets the real date.
 
 export const BRAND = "Berrova"; // house brand (locked 2026-07-24)
 export const HERO_LINE = "Strawberry Hill";
@@ -12,7 +14,7 @@ export const HERO_LINE = "Strawberry Hill";
 // this line carried wecare@gsccapitalgroup.com, which is a different company.
 export const INQUIRY_EMAIL = "thepour@berrova.com";
 
-export const DROP = { units: "200", opens: "Oct 1", opensISO: "2026-10-01" };
+export const DROP = { units: "200", opens: "Nov 1", opensISO: "2026-11-01" };
 
 // Presale gate. "waitlist" hides every purchase path and routes intent into the
 // drop waitlist; "live" restores the full store. Flip this ONE value on drop
@@ -30,12 +32,12 @@ export const SHOW_PRICES = PRESALE_MODE === "live";
 
 // Drop waitlist capture. Posts form-encoded (no CORS preflight) to the n8n
 // "Berrova Waitlist Capture" webhook, which validates and writes the Airtable
-// Waitlist row. Copy honors the honesty line: 200 bags and Oct 1 are real
+// Waitlist row. Copy honors the honesty line: 200 bags and Nov 1 (placeholder) are real
 // launch parameters; first access is the real mechanic; nothing is invented.
 export const WAITLIST = {
   endpoint: "https://capturethisvibe.app.n8n.cloud/webhook/berrova-waitlist-a7c2",
   headline: "POUR FIRST",
-  sub: "The first drop is 200 bags, opening Oct 1. The waitlist gets first access before it opens to the public. When they are gone, the drop closes.",
+  sub: "The first drop is 200 bags, opening Nov 1. The waitlist gets first access before it opens to the public. When they are gone, the drop closes.",
   button: "Join the waitlist",
   placeholder: "you@email.com",
   success: "You are on the list. When the drop opens, you pour first.",
