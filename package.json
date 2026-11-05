@@ -14,7 +14,8 @@
     "test:claims:barred:mutants": "bash tests/claims/barred-mutants.sh",
     "test:gifting": "bash tests/run-gifting.sh",
     "test:gifting:contract": "bash tests/contract-live.sh",
-    "test:gifting:matrix": "bash tests/contract-matrix.sh"
+    "test:gifting:matrix": "bash tests/contract-matrix.sh",
+    "test:all": "bash scripts/test-all.sh"
   },
   "dependencies": {
     "gsap": "^3.15.0",

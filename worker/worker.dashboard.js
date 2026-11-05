@@ -7,9 +7,23 @@
 // The server-side PRICE_MAP below is the authority at charge time. The client
 // sends only { id, qty, mode }. Any price a client tries to send is ignored.
 //
-// Set these two variables in the Worker's Settings -> Variables and Secrets:
-//   STRIPE_SECRET_KEY  (type: Secret)  your sk_test_... now, sk_live_... later
-//   SITE_ORIGIN        (type: Text)    https://berrova.com   (no trailing slash)
+// Set these three variables in the Worker's Settings -> Variables and Secrets:
+//   STRIPE_SECRET_KEY     (type: Secret)  your sk_test_... now, sk_live_... later
+//   SITE_ORIGIN           (type: Text)    https://berrova.com   (no trailing slash)
+//   CHECKOUT_GUARD_TOKEN  (type: Secret)  a long random string; the website must
+//                                         send the identical value (it is the
+//                                         VITE_CHECKOUT_GUARD_TOKEN build value)
+//
+// GUARD. Every POST must carry Origin == SITE_ORIGIN AND an X-Berrova-Guard
+// header equal to CHECKOUT_GUARD_TOKEN, or it gets a 403 before the body is
+// read and before Stripe is called. If CHECKOUT_GUARD_TOKEN is not set, every
+// POST is refused (fails closed). This MIRRORS src/index.ts; the tests in
+// dashboard-guard.test.ts run one request matrix through both copies and
+// require the same answers, so the two cannot drift apart unnoticed.
+//
+// What the guard does NOT do: the token ships in the site's public JS bundle,
+// so it stops blind scripts hitting the known URL, not someone who reads the
+// bundle. Real rate limiting is a Cloudflare-side rule, not code here.
 
 const CURRENCY = "usd";
 const PRICE_MAP = {
@@ -36,7 +50,9 @@ function corsHeaders(origin) {
   return {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    // X-Berrova-Guard must be listed, or the browser's preflight refuses the
+    // site's real POST (the site always sends that header).
+    "Access-Control-Allow-Headers": "Content-Type, X-Berrova-Guard",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };
@@ -117,6 +133,29 @@ function buildForm(items, mode, origin) {
   return form;
 }
 
+// Constant-time compare of the token bytes. The Workers runtime has no
+// timingSafeEqual, so this is the XOR-accumulate form. The length check
+// short-circuits; a token's length is not the secret part, its content is.
+function timingSafeEqual(a, b) {
+  const aBytes = new TextEncoder().encode(a);
+  const bBytes = new TextEncoder().encode(b);
+  if (aBytes.length !== bBytes.length) return false;
+  let diff = 0;
+  for (let i = 0; i < aBytes.length; i++) {
+    diff |= aBytes[i] ^ bBytes[i];
+  }
+  return diff === 0;
+}
+
+// Fails closed: no secret set means no POST is accepted.
+function guardTokenValid(request, env) {
+  const expected = env.CHECKOUT_GUARD_TOKEN || "";
+  if (!expected) return false;
+  const provided = request.headers.get("X-Berrova-Guard") || "";
+  if (!provided) return false;
+  return timingSafeEqual(provided, expected);
+}
+
 export default {
   async fetch(request, env) {
     const allowedOrigin = (env.SITE_ORIGIN || "https://berrova.com").replace(/\/$/, "");
@@ -131,9 +170,17 @@ export default {
       return json({ error: "Not found." }, 404, cors);
     }
 
+    // Origin must be PRESENT and match. The earlier form only refused a
+    // mismatched Origin, so a script that left the header off went straight
+    // through. Origin is spoofable outside a browser, so this is hygiene; the
+    // guard token below is the gate.
     const reqOrigin = request.headers.get("Origin");
-    if (reqOrigin && reqOrigin.replace(/\/$/, "") !== allowedOrigin) {
+    if (!reqOrigin || reqOrigin.replace(/\/$/, "") !== allowedOrigin) {
       return json({ error: "Origin not allowed." }, 403, cors);
+    }
+
+    if (!guardTokenValid(request, env)) {
+      return json({ error: "Not authorized." }, 403, cors);
     }
 
     if (!env.STRIPE_SECRET_KEY) {

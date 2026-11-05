@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Build, serve the artifact the build actually produced, and test THAT.
 #
+# SIDE EFFECT: the build empties dist/, deleting any prerendered route HTML,
+# so test:claims run straight after this reports CANNOT CHECK. To run both
+# suites, use `npm run test:all` (scripts/test-all.sh), which prerenders
+# between them.
+#
 # The gate that matters is the digest: the wrapper hashes every file the build
 # wrote into dist/, the harness fetches exactly those paths and hashes what came
 # back, and a mismatch REFUSES. That exists because a mutant that fails to
